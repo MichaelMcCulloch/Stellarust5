@@ -8,8 +8,9 @@ pub trait EventFilter: Send + 'static {
 pub trait PathFilter: Send + 'static {
     fn filter_path(&self, path: &Path) -> bool;
 }
-pub trait FileReader<T>: Send + 'static {
-    fn read_file(&self, file: &Path) -> T;
+pub trait FileReader: Send + 'static {
+    type OUT: Send + 'static;
+    fn read_file(&self, file: &Path) -> Self::OUT;
 }
 pub trait Delivery<T>: Send + 'static {
     fn deliver(&self, message: T);
@@ -35,13 +36,15 @@ where
     }
 }
 
-impl<F, T> FileReader<T> for F
+impl<F, T: Send + 'static> FileReader for F
 where
     F: Fn(&Path) -> T + Send + 'static,
 {
     fn read_file(&self, file: &Path) -> T {
         (self)(file)
     }
+
+    type OUT = T;
 }
 
 impl<F, T> Delivery<T> for F
@@ -66,7 +69,7 @@ pub fn create_directory_watcher_and_scan_root<
     T,
     E: EventFilter,
     P: PathFilter,
-    R: FileReader<T>,
+    R: FileReader<OUT = T>,
     D: Delivery<T>,
     S: Startup,
     Dir: AsRef<Path>,

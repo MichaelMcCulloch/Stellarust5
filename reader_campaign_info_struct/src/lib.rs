@@ -6,7 +6,8 @@ use directory_watcher::FileReader;
 
 pub struct CampaignInfoStructReader;
 
-impl FileReader<CampaignInfoStruct> for CampaignInfoStructReader {
+impl FileReader for CampaignInfoStructReader {
+    type OUT = CampaignInfoStruct;
     fn read_file(&self, file: &Path) -> CampaignInfoStruct {
         let (meta_raw, gamestate_raw) = game_data_unzipper::get_zipped_content(file);
         let (_, meta_val) = clausewitz_parser::root(&meta_raw).unwrap();
