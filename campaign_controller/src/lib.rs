@@ -5,18 +5,12 @@ use std::{
     collections::HashMap,
     ops::Deref,
     path::Path,
-    sync::{Arc, Mutex},
-    thread::sleep,
-    time::Duration,
+    sync::{Arc, RwLock},
 };
 
 use actix_broadcaster::{Broadcaster, Client};
 use campaign_info_struct::CampaignInfoStruct;
-use crossbeam::{
-    atomic::AtomicCell,
-    channel::{unbounded, Receiver},
-    thread::{self, Scope},
-};
+use crossbeam::{channel::unbounded, thread::Scope};
 use directory_watcher::{
     create_directory_watcher_and_scan_root, RecommendedWatcher, RecursiveMode,
 };
@@ -25,9 +19,9 @@ use reader_campaign_info_struct::CampaignInfoStructReader;
 use scan_root::ScanSubdirectoriesOfRootForLatestFile;
 
 pub struct CampaignController {
-    campaign_broadcaster: Arc<Mutex<Broadcaster>>,
-    campaign_list: Arc<Mutex<HashMap<String, CampaignInfoStruct>>>,
-    watcher: RecommendedWatcher,
+    campaign_broadcaster: Arc<Broadcaster>,
+    campaign_list: Arc<RwLock<HashMap<String, CampaignInfoStruct>>>,
+    _watcher: RecommendedWatcher,
 }
 
 impl CampaignController {
@@ -45,15 +39,15 @@ impl CampaignController {
             &game_directory,
             RecursiveMode::Recursive,
         );
-        let campaign_list = Arc::new(Mutex::new(HashMap::new()));
-        let campaign_broadcaster = Broadcaster::create();
+        let campaign_list = Arc::new(RwLock::new(HashMap::new()));
+        let campaign_broadcaster = Arc::new(Broadcaster::create());
         let campaign_controller = Self {
             campaign_broadcaster: campaign_broadcaster.clone(),
             campaign_list: campaign_list.clone(),
-            watcher,
+            _watcher: watcher,
         };
 
-        thread_scope.spawn(move |s| loop {
+        thread_scope.spawn(move |_| loop {
             match info_struct_receiver.recv() {
                 Ok(message) => {
                     CampaignController::reconcile(message, campaign_list.clone());
@@ -69,27 +63,31 @@ impl CampaignController {
         campaign_controller
     }
 
+    /// why we can't just put everything inside the thread
+    pub fn get_info_directly(&self) -> HashMap<String, CampaignInfoStruct> {
+        self.campaign_list.read().unwrap().deref().clone()
+    }
+
     pub fn get_client(&self) -> Client {
-        self.campaign_broadcaster.lock().unwrap().new_client()
+        self.campaign_broadcaster.deref().new_client()
     }
 
     fn reconcile(
         message: CampaignInfoStruct,
-        campaign_list: Arc<Mutex<HashMap<String, CampaignInfoStruct>>>,
+        campaign_list: Arc<RwLock<HashMap<String, CampaignInfoStruct>>>,
     ) {
         campaign_list
-            .lock()
+            .write()
             .unwrap()
             .insert(message.campaign_name.clone(), message);
     }
 
     fn broadcast(
-        campaign_list: Arc<Mutex<HashMap<String, CampaignInfoStruct>>>,
-        broadcaster: Arc<Mutex<Broadcaster>>,
+        campaign_list: Arc<RwLock<HashMap<String, CampaignInfoStruct>>>,
+        broadcaster: Arc<Broadcaster>,
     ) {
-        let mutex_guard = campaign_list.lock().unwrap();
+        let mutex_guard = campaign_list.read().unwrap();
         let message = mutex_guard.deref().clone();
-        let broadcaster = broadcaster.lock().unwrap();
-        broadcaster.send(message)
+        broadcaster.send(&message)
     }
 }

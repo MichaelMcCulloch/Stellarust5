@@ -13,5 +13,8 @@ members = [
     "campaign_controller",
     "campaign_info_struct",
     "reader_campaign_info_struct",
+    "clausewitz_value",
+    "clausewitz_parser",
+    "game_data_unzipper",
     "int_test"  
 ]

@@ -8,3 +8,6 @@ edition = "2021"
 [dependencies]
 directory_watcher = {path = "../directory_watcher"}
 campaign_info_struct = {path = "../campaign_info_struct"}
+clausewitz_parser = {path = "../clausewitz_parser"}
+clausewitz_value = {path = "../clausewitz_value"}
+game_data_unzipper = {path = "../game_data_unzipper"}

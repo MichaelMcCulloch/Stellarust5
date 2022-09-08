@@ -4,7 +4,7 @@ pub struct CloseWriteFilter;
 
 impl EventFilter for CloseWriteFilter {
     fn filter_event(&self, event: &directory_watcher::Event) -> bool {
-        matches! {event, Event { kind: EventKind::Access(AccessKind::Close(AccessMode::Write)), paths, attrs }}
+        matches! {event, Event { kind: EventKind::Access(AccessKind::Close(AccessMode::Write)), paths: _, attrs: _ }}
     }
 }
 
