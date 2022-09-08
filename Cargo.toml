@@ -1,0 +1,17 @@
+[package]
+name = "stellarust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[workspace]
+members = [
+    "directory_watcher",
+    "actix_server",
+    "actix_broadcaster",
+    "campaign_controller",
+    "campaign_info_struct",
+    "reader_campaign_info_struct",
+    "int_test"  
+]

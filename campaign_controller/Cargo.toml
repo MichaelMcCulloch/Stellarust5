@@ -1,0 +1,13 @@
+[package]
+name = "campaign_controller"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+directory_watcher = {path = "../directory_watcher"}
+actix_broadcaster = {path = "../actix_broadcaster"}
+campaign_info_struct = {path = "../campaign_info_struct"}
+reader_campaign_info_struct = {path = "../reader_campaign_info_struct"}
+crossbeam = "0.8"
