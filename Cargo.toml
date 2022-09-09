@@ -7,15 +7,15 @@ edition = "2021"
 
 [workspace]
 members = [
-    "directory_watcher",
-    "actix_server",
     "actix_broadcaster",
+    "actix_server",
     "campaign_controller",
     "campaign_info_struct",
-    "reader_campaign_info_struct",
-    "clausewitz_value",
     "clausewitz_parser",
+    "clausewitz_value",
+    "directory_watcher",
     "game_data_unzipper",
+    "int_test",
+    "reader_campaign_info_struct",
     "yew_frontend",
-    "int_test"  
 ]

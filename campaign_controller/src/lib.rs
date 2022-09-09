@@ -52,18 +52,14 @@ impl CampaignController {
             _watcher: watcher,
         };
         scope.spawn(move |s| loop {
-            log::info!("CampaignController loop:");
-
             match info_struct_receiver.recv() {
                 Ok(message) => {
                     CampaignController::reconcile(message, campaign_list.clone());
-                    log::info!("\t reconcile");
 
                     CampaignController::broadcast(
                         campaign_list.clone(),
                         campaign_broadcaster.clone(),
                     );
-                    log::info!("\t broadcast");
                 }
                 Err(_) => break,
             };
@@ -80,7 +76,10 @@ impl CampaignController {
     pub fn get_client(&self) -> Client {
         log::info!("client request");
 
-        self.campaign_broadcaster.new_client()
+        let mutex_guard = self.campaign_list.read().unwrap();
+        let message = mutex_guard.deref().clone();
+        let client = self.campaign_broadcaster.new_client_with_message(&message);
+        client
     }
 
     fn reconcile(
@@ -97,8 +96,7 @@ impl CampaignController {
         campaign_list: Arc<RwLock<HashMap<String, CampaignInfoStruct>>>,
         broadcaster: Arc<Broadcaster>,
     ) {
-        let mutex_guard = campaign_list.read().unwrap();
-        let message = mutex_guard.deref().clone();
+        let message = campaign_list.read().unwrap().deref().clone();
         broadcaster.send(&message)
     }
 }

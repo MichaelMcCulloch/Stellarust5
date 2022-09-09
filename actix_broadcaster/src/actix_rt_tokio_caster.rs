@@ -37,17 +37,27 @@ impl Broadcaster {
 
         Client(bytes_receiver)
     }
+    pub fn new_client_with_message<S: Serialize>(&self, message: &S) -> Client {
+        let (bytes_sender, bytes_receiver) = unbounded_channel();
+        let message_string = &serde_json::to_string(&message).unwrap();
+        bytes_sender
+            .send(Bytes::from("event: connected\ndata: connected\n\n"))
+            .unwrap();
+        bytes_sender
+            .send(Bytes::from(
+                ["event: message\ndata: ", message_string, "\n\n"].concat(),
+            ))
+            .unwrap();
+        log::info!("sending {} to new client", message_string);
+        self.producer.produce(bytes_sender).unwrap();
+
+        Client(bytes_receiver)
+    }
 
     pub fn send<S: Serialize>(&self, message: &S) {
-        log::info!("sending a message ");
-        let msg = Bytes::from(
-            [
-                "event: message\ndata: ",
-                &serde_json::to_string(&message).unwrap(),
-                "\n\n",
-            ]
-            .concat(),
-        );
+        let message_string = &serde_json::to_string(&message).unwrap();
+        let message_bytes =
+            Bytes::from(["event: message\ndata: ", message_string, "\n\n"].concat());
 
         let mut write_back = vec![];
 
@@ -55,13 +65,11 @@ impl Broadcaster {
         let c = self.consumer.clone();
 
         while let Ok(sender) = c.consume() {
-            log::info!("Found a sender");
-            match sender.send(msg.clone()) {
-                Ok(_) => log::info!("Success"),
-                Err(e) => log::warn!("Failed to send message"),
-            };
+            sender.send(message_bytes.clone()).unwrap();
             write_back.push(sender);
         }
+        log::info!("sending {} to {} clients", message_string, write_back.len());
+
         while let Some(sender) = write_back.pop() {
             p.produce(sender).unwrap();
         }
@@ -95,7 +103,11 @@ impl Broadcaster {
                 count += 1
             }
         }
-        log::info!("Removed {:?} stale clients", count);
+        log::info!(
+            "Removed {} stale clients, retaining {}",
+            count,
+            write_back.len()
+        );
         while let Some(sender) = write_back.pop() {
             producer.produce(sender).unwrap();
         }
