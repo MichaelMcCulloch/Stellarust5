@@ -1,10 +1,15 @@
-use std::{path::PathBuf, sync::Arc};
+use std::path::PathBuf;
 
 use actix_cors::Cors;
-use actix_web::{get, middleware, web::Data, App, HttpResponse, HttpServer, Responder};
+use actix_web::{
+    dev::ServerHandle, get, middleware, rt, web::Data, App, HttpResponse, HttpServer, Responder,
+};
 
 use campaign_controller::CampaignController;
-use crossbeam::thread;
+use crossbeam::{
+    channel::{unbounded, Sender},
+    thread::{self, Scope},
+};
 use listenfd::ListenFd;
 
 #[get("/")]
@@ -20,11 +25,25 @@ pub async fn campaign(s: Data<CampaignController>) -> impl Responder {
         .streaming(s.get_client())
 }
 
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    std::env::set_var("RUST_LOG", "info");
-    env_logger::init();
+fn main() -> Result<(), Box<(dyn std::any::Any + Send + 'static)>> {
+    thread::scope(|scope| {
+        std::env::set_var("RUST_LOG", "info");
+        env_logger::init();
 
+        let (t, r) = unbounded();
+
+        scope.spawn(|scope| -> Result<_, std::io::Error> {
+            let server_future = run_app(t, scope);
+            rt::System::new().block_on(server_future)
+        });
+
+        let server_handle = r.recv().unwrap();
+
+        // rt::System::new().block_on(server_handle.stop(true))
+    })
+}
+
+async fn run_app(t: Sender<ServerHandle>, scope: &Scope<'_>) -> std::io::Result<()> {
     let campaign_controller = Data::new(CampaignController::create(&PathBuf::from(
         "/home/michael/.local/share/Paradox Interactive/Stellaris/save games/",
     )));
@@ -45,5 +64,9 @@ async fn main() -> std::io::Result<()> {
         server.bind("0.0.0.0:8000").unwrap()
     };
 
-    server.run().await
+    let s = server.run();
+
+    let _ = t.send(s.handle());
+
+    s.await
 }
