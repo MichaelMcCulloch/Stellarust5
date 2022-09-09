@@ -1,0 +1,34 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Deploy Server",
+            "command": "systemfd --no-pid -s http::8000 -- cargo-watch -x 'run --package actix_server --bin actix_server --release'",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/actix_server"
+            },
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Deploy Client",
+            "type": "shell",
+            "command": "trunk serve --release",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}/yew_frontend"
+            },
+            "dependsOn": [],
+            "isBackground": true,
+            "problemMatcher": [
+                "$rustc"
+            ]
+        }
+    ]
+}
