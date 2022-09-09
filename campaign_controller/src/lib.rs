@@ -6,6 +6,7 @@ use std::{
     ops::Deref,
     path::Path,
     sync::{Arc, RwLock},
+    thread,
 };
 
 use actix_broadcaster::{Broadcaster, Client};
@@ -25,7 +26,7 @@ pub struct CampaignController {
 }
 
 impl CampaignController {
-    pub fn create<P: AsRef<Path>>(game_directory: &P, thread_scope: &Scope) -> Self {
+    pub fn create(game_directory: &Path) -> Self {
         let (info_struct_sender, info_struct_receiver) = unbounded();
 
         let watcher = create_directory_watcher_and_scan_root(
@@ -33,7 +34,7 @@ impl CampaignController {
             EndsWithSavFilter,
             CampaignInfoStructReader,
             move |message| -> () {
-                info_struct_sender.send(message).unwrap();
+                info_struct_sender.clone().send(message).unwrap();
             },
             ScanSubdirectoriesOfRootForLatestFile,
             &game_directory,
@@ -47,7 +48,7 @@ impl CampaignController {
             _watcher: watcher,
         };
 
-        thread_scope.spawn(move |_| loop {
+        thread::spawn(move || loop {
             match info_struct_receiver.recv() {
                 Ok(message) => {
                     CampaignController::reconcile(message, campaign_list.clone());
@@ -69,7 +70,9 @@ impl CampaignController {
     }
 
     pub fn get_client(&self) -> Client {
-        self.campaign_broadcaster.deref().new_client()
+        log::info!("client request");
+
+        self.campaign_broadcaster.new_client()
     }
 
     fn reconcile(

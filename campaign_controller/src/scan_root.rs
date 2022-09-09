@@ -4,7 +4,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use directory_watcher::Startup;
+use directory_watcher::{PathFilter, Startup};
+
+use crate::filter::EndsWithSavFilter;
 
 pub struct ScanSubdirectoriesOfRootForLatestFile;
 
@@ -22,10 +24,10 @@ impl ScanSubdirectoriesOfRootForLatestFile {
         }
     }
 
-    fn select_files(sub_entry: Result<DirEntry, Error>) -> Option<DirEntry> {
+    fn select_files_ending_in_sav(sub_entry: Result<DirEntry, Error>) -> Option<DirEntry> {
         match sub_entry {
             Ok(file_entry) => {
-                if file_entry.path().is_file() {
+                if EndsWithSavFilter.filter_path(&file_entry.path()) {
                     Some(file_entry)
                 } else {
                     None
@@ -54,9 +56,8 @@ impl Startup for ScanSubdirectoriesOfRootForLatestFile {
             .map(|subdirectory| {
                 let child_items = std::fs::read_dir(subdirectory.path())
                     .unwrap()
-                    .filter_map(|sub_entry| Self::select_files(sub_entry))
+                    .filter_map(|sub_entry| Self::select_files_ending_in_sav(sub_entry))
                     .collect::<Vec<_>>();
-
                 Self::select_most_recently_modified_file(child_items).path()
             })
             .collect::<Vec<_>>()

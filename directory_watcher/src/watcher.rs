@@ -86,6 +86,7 @@ pub fn create_directory_watcher_and_scan_root<
     for d in discovered {
         if path_filter.filter_path(&d) {
             let result = file_reader.read_file(d.as_path());
+
             delivery.deliver(result);
         }
     }

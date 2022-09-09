@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 zip = "0.6.2"
+memmap = "0.7.0"

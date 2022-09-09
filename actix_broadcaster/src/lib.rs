@@ -8,19 +8,22 @@ use std::{
 use actix_rt::time::{interval_at, Instant};
 use bytes::Bytes;
 use crossbeam::channel::{unbounded, Receiver, Sender, TryRecvError};
+use crtq::{channel, Consumer, Producer};
 use futures::Stream;
 use serde::Serialize;
 
 pub struct Broadcaster {
-    clients: Arc<RwLock<Vec<Sender<Bytes>>>>,
+    producer: Producer<Sender<Bytes>>,
+    consumer: Consumer<Sender<Bytes>>,
 }
 impl Broadcaster {
     const PING_INTERVAL: u64 = 10;
 
     pub fn create() -> Self {
-        let clients = Arc::new(RwLock::new(Vec::new()));
-        Broadcaster::spawn_ping(clients.clone());
-        Broadcaster { clients: clients }
+        let (producer, consumer) = channel(16, 16);
+        let me = Broadcaster { producer, consumer };
+        me.spawn_ping();
+        me
     }
 
     pub fn new_client(&self) -> Client {
@@ -30,14 +33,13 @@ impl Broadcaster {
             .try_send(Bytes::from("event: connected\ndata: connected\n\n"))
             .unwrap();
 
-        {
-            let mut clients_lock = self.clients.write().unwrap();
-            (*clients_lock).push(bytes_sender);
-        }
+        self.producer.produce(bytes_sender).unwrap();
+
         Client(bytes_receiver)
     }
 
     pub fn send<S: Serialize>(&self, message: &S) {
+        log::info!("sending a message ");
         let msg = Bytes::from(
             [
                 "event: message\ndata: ",
@@ -47,26 +49,57 @@ impl Broadcaster {
             .concat(),
         );
 
-        for client in self.clients.read().unwrap().iter() {
-            client.try_send(msg.clone()).unwrap_or(());
+        let mut write_back = vec![];
+
+        let p = self.producer.clone();
+        let c = self.consumer.clone();
+
+        while let Ok(sender) = c.consume() {
+            log::info!("Found a sender");
+            match sender.try_send(msg.clone()) {
+                Ok(_) => log::info!("Success"),
+                Err(e) => log::warn!("Failed to send message"),
+            };
+            write_back.push(sender);
+        }
+        while let Some(sender) = write_back.pop() {
+            p.produce(sender).unwrap();
         }
     }
 
-    fn spawn_ping(clients: Arc<RwLock<Vec<Sender<Bytes>>>>) {
+    fn spawn_ping(&self) {
+        let producer = self.producer.clone();
+        let consumer = self.consumer.clone();
         actix_rt::spawn(async move {
             let mut task = interval_at(Instant::now(), Duration::from_secs(Self::PING_INTERVAL));
+
             loop {
                 task.tick().await;
-                Self::remove_stale_clients(&clients);
+                Self::remove_stale_clients(&producer, &consumer);
             }
         });
     }
-    fn remove_stale_clients(clients: &Arc<RwLock<Vec<Sender<Bytes>>>>) {
-        clients.write().unwrap().retain(|client| {
-            client
-                .try_send(Bytes::from("event: ping\ndata: ping\n\n"))
+    fn remove_stale_clients(
+        producer: &Producer<Sender<Bytes>>,
+        consumer: &Consumer<Sender<Bytes>>,
+    ) {
+        let producer = producer.clone();
+        let consumer = consumer.clone();
+        let mut write_back = vec![];
+
+        while let Ok(sender) = consumer.consume() {
+            if sender
+                .send(Bytes::from("event: ping\ndata: ping\n\n"))
                 .is_ok()
-        });
+            {
+                write_back.push(sender);
+            } else {
+                log::info!("removing sender")
+            }
+        }
+        while let Some(sender) = write_back.pop() {
+            producer.produce(sender).unwrap();
+        }
     }
 }
 

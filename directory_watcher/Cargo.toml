@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 notify = "5"
+log = "0.4"
