@@ -1,5 +1,5 @@
+use actix_rt::time::{interval_at, Instant};
 use bytes::Bytes;
-use crossbeam::thread::Scope;
 use crtq::{channel as queue, Consumer, Producer};
 use futures::Stream;
 use rayon::prelude::*;
@@ -17,10 +17,10 @@ pub struct Broadcaster {
 impl Broadcaster {
     const PING_INTERVAL: u64 = 10;
 
-    pub fn create(scope: &Scope<'_>) -> Self {
+    pub fn create() -> Self {
         let (producer, consumer) = queue(16, 16);
         let me = Broadcaster { producer, consumer };
-        me.spawn_ping(scope);
+        me.spawn_ping();
         me
     }
 
@@ -77,12 +77,15 @@ impl Broadcaster {
         }
     }
 
-    fn spawn_ping(&self, scope: &Scope<'_>) {
+    fn spawn_ping(&self) {
         let producer = self.producer.clone();
         let consumer = self.consumer.clone();
-        scope.spawn(move |_| loop {
-            std::thread::sleep(Duration::from_secs(Self::PING_INTERVAL));
-            futures::executor::block_on(Self::remove_stale_clients(&producer, &consumer));
+        actix_web::rt::spawn(async move {
+            let mut task = interval_at(Instant::now(), Duration::from_secs(Self::PING_INTERVAL));
+            loop {
+                task.tick().await;
+                Self::remove_stale_clients(&producer, &consumer).await;
+            }
         });
     }
     async fn remove_stale_clients(

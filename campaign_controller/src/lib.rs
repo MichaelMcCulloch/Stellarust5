@@ -45,7 +45,7 @@ impl CampaignController {
             RecursiveMode::Recursive,
         );
         let campaign_list = Arc::new(RwLock::new(HashMap::new()));
-        let campaign_broadcaster = Arc::new(Broadcaster::create(scope));
+        let campaign_broadcaster = Arc::new(Broadcaster::create());
         let campaign_controller = Self {
             campaign_broadcaster: campaign_broadcaster.clone(),
             campaign_list: campaign_list.clone(),
