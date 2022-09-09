@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use actix_cors::Cors;
+use actix_rt::Arbiter;
 use actix_web::{
     dev::ServerHandle, get, middleware, rt, web::Data, App, HttpResponse, HttpServer, Responder,
 };
@@ -22,6 +23,8 @@ pub async fn campaign(s: Data<CampaignController>) -> impl Responder {
     log::info!("connection request");
     HttpResponse::Ok()
         .append_header(("content-type", "text/event-stream"))
+        .append_header(("connection", "keep-alive"))
+        .append_header(("cache-control", "no-cache"))
         .streaming(s.get_client())
 }
 
@@ -44,9 +47,10 @@ fn main() -> Result<(), Box<(dyn std::any::Any + Send + 'static)>> {
 }
 
 async fn run_app(t: Sender<ServerHandle>, scope: &Scope<'_>) -> std::io::Result<()> {
-    let campaign_controller = Data::new(CampaignController::create(&PathBuf::from(
-        "/home/michael/.local/share/Paradox Interactive/Stellaris/save games/",
-    )));
+    let campaign_controller = Data::new(CampaignController::create(
+        &PathBuf::from("/home/michael/.local/share/Paradox Interactive/Stellaris/save games/"),
+        scope,
+    ));
     let mut server = HttpServer::new(move || {
         App::new()
             .wrap(middleware::Logger::default())

@@ -10,8 +10,12 @@ use std::{
 };
 
 use actix_broadcaster::{Broadcaster, Client};
+use actix_rt::ArbiterHandle;
 use campaign_info_struct::CampaignInfoStruct;
-use crossbeam::{channel::unbounded, thread::Scope};
+use crossbeam::{
+    channel::{unbounded, Receiver},
+    thread::Scope,
+};
 use directory_watcher::{
     create_directory_watcher_and_scan_root, RecommendedWatcher, RecursiveMode,
 };
@@ -26,7 +30,7 @@ pub struct CampaignController {
 }
 
 impl CampaignController {
-    pub fn create(game_directory: &Path) -> Self {
+    pub fn create(game_directory: &Path, scope: &Scope<'_>) -> Self {
         let (info_struct_sender, info_struct_receiver) = unbounded();
 
         let watcher = create_directory_watcher_and_scan_root(
@@ -41,23 +45,27 @@ impl CampaignController {
             RecursiveMode::Recursive,
         );
         let campaign_list = Arc::new(RwLock::new(HashMap::new()));
-        let campaign_broadcaster = Arc::new(Broadcaster::create());
+        let campaign_broadcaster = Arc::new(Broadcaster::create(scope));
         let campaign_controller = Self {
             campaign_broadcaster: campaign_broadcaster.clone(),
             campaign_list: campaign_list.clone(),
             _watcher: watcher,
         };
+        scope.spawn(move |s| loop {
+            log::info!("CampaignController loop:");
 
-        thread::spawn(move || loop {
             match info_struct_receiver.recv() {
                 Ok(message) => {
                     CampaignController::reconcile(message, campaign_list.clone());
+                    log::info!("\t reconcile");
+
                     CampaignController::broadcast(
                         campaign_list.clone(),
                         campaign_broadcaster.clone(),
-                    )
+                    );
+                    log::info!("\t broadcast");
                 }
-                Err(_) => {}
+                Err(_) => break,
             };
         });
 

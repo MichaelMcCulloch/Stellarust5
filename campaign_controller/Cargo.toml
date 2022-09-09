@@ -12,3 +12,4 @@ campaign_info_struct = {path = "../campaign_info_struct"}
 reader_campaign_info_struct = {path = "../reader_campaign_info_struct"}
 crossbeam = "0.8"
 log = "0.4"
+actix-rt = "2.7"
