@@ -1,16 +1,14 @@
-use std::{
-    pin::Pin,
-    task::{Context, Poll},
-    thread,
-    time::Duration,
-};
-
-use actix_rt::time::{interval_at, Instant};
 use bytes::Bytes;
 use crossbeam::thread::Scope;
 use crtq::{channel as queue, Consumer, Producer};
 use futures::Stream;
+use rayon::prelude::*;
 use serde::Serialize;
+use std::{
+    pin::Pin,
+    task::{Context, Poll},
+    time::Duration,
+};
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 pub struct Broadcaster {
     producer: Producer<UnboundedSender<Bytes>>,
@@ -59,15 +57,19 @@ impl Broadcaster {
         let message_bytes =
             Bytes::from(["event: message\ndata: ", message_string, "\n\n"].concat());
 
-        let mut write_back = vec![];
-
         let p = self.producer.clone();
         let c = self.consumer.clone();
 
+        let mut write_back = vec![];
+
         while let Ok(sender) = c.consume() {
-            sender.send(message_bytes.clone()).unwrap();
             write_back.push(sender);
         }
+
+        write_back.par_iter().for_each(|sender| {
+            sender.send(message_bytes.clone()).unwrap();
+        });
+
         log::info!("sending {} to {} clients", message_string, write_back.len());
 
         while let Some(sender) = write_back.pop() {
@@ -78,9 +80,8 @@ impl Broadcaster {
     fn spawn_ping(&self, scope: &Scope<'_>) {
         let producer = self.producer.clone();
         let consumer = self.consumer.clone();
-        scope.spawn(move |s| {
-            let mut task = interval_at(Instant::now(), Duration::from_secs(10));
-            futures::executor::block_on(task.tick());
+        scope.spawn(move |_| loop {
+            std::thread::sleep(Duration::from_secs(Self::PING_INTERVAL));
             futures::executor::block_on(Self::remove_stale_clients(&producer, &consumer));
         });
     }
@@ -88,27 +89,27 @@ impl Broadcaster {
         producer: &Producer<UnboundedSender<Bytes>>,
         consumer: &Consumer<UnboundedSender<Bytes>>,
     ) {
-        let producer = producer.clone();
-        let consumer = consumer.clone();
         let mut write_back = vec![];
 
-        let mut count = 0;
         while let Ok(sender) = consumer.consume() {
-            if sender
-                .send(Bytes::from("event: ping\ndata: ping\n\n"))
-                .is_ok()
-            {
-                write_back.push(sender);
-            } else {
-                count += 1
-            }
+            write_back.push(sender);
         }
-        log::info!(
-            "Removed {} stale clients, retaining {}",
-            count,
-            write_back.len()
-        );
-        while let Some(sender) = write_back.pop() {
+
+        let mut map = write_back
+            .par_drain(..)
+            .filter_map(|sender| {
+                if sender
+                    .send(Bytes::from("event: ping\ndata: ping\n\n"))
+                    .is_ok()
+                {
+                    Some(sender)
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+        log::info!("Retaining {} clients", map.len());
+        while let Some(sender) = map.pop() {
             producer.produce(sender).unwrap();
         }
     }

@@ -51,7 +51,7 @@ impl CampaignController {
             campaign_list: campaign_list.clone(),
             _watcher: watcher,
         };
-        scope.spawn(move |s| loop {
+        scope.spawn(move |_s| loop {
             match info_struct_receiver.recv() {
                 Ok(message) => {
                     CampaignController::reconcile(message, campaign_list.clone());
