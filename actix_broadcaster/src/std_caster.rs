@@ -42,7 +42,7 @@ impl Broadcaster {
         let msg = Bytes::from(
             [
                 "event: message\ndata: ",
-                "duck", //,
+                &serde_json::to_string(&message).unwrap(),
                 "\n\n",
             ]
             .concat(),

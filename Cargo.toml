@@ -16,5 +16,6 @@ members = [
     "clausewitz_value",
     "clausewitz_parser",
     "game_data_unzipper",
+    "yew_frontend",
     "int_test"  
 ]
