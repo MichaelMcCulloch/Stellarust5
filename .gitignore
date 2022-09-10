@@ -1,2 +1,5 @@
-/target
+target
 Cargo.lock
+production_data/*
+!production_data/prepare_data.sh
+!production_data/*.tar.xz
