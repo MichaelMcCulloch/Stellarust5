@@ -48,7 +48,7 @@ fn main() -> Result<(), Box<(dyn std::any::Any + Send + 'static)>> {
 
 async fn run_app(t: Sender<ServerHandle>, scope: &Scope<'_>) -> std::io::Result<()> {
     let campaign_controller = Data::new(CampaignController::create(
-        &PathBuf::from("/home/michael/.local/share/Paradox Interactive/Stellaris/save games/"),
+        &PathBuf::from("/home/michael/Dev/Stellarust/stellarust5/production_data/"),
         scope,
     ));
     let mut server = HttpServer::new(move || {

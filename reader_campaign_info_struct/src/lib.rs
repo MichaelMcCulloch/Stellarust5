@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{path::Path, thread, time::Duration};
 mod player_kinds;
 use campaign_info_struct::{CampaignInfoStruct, Empire};
 use clausewitz_parser::{ClausewitzValue, IndexError, Val};
@@ -12,6 +12,7 @@ impl FileReader for CampaignInfoStructReader {
         let (meta_raw, gamestate_raw) = game_data_unzipper::get_zipped_content(file);
         let (_, meta_val) = clausewitz_parser::root(&meta_raw).unwrap();
         let (_, gamestate_val) = clausewitz_parser::root(&gamestate_raw).unwrap();
+
         self.extract(&meta_val, &gamestate_val)
     }
 }
@@ -28,6 +29,7 @@ impl CampaignInfoStructReader {
             Ok(countries_vec) => countries_vec,
             Err(_) => panic!("Cannot proceed without country array in gamestate!!!"),
         };
+
         let player_list = gamestate
             .get_set_at_path("player")
             .unwrap()
@@ -39,6 +41,9 @@ impl CampaignInfoStructReader {
                 )
             })
             .collect::<Vec<_>>();
+        println!("{:?}", player_list);
+        thread::sleep(Duration::from_secs(5));
+
         let country_list = countries
             .iter()
             .enumerate()
@@ -51,6 +56,7 @@ impl CampaignInfoStructReader {
                             None
                         }
                     }) {
+                    println!("found {}", name.to_string());
                     PlayerKind::Human(name.to_string())
                 } else {
                     PlayerKind::Machine
@@ -61,11 +67,13 @@ impl CampaignInfoStructReader {
                 }
             })
             .collect();
+        println!("{:?}", country_list);
+
         country_list
     }
     fn create_empire_data(country: &Val, player_kind: PlayerKind) -> Result<Empire, IndexError> {
         Ok(Empire {
-            name: String::from(country.get_string_at_path("name")?),
+            name: String::from(country.get_string_at_path("name.key")?),
             player: match player_kind {
                 PlayerKind::Human(name) => Some(name),
                 PlayerKind::Machine => None,
