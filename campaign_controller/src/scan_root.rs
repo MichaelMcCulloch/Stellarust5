@@ -50,7 +50,7 @@ impl ScanSubdirectoriesOfRootForLatestFile {
 
 impl Startup for ScanSubdirectoriesOfRootForLatestFile {
     fn startup(&self, root_directory: &Path) -> Vec<PathBuf> {
-        let collect = std::fs::read_dir(root_directory)
+        std::fs::read_dir(root_directory)
             .unwrap()
             .filter_map(|entry| Self::select_directories(entry))
             .map(|subdirectory| {
@@ -60,8 +60,6 @@ impl Startup for ScanSubdirectoriesOfRootForLatestFile {
                     .collect::<Vec<_>>();
                 Self::select_most_recently_modified_file(child_items).path()
             })
-            .collect::<Vec<_>>();
-        println!("{:?}", collect);
-        collect
+            .collect::<Vec<_>>()
     }
 }

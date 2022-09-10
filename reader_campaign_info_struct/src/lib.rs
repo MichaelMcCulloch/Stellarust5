@@ -41,8 +41,6 @@ impl CampaignInfoStructReader {
                 )
             })
             .collect::<Vec<_>>();
-        println!("{:?}", player_list);
-        thread::sleep(Duration::from_secs(5));
 
         let country_list = countries
             .iter()
@@ -56,7 +54,6 @@ impl CampaignInfoStructReader {
                             None
                         }
                     }) {
-                    println!("found {}", name.to_string());
                     PlayerKind::Human(name.to_string())
                 } else {
                     PlayerKind::Machine
@@ -67,7 +64,6 @@ impl CampaignInfoStructReader {
                 }
             })
             .collect();
-        println!("{:?}", country_list);
 
         country_list
     }
