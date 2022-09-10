@@ -51,27 +51,29 @@ impl CampaignController {
             campaign_list: campaign_list.clone(),
             _watcher: watcher,
         };
-        scope.spawn(move |_s| loop {
-            match info_struct_receiver.recv() {
-                Ok(message) => {
-                    CampaignController::reconcile(message, campaign_list.clone());
+        scope.spawn(move |_s| {
+            let campaign_list = campaign_list.clone();
+            let broadcaster = campaign_broadcaster.clone();
 
-                    CampaignController::broadcast(
-                        campaign_list.clone(),
-                        campaign_broadcaster.clone(),
-                    );
-                }
-                Err(_) => break,
-            };
+            loop {
+                match info_struct_receiver.recv() {
+                    Ok(message) => {
+                        CampaignController::reconcile(message, &campaign_list);
+
+                        CampaignController::broadcast(&campaign_list, &broadcaster);
+                    }
+                    Err(_) => break,
+                };
+            }
         });
 
         campaign_controller
     }
 
-    /// why we can't just put everything inside the thread
-    pub fn get_info_directly(&self) -> HashMap<String, CampaignInfoStruct> {
-        self.campaign_list.read().unwrap().deref().clone()
-    }
+    /// why we can't just put the ARC<RWLOCK<_>> inside the thread
+    // pub fn get_info_directly(&self) -> HashMap<String, CampaignInfoStruct> {
+    //     self.campaign_list.read().unwrap().deref().clone()
+    // }
 
     pub fn get_client(&self) -> Client {
         log::info!("client request");
@@ -84,7 +86,7 @@ impl CampaignController {
 
     fn reconcile(
         message: CampaignInfoStruct,
-        campaign_list: Arc<RwLock<HashMap<String, CampaignInfoStruct>>>,
+        campaign_list: &Arc<RwLock<HashMap<String, CampaignInfoStruct>>>,
     ) {
         campaign_list
             .write()
@@ -93,10 +95,11 @@ impl CampaignController {
     }
 
     fn broadcast(
-        campaign_list: Arc<RwLock<HashMap<String, CampaignInfoStruct>>>,
-        broadcaster: Arc<Broadcaster>,
+        campaign_list: &Arc<RwLock<HashMap<String, CampaignInfoStruct>>>,
+        broadcaster: &Arc<Broadcaster>,
     ) {
-        let message = campaign_list.read().unwrap().deref().clone();
-        broadcaster.send(&message)
+        let rw_lock_read_guard = campaign_list.read().unwrap();
+        let message = rw_lock_read_guard.deref();
+        broadcaster.send(message)
     }
 }

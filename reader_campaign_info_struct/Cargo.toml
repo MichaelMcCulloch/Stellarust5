@@ -8,6 +8,8 @@ edition = "2021"
 [dependencies]
 directory_watcher = {path = "../directory_watcher"}
 campaign_info_struct = {path = "../campaign_info_struct"}
-clausewitz_parser = {path = "../clausewitz_parser"}
-clausewitz_value = {path = "../clausewitz_value"}
+clausewitz_parser = { git = "https://github.com/MichaelMcCulloch/clausewitz-parser" }
 game_data_unzipper = {path = "../game_data_unzipper"}
+log = "0.4"
+serde_json = "1"
+serde = "1"

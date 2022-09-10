@@ -11,8 +11,6 @@ members = [
     "actix_server",
     "campaign_controller",
     "campaign_info_struct",
-    "clausewitz_parser",
-    "clausewitz_value",
     "directory_watcher",
     "game_data_unzipper",
     "int_test",
