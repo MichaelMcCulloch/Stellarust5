@@ -9,8 +9,11 @@ tar -xf $1.tar.xz
             cd $campaign
             for save in ./*
             do
-                echo $save
-                zip -r ./$save.sav $save/meta $save/gamestate
+                (
+                    cd $save
+                    zip -r ../$save.sav ./meta ./gamestate
+                    
+                )
                 rm -r $save
                 
             done
