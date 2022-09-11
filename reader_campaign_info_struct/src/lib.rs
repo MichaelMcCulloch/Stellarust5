@@ -30,17 +30,18 @@ impl CampaignInfoStructReader {
             Err(_) => panic!("Cannot proceed without country array in gamestate!!!"),
         };
 
-        let player_list = gamestate
-            .get_set_at_path("player")
-            .unwrap()
-            .iter()
-            .map(|val| {
-                (
-                    val.get_string_at_path("name").unwrap(),
-                    val.get_integer_at_path("country").unwrap(),
-                )
-            })
-            .collect::<Vec<_>>();
+        let player_list = match gamestate.get_set_at_path("player") {
+            Ok(player_list) => player_list
+                .iter()
+                .map(|val| {
+                    (
+                        val.get_string_at_path("name").unwrap(),
+                        val.get_integer_at_path("country").unwrap(),
+                    )
+                })
+                .collect::<Vec<_>>(),
+            Err(_) => vec![],
+        };
 
         let country_list = countries
             .iter()

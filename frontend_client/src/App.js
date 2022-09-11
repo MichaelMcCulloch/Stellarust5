@@ -3,12 +3,14 @@ import './App.css';
 
 function CampaignButton(props) {
   return <li>
-    <div>
-      {props.campaign_name}
-    </div>
-    <div>
-      {props.empire_list.map((a) => <div>{a.name} {a.player}</div>)}
-    </div>
+    <a class="button">
+      <div>
+        {props.campaign_name}
+      </div>
+      <div>
+        {props.empire_list.map((a) => <div>{a.name} {a.player}</div>)}
+      </div>
+    </a>
   </li>;
 }
 function CampaignSelect(props) {
