@@ -17,7 +17,7 @@
             "group": "build"
         },
         {
-            "label": "Deploy Client",
+            "label": "Deploy Yew Client",
             "type": "shell",
             "command": "trunk serve --release",
             "group": "build",
@@ -29,6 +29,28 @@
             "problemMatcher": [
                 "$rustc"
             ]
+        },
+        {
+            "label": "Deploy React Client",
+            "type": "shell",
+            "command": "npm run build && miniserve  -p 3000  ./build/ --index index.html",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}/frontend_client"
+            },
+            "dependsOn": [],
+            "isBackground": true,
+        },
+        {
+            "label": "Debug React Client",
+            "type": "shell",
+            "command": "npm start",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}/frontend_client"
+            },
+            "dependsOn": [],
+            "isBackground": true,
         }
     ]
 }
