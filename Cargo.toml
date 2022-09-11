@@ -15,4 +15,5 @@ members = [
     "game_data_unzipper",
     "int_test",
     "reader_campaign_info_struct",
+    "yew_frontend",
 ]

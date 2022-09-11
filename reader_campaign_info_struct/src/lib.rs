@@ -58,9 +58,12 @@ impl CampaignInfoStructReader {
                 } else {
                     PlayerKind::Machine
                 };
-                match Self::create_empire_data(country, player_kind) {
-                    Ok(empire_data) => Some(empire_data),
-                    Err(_) => None,
+                match player_kind {
+                    PlayerKind::Human(_) => match Self::create_empire_data(country, player_kind) {
+                        Ok(empire) => Some(empire),
+                        Err(_) => None,
+                    },
+                    PlayerKind::Machine => None,
                 }
             })
             .collect();
