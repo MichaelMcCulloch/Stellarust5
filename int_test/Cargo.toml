@@ -7,5 +7,6 @@ edition = "2021"
 
 [dev-dependencies]
 campaign_controller= {path = "../campaign_controller"}
+game_data_controller= {path = "../game_data_controller"}
 crossbeam = "0.8"
 actix-rt ="2.7"

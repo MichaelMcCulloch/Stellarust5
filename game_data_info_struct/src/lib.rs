@@ -59,8 +59,14 @@ pub enum ResourceClass {
 #[derive(Debug, PartialEq, Clone)]
 pub struct EmpireData {
     pub name: String,
+    pub driver: PlayerClass,
     pub budget: Budget,
     pub resources: Resources,
+}
+#[derive(Debug, PartialEq, Clone)]
+pub enum PlayerClass {
+    Human(String),
+    Computer,
 }
 
 #[derive(Debug, PartialEq, Clone)]
