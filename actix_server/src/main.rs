@@ -11,6 +11,7 @@ use crossbeam::{
     channel::{unbounded, Sender},
     thread::{self, Scope},
 };
+use game_data_controller::GameModelController;
 use listenfd::ListenFd;
 
 #[get("/")]
@@ -51,11 +52,16 @@ async fn run_app(t: Sender<ServerHandle>, scope: &Scope<'_>) -> std::io::Result<
         &PathBuf::from("/home/michael/Dev/Stellarust/stellarust5/production_data/3.4.5.95132"),
         scope,
     ));
+    let game_data_controller = Data::new(GameModelController::create(
+        &PathBuf::from("/home/michael/Dev/Stellarust/stellarust5/production_data/3.4.5.95132"),
+        scope,
+    ));
     let mut server = HttpServer::new(move || {
         App::new()
             .wrap(middleware::Logger::default())
             .wrap(Cors::default().allow_any_header().allow_any_origin())
             .app_data(campaign_controller.clone())
+            .app_data(game_data_controller.clone())
             .service(index)
             .service(campaign)
     });

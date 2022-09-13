@@ -16,3 +16,4 @@ crossbeam= "0.8"
 anyhow= "1.0"
 
 campaign_controller = {path = "../campaign_controller"}
+game_data_controller = {path = "../game_data_controller"}

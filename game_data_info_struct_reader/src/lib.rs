@@ -171,11 +171,15 @@ impl GameDataInfoStructReader {
 
     fn extract(meta: &Val, gamestate: &Val) -> ModelDataPoint {
         let country = gamestate.get_array_at_path("country").expect("array `country`  not found in parsed gamestate. Something has gone wrong, check your parser!");
-        let player_list = gamestate.get_set_at_path("player").expect("set `player`  not found in parsed gamestate. Something has gone wrong, check your parser!");
+        let empires = if let Ok(v) = gamestate.get_set_at_path("player") {
+            Self::extract_empires(country, v)
+        } else {
+            Self::extract_empires(country, &vec![])
+        };
 
         ModelDataPoint {
             campaign_name: meta.get_string_at_path("name").expect("key `name` not found in parsed meta file. Something has gone wrong, check your parser!").to_string(),
-            empires: Self::extract_empires(country, player_list),
+            empires: empires,
         }
     }
 }

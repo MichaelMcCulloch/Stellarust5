@@ -105,6 +105,7 @@ impl GameModelController {
         scope.spawn(move |_s| loop {
             match info_struct_receiver.recv() {
                 Ok(data_point) => {
+                    log::info!("Received {:?}", data_point);
                     Self::reconcile(&data_point, &model_history);
                     let mut guard = broadcasters_map.write().unwrap();
                     let mut map = std::mem::take(&mut *guard);
