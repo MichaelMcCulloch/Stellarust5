@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{Model, ModelSpec};
-use game_data_info_struct::{ModelDataPoint, ResourceClass};
+use game_data_info_struct::ModelDataPoint;
 use serde_derive::Serialize;
 
 use super::date::Date;
@@ -21,13 +21,13 @@ impl Model for BudgetStreamGraphModel {
         Self { list: vec![] }
     }
 
-    fn update(&mut self, game_data: &ModelDataPoint) -> Option<Self::Representation> {
+    fn update(&mut self, _game_data: &ModelDataPoint) -> Option<Self::Representation> {
         todo!()
     }
 
     fn update_all(
         &mut self,
-        game_data_history: &HashMap<String, Vec<ModelDataPoint>>,
+        _game_data_history: &HashMap<String, Vec<ModelDataPoint>>,
     ) -> Option<Self::Representation> {
         todo!()
     }

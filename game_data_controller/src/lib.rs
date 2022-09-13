@@ -18,16 +18,14 @@ use model_info_struct::{
     Model,
 };
 use notify::RecommendedWatcher;
-use rayon::prelude::{
-    IntoParallelRefMutIterator, ParallelDrainFull, ParallelDrainRange, ParallelIterator,
-};
+use rayon::prelude::{ParallelDrainFull, ParallelIterator};
 use scan_root::ScanAllFoldersAndFiles;
 mod filter;
 mod scan_root;
 pub struct GameModelController {
     broadcasters_map: Arc<RwLock<HashMap<ModelSpecEnum, (ModelEnum, Broadcaster)>>>,
     game_data_history: Arc<RwLock<HashMap<String, Vec<ModelDataPoint>>>>,
-    watcher: RecommendedWatcher,
+    _watcher: RecommendedWatcher,
 }
 
 impl GameModelController {
@@ -49,7 +47,7 @@ impl GameModelController {
         let game_model_controller = Self {
             broadcasters_map: broadcasters_map.clone(),
             game_data_history: game_data_history.clone(),
-            watcher,
+            _watcher: watcher,
         };
         Self::spawn_event_loop(
             scope,
@@ -65,7 +63,7 @@ impl GameModelController {
     /// 2. populates a new model based on the parameters of the spec
     /// 3. populates a client from the broadcaster and sends that client the model it asked for
     /// 4. returns that client
-    pub fn getClient(&mut self, model_spec_enum: ModelSpecEnum) -> Client {
+    pub fn get_client(&mut self, model_spec_enum: ModelSpecEnum) -> Client {
         let mut broadcaster_map = self.broadcasters_map.write().unwrap();
 
         let (model, broadcaster) = broadcaster_map

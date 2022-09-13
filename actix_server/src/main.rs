@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use actix_cors::Cors;
-use actix_rt::Arbiter;
+
 use actix_web::{
     dev::ServerHandle, get, middleware, rt, web::Data, App, HttpResponse, HttpServer, Responder,
 };
@@ -41,7 +41,7 @@ fn main() -> Result<(), Box<(dyn std::any::Any + Send + 'static)>> {
             rt::System::new().block_on(server_future)
         });
 
-        let server_handle = r.recv().unwrap();
+        let _server_handle = r.recv().unwrap();
 
         // rt::System::new().block_on(server_handle.stop(true))
     })

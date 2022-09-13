@@ -1,4 +1,4 @@
-use std::{fs::File, io::Read, path::Path, vec};
+use std::{fs::File, io::Read, path::Path};
 
 use zip::ZipArchive;
 

@@ -1,15 +1,10 @@
-use std::{any::Any, collections::HashMap, hash::Hash};
+use std::{collections::HashMap, hash::Hash};
 
-use game_data_info_struct::{ModelDataPoint, ResourceClass};
+use game_data_info_struct::ModelDataPoint;
 use serde::Serialize;
-use serde_derive::Serialize;
 
 pub mod model;
-use model::{
-    budget_stream_graph::{BudgetStreamGraphModel, BudgetStreamGraphModelSpec},
-    campaign_list::{CampaignInfoStruct, CampaignListModel, CampaignListModelSpec},
-    date::Date,
-};
+
 pub mod enums;
 
 pub trait Representation: Serialize {}

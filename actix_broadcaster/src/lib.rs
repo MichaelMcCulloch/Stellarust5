@@ -1,8 +1,8 @@
 use actix_rt::time::{interval_at, Instant};
 use bytes::Bytes;
-use crtq::{channel as queue, Consumer, Producer};
+
 use futures::Stream;
-use rayon::{prelude::*, ThreadPoolBuilder};
+use rayon::prelude::*;
 use serde::Serialize;
 use std::{
     pin::Pin,

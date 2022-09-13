@@ -1,12 +1,9 @@
 #[cfg(test)]
 mod create {
     use std::{
-        any::Any,
         fs,
         path::{Path, PathBuf},
         sync::mpsc::channel,
-        thread,
-        time::Duration,
     };
 
     use directory_watcher::{
@@ -16,8 +13,6 @@ mod create {
         event::{AccessKind, AccessMode},
         EventKind,
     };
-
-    use super::*;
 
     pub struct PathBufWatcher;
     pub struct ScanRoot;
@@ -49,7 +44,7 @@ mod create {
 
         std::fs::write(&scratch_file, "").unwrap();
 
-        let watcher = create_directory_watcher_and_scan_root(
+        let _watcher = create_directory_watcher_and_scan_root(
             |e: &Event| -> bool {
                 matches!(
                     e,
@@ -93,7 +88,7 @@ mod create {
         };
         fs::create_dir(&scratch).unwrap();
 
-        let watcher = create_directory_watcher_and_scan_root(
+        let _watcher = create_directory_watcher_and_scan_root(
             |e: &Event| -> bool {
                 matches!(
                     e,

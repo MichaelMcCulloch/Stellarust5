@@ -20,13 +20,13 @@ impl Model for CampaignListModel {
 
     type Representation = Vec<CampaignInfoStruct>;
 
-    fn update(&mut self, game_data: &ModelDataPoint) -> Option<Self::Representation> {
+    fn update(&mut self, _game_data: &ModelDataPoint) -> Option<Self::Representation> {
         todo!()
     }
 
     fn update_all(
         &mut self,
-        game_data_history: &HashMap<String, Vec<ModelDataPoint>>,
+        _game_data_history: &HashMap<String, Vec<ModelDataPoint>>,
     ) -> Option<Self::Representation> {
         todo!()
     }
