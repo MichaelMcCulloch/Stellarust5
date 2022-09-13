@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use chrono::NaiveDate;
 use serde_derive::Serialize;
 #[derive(Default, Debug, PartialEq, Clone)]
 pub struct Resources {
@@ -72,5 +73,6 @@ pub enum PlayerClass {
 #[derive(Debug, PartialEq, Clone)]
 pub struct ModelDataPoint {
     pub campaign_name: String,
+    pub date: NaiveDate,
     pub empires: Vec<EmpireData>,
 }

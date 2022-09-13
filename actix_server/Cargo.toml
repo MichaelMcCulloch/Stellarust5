@@ -17,3 +17,4 @@ anyhow= "1.0"
 
 campaign_controller = {path = "../campaign_controller"}
 game_data_controller = {path = "../game_data_controller"}
+model_info_struct = {path = "../model_info_struct"}

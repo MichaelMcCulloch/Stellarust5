@@ -13,13 +13,17 @@ use crossbeam::{
 };
 use game_data_controller::GameModelController;
 use listenfd::ListenFd;
+use model_info_struct::{
+    enums::{ModelEnum, ModelSpecEnum},
+    model::campaign_list::CampaignListModelSpec,
+};
 
 #[get("/")]
 pub async fn index(s: Data<&str>) -> impl Responder {
     HttpResponse::Ok().body(String::from(*s.get_ref()))
 }
 
-#[get("/campaigns")]
+// #[get("/campaigns")]
 pub async fn campaign(s: Data<CampaignController>) -> impl Responder {
     log::info!("connection request");
     HttpResponse::Ok()
@@ -27,6 +31,15 @@ pub async fn campaign(s: Data<CampaignController>) -> impl Responder {
         .append_header(("connection", "keep-alive"))
         .append_header(("cache-control", "no-cache"))
         .streaming(s.get_client())
+}
+#[get("/campaigns")]
+pub async fn campaign_new(s: Data<GameModelController>) -> impl Responder {
+    log::info!("connection request");
+    HttpResponse::Ok()
+        .append_header(("content-type", "text/event-stream"))
+        .append_header(("connection", "keep-alive"))
+        .append_header(("cache-control", "no-cache"))
+        .streaming(s.get_client(ModelSpecEnum::CampaignList(CampaignListModelSpec)))
 }
 
 fn main() -> Result<(), Box<(dyn std::any::Any + Send + 'static)>> {
@@ -48,10 +61,6 @@ fn main() -> Result<(), Box<(dyn std::any::Any + Send + 'static)>> {
 }
 
 async fn run_app(t: Sender<ServerHandle>, scope: &Scope<'_>) -> std::io::Result<()> {
-    // let campaign_controller = Data::new(CampaignController::create(
-    //     &PathBuf::from("/home/michael/Dev/Stellarust/stellarust5/production_data/3.4.5.95132"),
-    //     scope,
-    // ));
     let game_data_controller = Data::new(GameModelController::create(
         &PathBuf::from("/home/michael/Dev/Stellarust/stellarust5/production_data/3.4.5.95132"),
         scope,
@@ -63,7 +72,7 @@ async fn run_app(t: Sender<ServerHandle>, scope: &Scope<'_>) -> std::io::Result<
             // .app_data(campaign_controller.clone())
             .app_data(game_data_controller.clone())
             .service(index)
-        // .service(campaign)
+            .service(campaign_new)
     });
 
     server = if let Some(listener) = ListenFd::from_env().take_tcp_listener(0).unwrap() {

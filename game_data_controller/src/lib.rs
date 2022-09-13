@@ -63,7 +63,7 @@ impl GameModelController {
     /// 2. populates a new model based on the parameters of the spec
     /// 3. populates a client from the broadcaster and sends that client the model it asked for
     /// 4. returns that client
-    pub fn get_client(&mut self, model_spec_enum: ModelSpecEnum) -> Client {
+    pub fn get_client(&self, model_spec_enum: ModelSpecEnum) -> Client {
         let mut broadcaster_map = self.broadcasters_map.write().unwrap();
 
         let (model, broadcaster) = broadcaster_map
@@ -82,12 +82,16 @@ impl GameModelController {
         model_data: &ModelDataPoint,
         model_history: &Arc<RwLock<HashMap<String, Vec<ModelDataPoint>>>>,
     ) {
-        model_history
-            .write()
-            .unwrap()
+        let mut hash_map = model_history.write().unwrap();
+
+        let model_history = hash_map
             .entry(model_data.campaign_name.clone())
-            .or_insert(vec![])
-            .push(model_data.clone());
+            .or_insert(vec![]);
+
+        match model_history.binary_search_by_key(&model_data.date, |m| m.date) {
+            Ok(_index) => {}
+            Err(pos) => model_history.insert(pos, model_data.clone()),
+        }
     }
     /// Spawns the event loop in the scope
     /// * `scope` - Crossbeam scope

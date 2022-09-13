@@ -179,6 +179,7 @@ impl GameDataInfoStructReader {
 
         ModelDataPoint {
             campaign_name: meta.get_string_at_path("name").expect("key `name` not found in parsed meta file. Something has gone wrong, check your parser!").to_string(),
+            date: meta.get_date_at_path("date").expect("key `date` not found in parsed meta file. Something has gone wrong, check your parser!").to_owned(),
             empires: empires,
         }
     }
