@@ -9,9 +9,7 @@ edition = "2021"
 members = [
     "actix_broadcaster",
     "actix_server",
-    "campaign_controller",
-    "campaign_info_struct_reader",
-    "campaign_info_struct",
+
     "directory_watcher",
     "game_data_controller",
     "game_data_info_struct_reader",

@@ -6,7 +6,6 @@ use actix_web::{
     dev::ServerHandle, get, middleware, rt, web::Data, App, HttpResponse, HttpServer, Responder,
 };
 
-use campaign_controller::CampaignController;
 use crossbeam::{
     channel::{unbounded, Sender},
     thread::{self, Scope},
@@ -23,17 +22,8 @@ pub async fn index(s: Data<&str>) -> impl Responder {
     HttpResponse::Ok().body(String::from(*s.get_ref()))
 }
 
-// #[get("/campaigns")]
-pub async fn campaign(s: Data<CampaignController>) -> impl Responder {
-    log::info!("connection request");
-    HttpResponse::Ok()
-        .append_header(("content-type", "text/event-stream"))
-        .append_header(("connection", "keep-alive"))
-        .append_header(("cache-control", "no-cache"))
-        .streaming(s.get_client())
-}
 #[get("/campaigns")]
-pub async fn campaign_new(s: Data<GameModelController>) -> impl Responder {
+pub async fn campaigns(s: Data<GameModelController>) -> impl Responder {
     log::info!("connection request");
     HttpResponse::Ok()
         .append_header(("content-type", "text/event-stream"))
@@ -72,7 +62,7 @@ async fn run_app(t: Sender<ServerHandle>, scope: &Scope<'_>) -> std::io::Result<
             // .app_data(campaign_controller.clone())
             .app_data(game_data_controller.clone())
             .service(index)
-            .service(campaign_new)
+            .service(campaigns)
     });
 
     server = if let Some(listener) = ListenFd::from_env().take_tcp_listener(0).unwrap() {
