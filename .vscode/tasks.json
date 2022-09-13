@@ -33,7 +33,7 @@
         {
             "label": "Deploy React Client",
             "type": "shell",
-            "command": "npm run build && miniserve  -p 3000  ./build/ --index index.html",
+            "command": "npm run build && miniserve  -p 3000  ./build/ --index index.html --spa",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}/frontend_client"

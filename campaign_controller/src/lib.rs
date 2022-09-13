@@ -12,6 +12,7 @@ use std::{
 use actix_broadcaster::{Broadcaster, Client};
 use actix_rt::ArbiterHandle;
 use campaign_info_struct::CampaignInfoStruct;
+use campaign_info_struct_reader::CampaignInfoStructReader;
 use crossbeam::{
     channel::{unbounded, Receiver},
     thread::Scope,
@@ -20,7 +21,6 @@ use directory_watcher::{
     create_directory_watcher_and_scan_root, RecommendedWatcher, RecursiveMode,
 };
 use filter::{CloseWriteFilter, EndsWithSavFilter};
-use reader_campaign_info_struct::CampaignInfoStructReader;
 use scan_root::ScanSubdirectoriesOfRootForLatestFile;
 
 pub struct CampaignController {
@@ -100,6 +100,6 @@ impl CampaignController {
     ) {
         let rw_lock_read_guard = campaign_list.read().unwrap();
         let message = rw_lock_read_guard.deref();
-        broadcaster.send(message)
+        broadcaster.send(message);
     }
 }

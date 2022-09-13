@@ -1,0 +1,12 @@
+[package]
+name = "model_info_struct"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = "1"
+serde_derive = "1"
+chrono = "0.4"
+game_data_info_struct = {path = "../game_data_info_struct"}

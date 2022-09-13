@@ -53,7 +53,7 @@ impl Broadcaster {
         Client(bytes_receiver)
     }
 
-    pub fn send<S: Serialize>(&self, message: &S) {
+    pub fn send<S: Serialize>(&self, message: &S) -> bool {
         let message_string = &serde_json::to_string(&message).unwrap();
         let message_bytes =
             Bytes::from(["event: message\ndata: ", message_string, "\n\n"].concat());
@@ -63,6 +63,7 @@ impl Broadcaster {
             .unwrap()
             .par_iter()
             .for_each(|sender| sender.send(message_bytes.clone()).unwrap());
+        self.clients.read().unwrap().len() == 0
     }
 
     fn spawn_ping(&self) {

@@ -9,7 +9,7 @@ edition = "2021"
 directory_watcher = {path = "../directory_watcher"}
 actix_broadcaster = {path = "../actix_broadcaster"}
 campaign_info_struct = {path = "../campaign_info_struct"}
-reader_campaign_info_struct = {path = "../reader_campaign_info_struct"}
+campaign_info_struct_reader = {path = "../campaign_info_struct_reader"}
 crossbeam = "0.8"
 log = "0.4"
 actix-rt = "2.7"

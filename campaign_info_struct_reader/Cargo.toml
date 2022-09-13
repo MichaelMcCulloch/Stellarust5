@@ -1,5 +1,5 @@
 [package]
-name = "reader_campaign_info_struct"
+name = "campaign_info_struct_reader"
 version = "0.1.0"
 edition = "2021"
 
