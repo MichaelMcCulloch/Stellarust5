@@ -9,3 +9,9 @@ edition = "2021"
 model_info_struct = {path ="../model_info_struct"}
 actix_broadcaster = {path ="../actix_broadcaster"}
 game_data_info_struct = {path= "../game_data_info_struct"}
+game_data_info_struct_reader = {path= "../game_data_info_struct_reader"}
+directory_watcher = {path= "../directory_watcher"}
+
+notify = "5"
+crossbeam = "0.8" 
+rayon = "1.5"

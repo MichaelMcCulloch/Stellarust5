@@ -21,6 +21,9 @@ pub trait Model {
     type ModelSpec: ModelSpec;
     type Representation: Serialize;
     fn create(spec: Self::ModelSpec) -> Self;
-    fn update(&mut self, game_data: &ModelDataPoint) -> Self::Representation;
-    fn update_all(&mut self, game_data_history: &Vec<ModelDataPoint>) -> Self::Representation;
+    fn update(&mut self, game_data: &ModelDataPoint) -> Option<Self::Representation>;
+    fn update_all(
+        &mut self,
+        game_data_history: &HashMap<String, Vec<ModelDataPoint>>,
+    ) -> Option<Self::Representation>;
 }

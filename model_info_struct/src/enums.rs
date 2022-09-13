@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use game_data_info_struct::{ModelDataPoint, ResourceClass};
 use serde_derive::Serialize;
 
@@ -43,26 +45,29 @@ impl Model for ModelEnum {
         }
     }
 
-    fn update(&mut self, game_data: &ModelDataPoint) -> Self::Representation {
+    fn update(&mut self, game_data: &ModelDataPoint) -> Option<Self::Representation> {
         match self {
-            ModelEnum::CampaignList(model) => {
-                RepresentationEnum::CampaignList(model.update(game_data))
-            }
-            ModelEnum::BudgetStreamGraph(model) => {
-                RepresentationEnum::BudgetStreamGraph(model.update(game_data))
-            }
+            ModelEnum::CampaignList(model) => model
+                .update(game_data)
+                .map(|rep| RepresentationEnum::CampaignList(rep)),
+            ModelEnum::BudgetStreamGraph(model) => model
+                .update(game_data)
+                .map(|rep| RepresentationEnum::BudgetStreamGraph(rep)),
             ModelEnum::BudgetMonthlySankyDiagram() => todo!(),
         }
     }
 
-    fn update_all(&mut self, game_data_history: &Vec<ModelDataPoint>) -> Self::Representation {
+    fn update_all(
+        &mut self,
+        game_data_history: &HashMap<String, Vec<ModelDataPoint>>,
+    ) -> Option<Self::Representation> {
         match self {
-            ModelEnum::CampaignList(model) => {
-                RepresentationEnum::CampaignList(model.update_all(game_data_history))
-            }
-            ModelEnum::BudgetStreamGraph(model) => {
-                RepresentationEnum::BudgetStreamGraph(model.update_all(game_data_history))
-            }
+            ModelEnum::CampaignList(model) => model
+                .update_all(game_data_history)
+                .map(|rep| RepresentationEnum::CampaignList(rep)),
+            ModelEnum::BudgetStreamGraph(model) => model
+                .update_all(game_data_history)
+                .map(|rep| RepresentationEnum::BudgetStreamGraph(rep)),
             ModelEnum::BudgetMonthlySankyDiagram() => todo!(),
         }
     }

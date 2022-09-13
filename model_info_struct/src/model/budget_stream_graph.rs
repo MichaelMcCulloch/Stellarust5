@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{Model, ModelSpec};
 use game_data_info_struct::{ModelDataPoint, ResourceClass};
 use serde_derive::Serialize;
@@ -9,7 +11,6 @@ pub struct BudgetStreamGraphModelSpec;
 
 #[derive(Serialize)]
 pub struct BudgetStreamGraphModel {
-    resource_list: Vec<ResourceClass>,
     list: Vec<(Date, Vec<f64>)>,
 }
 impl Model for BudgetStreamGraphModel {
@@ -17,17 +18,17 @@ impl Model for BudgetStreamGraphModel {
     type Representation = Vec<(Date, Vec<f64>)>;
 
     fn create(_: Self::ModelSpec) -> Self {
-        Self {
-            resource_list: vec![],
-            list: vec![],
-        }
+        Self { list: vec![] }
     }
 
-    fn update(&mut self, game_data: &ModelDataPoint) -> Self::Representation {
+    fn update(&mut self, game_data: &ModelDataPoint) -> Option<Self::Representation> {
         todo!()
     }
 
-    fn update_all(&mut self, game_data_history: &Vec<ModelDataPoint>) -> Self::Representation {
+    fn update_all(
+        &mut self,
+        game_data_history: &HashMap<String, Vec<ModelDataPoint>>,
+    ) -> Option<Self::Representation> {
         todo!()
     }
 }

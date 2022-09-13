@@ -6,17 +6,12 @@ use std::{
     ops::Deref,
     path::Path,
     sync::{Arc, RwLock},
-    thread,
 };
 
 use actix_broadcaster::{Broadcaster, Client};
-use actix_rt::ArbiterHandle;
 use campaign_info_struct::CampaignInfoStruct;
 use campaign_info_struct_reader::CampaignInfoStructReader;
-use crossbeam::{
-    channel::{unbounded, Receiver},
-    thread::Scope,
-};
+use crossbeam::{channel::unbounded, thread::Scope};
 use directory_watcher::{
     create_directory_watcher_and_scan_root, RecommendedWatcher, RecursiveMode,
 };

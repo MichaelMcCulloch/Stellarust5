@@ -15,5 +15,9 @@ mod tests {
         //     println!("this is the main thread");
         //     sleep(Duration::from_secs(1));
         // }
+        let mut v = vec![1, 2, 3];
+        let u: Vec<_> = v.drain(..).collect();
+        println!("{:?}", v);
+        println!("{:?}", u);
     }
 }

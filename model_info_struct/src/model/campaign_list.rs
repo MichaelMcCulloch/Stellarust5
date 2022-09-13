@@ -1,6 +1,7 @@
-use std::vec;
+use std::{collections::HashMap, vec};
 
 use crate::{Model, ModelSpec};
+use game_data_info_struct::ModelDataPoint;
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Eq, PartialEq, Hash, Serialize, Clone)]
@@ -19,17 +20,14 @@ impl Model for CampaignListModel {
 
     type Representation = Vec<CampaignInfoStruct>;
 
-    fn update(
-        &mut self,
-        game_data: &game_data_info_struct::ModelDataPoint,
-    ) -> Self::Representation {
+    fn update(&mut self, game_data: &ModelDataPoint) -> Option<Self::Representation> {
         todo!()
     }
 
     fn update_all(
         &mut self,
-        game_data_history: &Vec<game_data_info_struct::ModelDataPoint>,
-    ) -> Self::Representation {
+        game_data_history: &HashMap<String, Vec<ModelDataPoint>>,
+    ) -> Option<Self::Representation> {
         todo!()
     }
 }
