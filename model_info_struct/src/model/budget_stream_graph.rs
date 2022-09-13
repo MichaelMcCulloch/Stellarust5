@@ -6,10 +6,10 @@ use serde_derive::Serialize;
 
 use super::date::Date;
 
-#[derive(Eq, PartialEq, Hash, Serialize, Clone)]
+#[derive(Eq, PartialEq, Hash, Serialize, Clone, Debug)]
 pub struct BudgetStreamGraphModelSpec;
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct BudgetStreamGraphModel {
     list: Vec<(Date, Vec<f64>)>,
 }

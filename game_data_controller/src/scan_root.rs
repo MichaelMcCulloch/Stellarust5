@@ -36,21 +36,11 @@ impl ScanAllFoldersAndFiles {
             Err(_) => None,
         }
     }
-    fn select_most_recently_modified_file(mut child_items: Vec<DirEntry>) -> DirEntry {
-        child_items.sort_by(|a, b| {
-            b.metadata()
-                .unwrap()
-                .modified()
-                .unwrap()
-                .cmp(&a.metadata().unwrap().modified().unwrap())
-        });
-        child_items.remove(0)
-    }
 }
 
 impl Startup for ScanAllFoldersAndFiles {
     fn startup(&self, root_directory: &Path) -> Vec<PathBuf> {
-        std::fs::read_dir(root_directory)
+        let collect = std::fs::read_dir(root_directory)
             .unwrap()
             .filter_map(|entry| Self::select_directories(entry))
             .flat_map(|subdirectory| {
@@ -64,6 +54,7 @@ impl Startup for ScanAllFoldersAndFiles {
                     )
                     .collect::<Vec<_>>()
             })
-            .collect::<Vec<_>>()
+            .collect::<Vec<_>>();
+        collect
     }
 }

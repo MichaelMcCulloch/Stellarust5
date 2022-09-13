@@ -11,6 +11,8 @@ use std::{
     time::Duration,
 };
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
+
+#[derive(Debug)]
 pub struct Broadcaster {
     clients: Arc<RwLock<Vec<UnboundedSender<Bytes>>>>,
 }
@@ -54,16 +56,19 @@ impl Broadcaster {
     }
 
     pub fn send<S: Serialize>(&self, message: &S) -> bool {
-        let message_string = &serde_json::to_string(&message).unwrap();
-        let message_bytes =
-            Bytes::from(["event: message\ndata: ", message_string, "\n\n"].concat());
+        let guard = self.clients.read().unwrap();
+        if guard.is_empty() {
+            false
+        } else {
+            let message_string = &serde_json::to_string(&message).unwrap();
+            let message_bytes =
+                Bytes::from(["event: message\ndata: ", message_string, "\n\n"].concat());
 
-        self.clients
-            .read()
-            .unwrap()
-            .par_iter()
-            .for_each(|sender| sender.send(message_bytes.clone()).unwrap());
-        self.clients.read().unwrap().len() == 0
+            guard
+                .par_iter()
+                .for_each(|sender| sender.send(message_bytes.clone()).unwrap());
+            true
+        }
     }
 
     fn spawn_ping(&self) {

@@ -12,19 +12,20 @@ use crate::{
     Model, ModelSpec, Representation,
 };
 
-#[derive(Eq, PartialEq, Hash, Serialize, Clone)]
+#[derive(Eq, PartialEq, Hash, Serialize, Clone, Debug)]
 pub enum ModelSpecEnum {
     CampaignList(CampaignListModelSpec),
     BudgetStreamGraph(BudgetStreamGraphModelSpec),
     BudgetMonthlySankyDiagram(ResourceClass),
 }
+#[derive(Debug)]
 pub enum ModelEnum {
     CampaignList(CampaignListModel),
     BudgetStreamGraph(BudgetStreamGraphModel),
     BudgetMonthlySankyDiagram(),
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub enum RepresentationEnum {
     CampaignList(Vec<CampaignInfoStruct>),
     BudgetStreamGraph(Vec<(Date, Vec<f64>)>),

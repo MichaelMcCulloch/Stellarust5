@@ -48,10 +48,10 @@ fn main() -> Result<(), Box<(dyn std::any::Any + Send + 'static)>> {
 }
 
 async fn run_app(t: Sender<ServerHandle>, scope: &Scope<'_>) -> std::io::Result<()> {
-    let campaign_controller = Data::new(CampaignController::create(
-        &PathBuf::from("/home/michael/Dev/Stellarust/stellarust5/production_data/3.4.5.95132"),
-        scope,
-    ));
+    // let campaign_controller = Data::new(CampaignController::create(
+    //     &PathBuf::from("/home/michael/Dev/Stellarust/stellarust5/production_data/3.4.5.95132"),
+    //     scope,
+    // ));
     let game_data_controller = Data::new(GameModelController::create(
         &PathBuf::from("/home/michael/Dev/Stellarust/stellarust5/production_data/3.4.5.95132"),
         scope,
@@ -60,10 +60,10 @@ async fn run_app(t: Sender<ServerHandle>, scope: &Scope<'_>) -> std::io::Result<
         App::new()
             .wrap(middleware::Logger::default())
             .wrap(Cors::default().allow_any_header().allow_any_origin())
-            .app_data(campaign_controller.clone())
+            // .app_data(campaign_controller.clone())
             .app_data(game_data_controller.clone())
             .service(index)
-            .service(campaign)
+        // .service(campaign)
     });
 
     server = if let Some(listener) = ListenFd::from_env().take_tcp_listener(0).unwrap() {

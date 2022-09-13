@@ -83,11 +83,12 @@ pub fn create_directory_watcher_and_scan_root<
     recursive_mode: RecursiveMode,
 ) -> RecommendedWatcher {
     let discovered = startup.startup(directory.as_ref());
+
     for d in discovered {
         if path_filter.filter_path(&d) {
             let result = file_reader.read_file(d.as_path());
-
             delivery.deliver(result);
+            log::info!("Discovered {:?}", d);
         }
     }
     let event_handler = move |event: Result<Event, notify::Error>| -> () {
@@ -98,6 +99,7 @@ pub fn create_directory_watcher_and_scan_root<
                     for path in paths {
                         if path_filter.filter_path(&path) {
                             let output = file_reader.read_file(&path);
+
                             delivery.deliver(output);
                         }
                     }

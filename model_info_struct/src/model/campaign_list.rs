@@ -4,10 +4,10 @@ use crate::{Model, ModelSpec};
 use game_data_info_struct::ModelDataPoint;
 use serde_derive::{Deserialize, Serialize};
 
-#[derive(Eq, PartialEq, Hash, Serialize, Clone)]
+#[derive(Eq, PartialEq, Hash, Serialize, Clone, Debug)]
 pub struct CampaignListModelSpec;
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct CampaignListModel {
     list: Vec<CampaignInfoStruct>,
 }
