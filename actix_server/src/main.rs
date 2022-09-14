@@ -27,7 +27,8 @@ pub async fn index(s: Data<&str>) -> impl Responder {
 
 #[get("/campaigns")]
 pub async fn campaigns(s: Data<GameModelController>) -> impl Responder {
-    log::info!("connection request");
+    log::info!("Connection Request: CampaignList");
+
     HttpResponse::Ok()
         .append_header(("content-type", "text/event-stream"))
         .append_header(("connection", "keep-alive"))
@@ -40,7 +41,7 @@ pub async fn empires(
     s: Data<GameModelController>,
     campaign_name: web::Path<String>,
 ) -> impl Responder {
-    log::info!("connection request {}", campaign_name);
+    log::info!("Connection Request: EmpireList for {}", campaign_name);
     HttpResponse::Ok()
         .append_header(("content-type", "text/event-stream"))
         .append_header(("connection", "keep-alive"))
