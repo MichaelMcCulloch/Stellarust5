@@ -1,12 +1,18 @@
 use chrono::{Datelike, NaiveDate};
 use serde::{ser::SerializeTupleStruct, Serialize};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Date(i16, u8, u8);
 
 impl From<NaiveDate> for Date {
     fn from(_d: NaiveDate) -> Self {
         Date(_d.year() as i16, _d.month() as u8, _d.day() as u8)
+    }
+}
+
+impl Into<NaiveDate> for &Date {
+    fn into(self) -> NaiveDate {
+        NaiveDate::from_ymd(self.0.into(), self.1.into(), self.2.into())
     }
 }
 impl Serialize for Date {

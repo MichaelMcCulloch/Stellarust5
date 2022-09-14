@@ -14,11 +14,16 @@ use crossbeam::{
     thread::{self, Scope},
 };
 use game_data_controller::GameModelController;
+use game_data_info_struct::ResourceClass;
 use listenfd::ListenFd;
 use model_info_struct::{
     enums::{ModelEnum, ModelSpecEnum},
-    model::{campaign_list::CampaignListModelSpec, empire_list::EmpireListModelSpec},
+    model::{
+        budget_stream_graph::BudgetStreamGraphModelSpec, campaign_list::CampaignListModelSpec,
+        empire_list::EmpireListModelSpec,
+    },
 };
+use serde_derive::Deserialize;
 
 #[get("/")]
 pub async fn index(s: Data<&str>) -> impl Responder {
@@ -49,6 +54,37 @@ pub async fn empires(
         .streaming(s.get_client(ModelSpecEnum::EmpireList(EmpireListModelSpec {
             campaign_name: campaign_name.to_string(),
         })))
+}
+#[derive(Deserialize)]
+pub struct BudgetRequest {
+    campaign_name: String,
+    empire_name: String,
+}
+#[get("/{campaign_name}/{empire_name}")]
+pub async fn budget_data(
+    s: Data<GameModelController>,
+    budget_request: web::Path<BudgetRequest>,
+) -> impl Responder {
+    log::info!(
+        "Connection Request: BudgetData for {}/{}",
+        budget_request.campaign_name,
+        budget_request.empire_name
+    );
+    HttpResponse::Ok()
+        .append_header(("content-type", "text/event-stream"))
+        .append_header(("connection", "keep-alive"))
+        .append_header(("cache-control", "no-cache"))
+        .streaming(s.get_client(ModelSpecEnum::BudgetStreamGraph(
+            BudgetStreamGraphModelSpec {
+                resources: vec![
+                    ResourceClass::Energy,
+                    ResourceClass::Minerals,
+                    ResourceClass::Alloys,
+                ],
+                campaign_name: budget_request.campaign_name.to_string(),
+                empire: budget_request.empire_name.to_string(),
+            },
+        )))
 }
 
 fn main() -> Result<(), Box<(dyn std::any::Any + Send + 'static)>> {
@@ -83,6 +119,7 @@ async fn run_app(t: Sender<ServerHandle>, scope: &Scope<'_>) -> std::io::Result<
             .service(index)
             .service(campaigns)
             .service(empires)
+            .service(budget_data)
     });
 
     server = if let Some(listener) = ListenFd::from_env().take_tcp_listener(0).unwrap() {
