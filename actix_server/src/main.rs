@@ -14,14 +14,14 @@ use crossbeam::{
     thread::{self, Scope},
 };
 use game_data_controller::GameModelController;
-use game_data_info_struct::ResourceClass;
 use listenfd::ListenFd;
 use model_info_struct::{
-    enums::{ModelEnum, ModelSpecEnum},
+    enums::ModelSpecEnum,
     model::{
         budget_stream_graph::BudgetStreamGraphModelSpec, campaign_list::CampaignListModelSpec,
         empire_list::EmpireListModelSpec,
     },
+    ResourceClass,
 };
 use serde_derive::Deserialize;
 
@@ -60,7 +60,7 @@ pub struct BudgetRequest {
     campaign_name: String,
     empire_name: String,
 }
-#[get("/{campaign_name}/{empire_name}")]
+#[get("/{campaign_name}/{empire_name}/budget")]
 pub async fn budget_data(
     s: Data<GameModelController>,
     budget_request: web::Path<BudgetRequest>,

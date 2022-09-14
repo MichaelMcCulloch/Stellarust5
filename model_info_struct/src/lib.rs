@@ -7,6 +7,7 @@ pub mod model;
 
 pub mod enums;
 
+pub use game_data_info_struct::ResourceClass;
 pub trait Representation: Serialize {}
 pub trait ModelSpec: Serialize + PartialEq + Eq + Hash {
     type Model: Model;

@@ -18,5 +18,4 @@ serde = "1"
 serde_derive = "1"
 
 game_data_controller = {path = "../game_data_controller"}
-game_data_info_struct = {path = "../game_data_info_struct"}
 model_info_struct = {path = "../model_info_struct"}
