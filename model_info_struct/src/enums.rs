@@ -1,13 +1,12 @@
 use std::collections::HashMap;
 
-use game_data_info_struct::{ModelDataPoint, ResourceClass};
+use game_data_info_struct::{date::Date, ModelDataPoint, ResourceClass};
 use serde_derive::Serialize;
 
 use crate::{
     model::{
         budget_stream_graph::{BudgetStreamGraphModel, BudgetStreamGraphModelSpec},
         campaign_list::{CampaignInfoStruct, CampaignListModel, CampaignListModelSpec, Empire},
-        date::Date,
         empire_list::{EmpireListModel, EmpireListModelSpec},
     },
     Model, ModelSpec, Representation,

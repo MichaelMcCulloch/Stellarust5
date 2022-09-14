@@ -11,8 +11,7 @@ use crossbeam::{
 };
 use directory_watcher::{create_directory_watcher_and_scan_root, RecursiveMode};
 use filter::{CloseWriteFilter, EndsWithSavFilter};
-use game_data_info_struct::ModelDataPoint;
-use game_data_info_struct_reader::GameDataInfoStructReader;
+use game_data_info_struct_reader::{GameDataInfoStructReader, ModelDataPoint};
 use model_info_struct::{
     enums::{ModelEnum, ModelSpecEnum},
     Model,

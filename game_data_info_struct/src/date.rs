@@ -1,7 +1,8 @@
 use chrono::{Datelike, NaiveDate};
 use serde::{ser::SerializeTupleStruct, Serialize};
+use serde_derive::Deserialize;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Deserialize)]
 pub struct Date(i16, u8, u8);
 
 impl From<NaiveDate> for Date {

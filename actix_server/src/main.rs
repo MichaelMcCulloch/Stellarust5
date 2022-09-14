@@ -24,6 +24,7 @@ use model_info_struct::{
     ResourceClass,
 };
 use serde_derive::Deserialize;
+use stellarust::PROD_TEST_DATA_ROOT;
 
 #[get("/")]
 pub async fn index(s: Data<&str>) -> impl Responder {
@@ -107,7 +108,7 @@ fn main() -> Result<(), Box<(dyn std::any::Any + Send + 'static)>> {
 
 async fn run_app(t: Sender<ServerHandle>, scope: &Scope<'_>) -> std::io::Result<()> {
     let game_data_controller = Data::new(GameModelController::create(
-        &PathBuf::from("/home/michael/Dev/Stellarust/stellarust5/production_data/3.4.5.95132"),
+        &PathBuf::from(PROD_TEST_DATA_ROOT),
         scope,
     ));
     let mut server = HttpServer::new(move || {

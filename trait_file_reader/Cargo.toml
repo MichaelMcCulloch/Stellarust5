@@ -1,11 +1,8 @@
 [package]
-name = "directory_watcher"
+name = "trait_file_reader"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-trait_file_reader = {path = "../trait_file_reader"}
-notify = "5"
-log = "0.4"

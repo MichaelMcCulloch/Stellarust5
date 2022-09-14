@@ -1,9 +1,10 @@
 use clausewitz_parser::{ClausewitzValue, Val};
-use directory_watcher::FileReader;
-use game_data_info_struct::{
+pub use game_data_info_struct::{
     Budget, EmpireData, ModelDataPoint, PlayerClass, ResourceClass, Resources,
 };
 use std::{collections::HashMap, path::Path};
+use trait_file_reader::FileReader;
+
 pub struct GameDataInfoStructReader;
 
 impl FileReader for GameDataInfoStructReader {
@@ -179,7 +180,7 @@ impl GameDataInfoStructReader {
 
         ModelDataPoint {
             campaign_name: meta.get_string_at_path("name").expect("key `name` not found in parsed meta file. Something has gone wrong, check your parser!").to_string(),
-            date: meta.get_date_at_path("date").expect("key `date` not found in parsed meta file. Something has gone wrong, check your parser!").to_owned(),
+            date: meta.get_date_at_path("date").expect("key `date` not found in parsed meta file. Something has gone wrong, check your parser!").to_owned().into(),
             empires: empires,
         }
     }

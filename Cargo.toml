@@ -15,6 +15,7 @@ members = [
     "game_data_info_struct_reader",
     "game_data_info_struct",
     "game_data_unzipper",
-    "int_test",
+    "trait_file_reader",
+    # "int_test",
     "model_info_struct",
 ]

@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use notify::{Config, Event, RecommendedWatcher, RecursiveMode, Watcher};
+use trait_file_reader::FileReader;
 
 pub trait EventFilter: Send + 'static {
     fn filter_event(&self, event: &Event) -> bool;
@@ -8,10 +9,7 @@ pub trait EventFilter: Send + 'static {
 pub trait PathFilter: Send + 'static {
     fn filter_path(&self, path: &Path) -> bool;
 }
-pub trait FileReader: Send + 'static {
-    type OUT: Send + 'static;
-    fn read_file(&self, file: &Path) -> Self::OUT;
-}
+
 pub trait Delivery<T>: Send + 'static {
     fn deliver(&self, message: T);
 }
@@ -34,17 +32,6 @@ where
     fn filter_path(&self, path: &Path) -> bool {
         (self)(path)
     }
-}
-
-impl<F, T: Send + 'static> FileReader for F
-where
-    F: Fn(&Path) -> T + Send + 'static,
-{
-    fn read_file(&self, file: &Path) -> T {
-        (self)(file)
-    }
-
-    type OUT = T;
 }
 
 impl<F, T> Delivery<T> for F
