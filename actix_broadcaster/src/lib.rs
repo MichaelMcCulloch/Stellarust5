@@ -1,7 +1,6 @@
 use actix_rt::time::{interval_at, Instant};
 use bytes::Bytes;
 
-use crossbeam::channel::Sender;
 use futures::Stream;
 use rayon::prelude::*;
 use serde::Serialize;
@@ -12,7 +11,6 @@ use std::{
     time::Duration,
 };
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
-pub struct DisconnectMesssage;
 
 #[derive(Debug)]
 pub struct Broadcaster {
@@ -21,11 +19,11 @@ pub struct Broadcaster {
 impl Broadcaster {
     const PING_INTERVAL: u64 = 10;
 
-    pub fn create(disconnect_sender: Sender<DisconnectMesssage>) -> Self {
+    pub fn create() -> Self {
         let me = Broadcaster {
             clients: Arc::new(RwLock::new(vec![])),
         };
-        me.spawn_ping(disconnect_sender);
+        me.spawn_ping();
         me
     }
 
@@ -73,21 +71,17 @@ impl Broadcaster {
         }
     }
 
-    fn spawn_ping(&self, disconnect_sender: Sender<DisconnectMesssage>) {
+    fn spawn_ping(&self) {
         let clients = self.clients.clone();
-        let disconnect_sender = Arc::new(disconnect_sender);
         actix_web::rt::spawn(async move {
             let mut task = interval_at(Instant::now(), Duration::from_secs(Self::PING_INTERVAL));
             loop {
                 task.tick().await;
-                Self::remove_stale_clients(&clients, &disconnect_sender).await;
+                Self::remove_stale_clients(&clients).await;
             }
         });
     }
-    async fn remove_stale_clients(
-        clients: &Arc<RwLock<Vec<UnboundedSender<Bytes>>>>,
-        disconnect_sender: &Arc<Sender<DisconnectMesssage>>,
-    ) {
+    async fn remove_stale_clients(clients: &Arc<RwLock<Vec<UnboundedSender<Bytes>>>>) {
         clients.write().unwrap().retain(|sender| {
             if let Ok(()) = sender.send(Bytes::from("event: ping\ndata: ping\n\n")) {
                 true
@@ -95,10 +89,6 @@ impl Broadcaster {
                 false
             }
         });
-
-        if clients.read().unwrap().is_empty() {
-            disconnect_sender.send(DisconnectMesssage).unwrap();
-        }
     }
 }
 pub struct Client(UnboundedReceiver<Bytes>);
