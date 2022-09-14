@@ -52,15 +52,10 @@ impl Model for BudgetStreamGraphModel {
     ) -> Option<Self::Representation> {
         match game_data_history.get(&self.spec.campaign_name) {
             Some(history) => {
-                self.list = history
-                    .into_iter()
-                    .filter_map(|m| self.form_model_point(m))
-                    .collect::<Vec<_>>();
-                self.list.sort_by(|(a, _), (b, _)| {
-                    let a: NaiveDate = a.into();
-                    let b: NaiveDate = b.into();
-                    a.cmp(&b)
-                });
+                for record in history {
+                    self.update(record);
+                }
+
                 Some(self.list.clone())
             }
             None => None,
@@ -184,7 +179,7 @@ mod tests {
         };
     }
     #[test]
-    fn budget_stream__update_all__returns_vals_sorted_by_date() {
+    fn budget_stream__update_all__duplicate_dates__returns_unique_vals_sorted_by_date() {
         let campaign_name = "CAMPAIGN_NAME".to_string();
         let empire = "EMPIRE_NAME".to_string();
         let resources = vec![ResourceClass::Energy];
@@ -264,7 +259,11 @@ mod tests {
         let mut game_data_history = HashMap::new();
         game_data_history.insert(
             campaign_name.clone(),
-            vec![model_data_point_1, model_data_point_3, model_data_point_2],
+            vec![
+                model_data_point_1,
+                model_data_point_2.clone(),
+                model_data_point_2,
+            ],
         );
 
         let mut model = BudgetStreamGraphModel::create(spec);
@@ -275,7 +274,6 @@ mod tests {
                 vec![
                     (Date::from(date_1), vec![100f64]),
                     (Date::from(date_2), vec![100f64]),
-                    (Date::from(date_3), vec![100f64]),
                 ]
             ),
             None => assert!(false, "Failed to return a value!!!"),

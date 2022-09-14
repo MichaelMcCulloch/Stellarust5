@@ -9,7 +9,8 @@ edition = "2021"
 stellarust = {path = ".."}
 game_data_info_struct_reader= {path = "../game_data_info_struct_reader"}
 game_data_info_struct= {path = "../game_data_info_struct"}
-directory_watcher= {path = "../directory_watcher"}
+trait_file_reader= {path = "../trait_file_reader"}
+
 crossbeam = "0.8"
 actix-rt ="2.7"
 serde = "1"

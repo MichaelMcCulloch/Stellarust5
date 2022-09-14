@@ -9,13 +9,12 @@ edition = "2021"
 members = [
     "actix_broadcaster",
     "actix_server",
-
     "directory_watcher",
     "game_data_controller",
     "game_data_info_struct_reader",
     "game_data_info_struct",
     "game_data_unzipper",
     "trait_file_reader",
-    # "int_test",
+    "int_test",
     "model_info_struct",
 ]
