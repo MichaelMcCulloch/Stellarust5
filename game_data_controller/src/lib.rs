@@ -68,7 +68,8 @@ impl GameModelController {
 
         let (model, broadcaster) = broadcaster_map
             .entry(model_spec_enum.clone())
-            .or_insert((ModelEnum::create(model_spec_enum), Broadcaster::create()));
+            .or_insert_with(|| (ModelEnum::create(model_spec_enum), Broadcaster::create()));
+        //strangely, using 'or_insert' causes multiple broadcasters to be created, visible by each printing retaining 0 clients, yet only one get's ALL the clients, while the others get none
 
         let game_data_history = self.game_data_history.read().unwrap();
         let message = model.update_all(&game_data_history.clone());
@@ -111,7 +112,7 @@ impl GameModelController {
                     let mut guard = broadcasters_map.write().unwrap();
                     let mut map = std::mem::take(&mut *guard);
 
-                    // The reason this is so ugly is because we are required to mutate the model and broad caster, and we can't do that if they are behind a mutable reference
+                    // The reason this is so ugly is because we are required to mutate the model and broadcaster, and we can't do that if they are behind a mutable reference
                     *guard = map
                         .par_drain()
                         .fold(
