@@ -106,7 +106,8 @@ mod tests {
 
     use super::*;
     #[test]
-    fn budget_stream__update__returns_val() {
+    fn update_given_a_model_spec_and_a_single_data_point_a_model_constructed_with_that_spec_and_given_that_data_point_returns_a_single_element_representing_that_data_point(
+    ) {
         let campaign_name = "CAMPAIGN_NAME".to_string();
         let empire = "EMPIRE_NAME".to_string();
         let resources = vec![
@@ -179,7 +180,8 @@ mod tests {
         };
     }
     #[test]
-    fn budget_stream__update_all__duplicate_dates__returns_unique_vals_sorted_by_date() {
+    fn update_all_given_a_model_spec_and_an_unsorted_list_of_model_specs_containing_duplicates_a_model_constructed_with_that_spec_and_given_that_data_point_returns_a_sorted_list_of_uniquely_dated_representation_elements(
+    ) {
         let campaign_name = "CAMPAIGN_NAME".to_string();
         let empire = "EMPIRE_NAME".to_string();
         let resources = vec![ResourceClass::Energy];
@@ -261,6 +263,7 @@ mod tests {
             campaign_name.clone(),
             vec![
                 model_data_point_1,
+                model_data_point_3,
                 model_data_point_2.clone(),
                 model_data_point_2,
             ],
@@ -274,6 +277,7 @@ mod tests {
                 vec![
                     (Date::from(date_1), vec![100f64]),
                     (Date::from(date_2), vec![100f64]),
+                    (Date::from(date_3), vec![100f64]),
                 ]
             ),
             None => assert!(false, "Failed to return a value!!!"),

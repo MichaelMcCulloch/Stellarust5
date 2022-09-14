@@ -93,14 +93,14 @@ fn main() -> Result<(), Box<(dyn std::any::Any + Send + 'static)>> {
         std::env::set_var("RUST_LOG", "info");
         env_logger::init();
 
-        let (t, r) = unbounded();
+        let (sender, receiver) = unbounded();
 
         scope.spawn(|scope| -> Result<_, std::io::Error> {
-            let server_future = run_app(t, scope);
+            let server_future = run_app(sender, scope);
             rt::System::new().block_on(server_future)
         });
 
-        let _server_handle = r.recv().unwrap();
+        let _server_handle = receiver.recv().unwrap();
 
         // rt::System::new().block_on(server_handle.stop(true))
     })
@@ -115,7 +115,6 @@ async fn run_app(t: Sender<ServerHandle>, scope: &Scope<'_>) -> std::io::Result<
         App::new()
             .wrap(middleware::Logger::default())
             .wrap(Cors::default().allow_any_header().allow_any_origin())
-            // .app_data(campaign_controller.clone())
             .app_data(game_data_controller.clone())
             .service(index)
             .service(campaigns)

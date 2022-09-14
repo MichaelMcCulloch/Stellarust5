@@ -1,8 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use game_data_info_struct::ModelDataPoint;
-    use game_data_info_struct_reader::GameDataInfoStructReader;
-    use serde::Serialize;
+    use game_data_info_struct_reader::{GameDataInfoStructReader, ModelDataPoint};
     use std::path::PathBuf;
     use stellarust::PROD_TEST_DATA_ROOT;
     use trait_file_reader::FileReader;

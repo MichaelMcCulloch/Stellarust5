@@ -64,6 +64,7 @@ impl GameModelController {
     /// 4. returns that client
     pub fn get_client(&self, model_spec_enum: ModelSpecEnum) -> Client {
         let mut broadcaster_map = self.broadcasters_map.write().unwrap();
+        log::info!("Broadcasting {:?} to new client!", model_spec_enum);
 
         let (model, broadcaster) = broadcaster_map
             .entry(model_spec_enum.clone())
@@ -108,41 +109,46 @@ impl GameModelController {
             match info_struct_receiver.recv() {
                 Ok(data_point) => {
                     Self::reconcile(&data_point, &model_history);
-                    let mut guard = broadcasters_map.write().unwrap();
-                    let mut map = std::mem::take(&mut *guard);
-
-                    // The reason this is so ugly is because we are required to mutate the model and broadcaster, and we can't do that if they are behind a mutable reference
-                    *guard = map
-                        .par_drain()
-                        .fold(
-                            || HashMap::new(),
-                            |mut a, (_spec, (mut model, broadcaster))| match model
-                                .update(&data_point)
-                            {
-                                Some(output) => {
-                                    if broadcaster.send(&output) {
-                                        a.insert(_spec, (model, broadcaster));
-                                        a
-                                    } else {
-                                        a // Only remove the broadcaster if the broadcaster says there are no clients left
-                                    }
-                                }
-                                None => {
-                                    a.insert(_spec, (model, broadcaster));
-                                    a
-                                }
-                            },
-                        )
-                        .reduce(
-                            || HashMap::new(),
-                            |mut a, b| {
-                                a.extend(b.into_iter());
-                                a
-                            },
-                        );
+                    Self::broadcast_model_changes(&broadcasters_map, &data_point);
                 }
                 Err(_) => break,
             };
         });
+    }
+    fn broadcast_model_changes(
+        broadcasters_map: &Arc<RwLock<HashMap<ModelSpecEnum, (ModelEnum, Broadcaster)>>>,
+        data_point: &ModelDataPoint,
+    ) {
+        let mut guard = broadcasters_map.write().unwrap();
+        let mut map = std::mem::take(&mut *guard);
+        // The reason this is so ugly is because we are required to mutate the model and broadcaster, and we can't do that if they are behind a mutable reference
+        *guard = map
+            .par_drain()
+            .fold(
+                || HashMap::new(),
+                |mut a, (spec, (mut model, broadcaster))| match model.update(data_point) {
+                    Some(output) => {
+                        let recipients = broadcaster.send(&output);
+                        if recipients != 0 {
+                            log::info!("Broadcasting {:?} to {} clients!", spec, recipients);
+                            a.insert(spec, (model, broadcaster));
+                            a
+                        } else {
+                            a // Only remove the broadcaster if the broadcaster says there are no clients left
+                        }
+                    }
+                    None => {
+                        a.insert(spec, (model, broadcaster));
+                        a
+                    }
+                },
+            )
+            .reduce(
+                || HashMap::new(),
+                |mut a, b| {
+                    a.extend(b.into_iter());
+                    a
+                },
+            );
     }
 }

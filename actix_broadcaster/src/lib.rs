@@ -54,10 +54,10 @@ impl Broadcaster {
         Client(bytes_receiver)
     }
 
-    pub fn send<S: Serialize>(&self, message: &S) -> bool {
+    pub fn send<S: Serialize>(&self, message: &S) -> usize {
         let guard = self.clients.read().unwrap();
         if guard.is_empty() {
-            false
+            0
         } else {
             let message_string = &serde_json::to_string(&message).unwrap();
             let message_bytes =
@@ -66,7 +66,7 @@ impl Broadcaster {
             guard
                 .par_iter()
                 .for_each(|sender| sender.send(message_bytes.clone()).unwrap());
-            true
+            guard.len()
         }
     }
 
