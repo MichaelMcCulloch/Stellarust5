@@ -6,8 +6,9 @@ use serde_derive::Serialize;
 use crate::{
     model::{
         budget_stream_graph::{BudgetStreamGraphModel, BudgetStreamGraphModelSpec},
-        campaign_list::{CampaignInfoStruct, CampaignListModel, CampaignListModelSpec},
+        campaign_list::{CampaignInfoStruct, CampaignListModel, CampaignListModelSpec, Empire},
         date::Date,
+        empire_list::{EmpireListModel, EmpireListModelSpec},
     },
     Model, ModelSpec, Representation,
 };
@@ -15,12 +16,14 @@ use crate::{
 #[derive(Eq, PartialEq, Hash, Serialize, Clone, Debug)]
 pub enum ModelSpecEnum {
     CampaignList(CampaignListModelSpec),
+    EmpireList(EmpireListModelSpec),
     BudgetStreamGraph(BudgetStreamGraphModelSpec),
     BudgetMonthlySankyDiagram(ResourceClass),
 }
 #[derive(Debug)]
 pub enum ModelEnum {
     CampaignList(CampaignListModel),
+    EmpireList(EmpireListModel),
     BudgetStreamGraph(BudgetStreamGraphModel),
     BudgetMonthlySankyDiagram(),
 }
@@ -28,6 +31,7 @@ pub enum ModelEnum {
 #[derive(Serialize, Debug)]
 pub enum RepresentationEnum {
     CampaignList(Vec<CampaignInfoStruct>),
+    EmpireList(Vec<Empire>),
     BudgetStreamGraph(Vec<(Date, Vec<f64>)>),
 }
 impl Model for ModelEnum {
@@ -43,6 +47,7 @@ impl Model for ModelEnum {
                 ModelEnum::BudgetStreamGraph(BudgetStreamGraphModel::create(spec))
             }
             ModelSpecEnum::BudgetMonthlySankyDiagram(_) => todo!(),
+            ModelSpecEnum::EmpireList(spec) => ModelEnum::EmpireList(EmpireListModel::create(spec)),
         }
     }
 
@@ -55,6 +60,9 @@ impl Model for ModelEnum {
                 .update(game_data)
                 .map(|rep| RepresentationEnum::BudgetStreamGraph(rep)),
             ModelEnum::BudgetMonthlySankyDiagram() => todo!(),
+            ModelEnum::EmpireList(model) => model
+                .update(game_data)
+                .map(|rep| RepresentationEnum::EmpireList(rep)),
         }
     }
 
@@ -70,6 +78,9 @@ impl Model for ModelEnum {
                 .update_all(game_data_history)
                 .map(|rep| RepresentationEnum::BudgetStreamGraph(rep)),
             ModelEnum::BudgetMonthlySankyDiagram() => todo!(),
+            ModelEnum::EmpireList(model) => model
+                .update_all(game_data_history)
+                .map(|rep| RepresentationEnum::EmpireList(rep)),
         }
     }
 }

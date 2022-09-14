@@ -3,7 +3,10 @@ use std::path::PathBuf;
 use actix_cors::Cors;
 
 use actix_web::{
-    dev::ServerHandle, get, middleware, rt, web::Data, App, HttpResponse, HttpServer, Responder,
+    dev::ServerHandle,
+    get, middleware, rt,
+    web::{self, Data},
+    App, HttpResponse, HttpServer, Responder,
 };
 
 use crossbeam::{
@@ -14,7 +17,7 @@ use game_data_controller::GameModelController;
 use listenfd::ListenFd;
 use model_info_struct::{
     enums::{ModelEnum, ModelSpecEnum},
-    model::campaign_list::CampaignListModelSpec,
+    model::{campaign_list::CampaignListModelSpec, empire_list::EmpireListModelSpec},
 };
 
 #[get("/")]
@@ -30,6 +33,21 @@ pub async fn campaigns(s: Data<GameModelController>) -> impl Responder {
         .append_header(("connection", "keep-alive"))
         .append_header(("cache-control", "no-cache"))
         .streaming(s.get_client(ModelSpecEnum::CampaignList(CampaignListModelSpec)))
+}
+
+#[get("/{campaign_name}/empires")]
+pub async fn empires(
+    s: Data<GameModelController>,
+    campaign_name: web::Path<String>,
+) -> impl Responder {
+    log::info!("connection request {}", campaign_name);
+    HttpResponse::Ok()
+        .append_header(("content-type", "text/event-stream"))
+        .append_header(("connection", "keep-alive"))
+        .append_header(("cache-control", "no-cache"))
+        .streaming(s.get_client(ModelSpecEnum::EmpireList(EmpireListModelSpec {
+            campaign_name: campaign_name.to_string(),
+        })))
 }
 
 fn main() -> Result<(), Box<(dyn std::any::Any + Send + 'static)>> {
@@ -63,6 +81,7 @@ async fn run_app(t: Sender<ServerHandle>, scope: &Scope<'_>) -> std::io::Result<
             .app_data(game_data_controller.clone())
             .service(index)
             .service(campaigns)
+            .service(empires)
     });
 
     server = if let Some(listener) = ListenFd::from_env().take_tcp_listener(0).unwrap() {

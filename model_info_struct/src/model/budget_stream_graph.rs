@@ -1,13 +1,15 @@
 use std::collections::HashMap;
 
 use crate::{Model, ModelSpec};
-use game_data_info_struct::ModelDataPoint;
+use game_data_info_struct::{ModelDataPoint, ResourceClass};
 use serde_derive::Serialize;
 
 use super::date::Date;
 
 #[derive(Eq, PartialEq, Hash, Serialize, Clone, Debug)]
-pub struct BudgetStreamGraphModelSpec;
+pub struct BudgetStreamGraphModelSpec {
+    resources: Vec<ResourceClass>,
+}
 
 #[derive(Serialize, Debug)]
 pub struct BudgetStreamGraphModel {
