@@ -5,8 +5,9 @@ import {
   BrowserRouter as Router, Navigate, Route, Routes, useParams
 } from "react-router-dom";
 function CampaignButton(props) {
+
   let lnk = '/campaign/' + props.campaign_name;
-  return <li key={props.campaign_name}>
+  return <li key={"props.key"}>
 
     <a className="button" href={lnk}>
       <div>
@@ -20,9 +21,10 @@ function CampaignButton(props) {
 }
 function CampaignSelect(props) {
   return <ul>
-    {Object.entries(props.data).map(([campaign_name, campaign_info_struct]) => <CampaignButton key={campaign_info_struct.campaign_name} campaign_name={campaign_info_struct.campaign_name} empire_list={campaign_info_struct.empire_list} />)}
+    {props.data.map(dict => <CampaignButton key={dict.campaign_name} campaign_name={dict.campaign_name} empire_list={dict.empire_list} />)}
   </ul>;
 }
+
 
 class CampaignSelectPage extends React.Component {
 
@@ -37,6 +39,7 @@ class CampaignSelectPage extends React.Component {
 
     this.eventSource.onmessage = (e) => {
       this.setState(JSON.parse(e.data));
+
     }
   }
   componentWillUnmount() {
@@ -44,8 +47,10 @@ class CampaignSelectPage extends React.Component {
   }
   render() {
     if (this.state != {}) {
+      if (this.state.CampaignList) {
+        return (<div><CampaignSelect data={this.state.CampaignList} /></div>)
+      }
 
-      return (<div><CampaignSelect data={this.state} /></div>)
     } else {
       return (<div>404</div>)
 

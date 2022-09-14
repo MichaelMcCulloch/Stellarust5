@@ -1,7 +1,7 @@
 use std::{collections::HashMap, vec};
 
 use crate::{Model, ModelSpec};
-use game_data_info_struct::ModelDataPoint;
+use game_data_info_struct::{ModelDataPoint, PlayerClass};
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Eq, PartialEq, Hash, Serialize, Clone, Debug)]
@@ -62,12 +62,15 @@ impl From<&ModelDataPoint> for CampaignInfoStruct {
             empire_list: model_data_point
                 .empires
                 .iter()
-                .map(|empire_data| Empire {
-                    name: empire_data.name.clone(),
-                    player: match empire_data.driver.clone() {
-                        game_data_info_struct::PlayerClass::Human(name) => Some(name),
-                        game_data_info_struct::PlayerClass::Computer => None,
-                    },
+                .filter_map(|empire_data| match empire_data.driver {
+                    PlayerClass::Human(_) => Some(Empire {
+                        name: empire_data.name.clone(),
+                        player: match empire_data.driver.clone() {
+                            PlayerClass::Human(name) => Some(name),
+                            PlayerClass::Computer => None,
+                        },
+                    }),
+                    PlayerClass::Computer => None,
                 })
                 .collect(),
         }
