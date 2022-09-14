@@ -49,7 +49,6 @@ impl Broadcaster {
                 ["event: message\ndata: ", message_string, "\n\n"].concat(),
             ))
             .unwrap();
-        log::info!("sending message to new client");
         self.clients.write().unwrap().push(bytes_sender);
 
         Client(bytes_receiver)
