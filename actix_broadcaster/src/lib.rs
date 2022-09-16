@@ -17,6 +17,19 @@ pub struct ActixBroadcaster {
     clients: Arc<RwLock<Vec<UnboundedSender<Bytes>>>>,
 }
 
+pub trait Ping {
+    const PING_INTERVAL: Duration;
+}
+
+#[cfg(not(test))]
+impl Ping for ActixBroadcaster {
+    const PING_INTERVAL: Duration = Duration::from_secs(10);
+}
+#[cfg(test)]
+impl Ping for ActixBroadcaster {
+    const PING_INTERVAL: Duration = Duration::from_millis(10);
+}
+
 pub trait Broadcaster {
     fn create() -> Self;
     fn new_client(&self) -> Client;
@@ -78,12 +91,10 @@ impl Broadcaster for ActixBroadcaster {
 }
 
 impl ActixBroadcaster {
-    pub const PING_INTERVAL: u64 = 10;
-
     fn spawn_ping(&self) {
         let clients = self.clients.clone();
         actix_web::rt::spawn(async move {
-            let mut interval = actix_web::rt::time::interval(Duration::from_secs(10));
+            let mut interval = actix_web::rt::time::interval(Self::PING_INTERVAL);
             loop {
                 interval.tick().await;
                 Self::remove_stale_clients(&clients);
@@ -93,10 +104,8 @@ impl ActixBroadcaster {
     fn remove_stale_clients(clients: &Arc<RwLock<Vec<UnboundedSender<Bytes>>>>) {
         clients.write().unwrap().retain(|sender| {
             if let Ok(()) = sender.send(Bytes::from("event: ping\ndata: ping\n\n")) {
-                println!("retaining");
                 true
             } else {
-                println!("removing");
                 false
             }
         });
@@ -115,13 +124,94 @@ impl Stream for Client {
     }
 }
 
+#[cfg(test)]
 #[async_trait(?Send)]
 pub trait TestClient {
     async fn recv(&mut self) -> Option<Bytes>;
 }
+
+#[cfg(test)]
 #[async_trait(?Send)]
 impl TestClient for Client {
     async fn recv(&mut self) -> Option<Bytes> {
         self.0.recv().await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use bytes::Bytes;
+
+    use crate::{ActixBroadcaster, Broadcaster, TestClient};
+
+    #[actix_rt::test]
+    async fn broadcaster_new_client_with_message_x_receives_connection_message_then_message_x() {
+        let b = ActixBroadcaster::create();
+
+        let mut x = b.new_client_with_message(&"here is a message");
+        match x.recv().await {
+            Some(x) => assert_eq!(x, Bytes::from("event: connected\ndata: connected\n\n")),
+            None => assert!(false, "Connection Message Not Received"),
+        }
+        match x.recv().await {
+            Some(x) => assert_eq!(
+                x,
+                Bytes::from("event: message\ndata: \"here is a message\"\n\n")
+            ),
+            None => assert!(false, "Startup Message Not Received"),
+        }
+    }
+
+    #[actix_rt::test]
+    async fn broadcaster_new_client_receives_connection_message() {
+        let b = ActixBroadcaster::create();
+
+        let mut x = b.new_client();
+        match x.recv().await {
+            Some(x) => assert_eq!(x, Bytes::from("event: connected\ndata: connected\n\n")),
+            None => assert!(false, "Connection Message Not Received"),
+        }
+    }
+    #[actix_rt::test]
+    async fn broadcaster_existing_client_send() {
+        let b = ActixBroadcaster::create();
+
+        let mut x = b.new_client();
+        b.send(&"Can you hear me? 1 2 3");
+        match x.recv().await {
+            Some(x) => assert_eq!(x, Bytes::from("event: connected\ndata: connected\n\n")),
+            None => assert!(false, "Connection Message Not Received"),
+        }
+        match x.recv().await {
+            Some(x) => assert_eq!(
+                x,
+                Bytes::from("event: message\ndata: \"Can you hear me? 1 2 3\"\n\n")
+            ),
+            None => assert!(false, "Broadcast Message Not Received"),
+        }
+    }
+
+    #[actix_rt::test]
+    async fn broadcaster_ping_client_receives_pings_as_long_as_its_polling() {
+        let b = ActixBroadcaster::create();
+
+        let mut x = b.new_client();
+        match x.recv().await {
+            Some(x) => assert_eq!(x, Bytes::from("event: connected\ndata: connected\n\n")),
+            None => assert!(false, "Connection Message Not Received"),
+        }
+
+        match x.recv().await {
+            Some(x) => assert_eq!(x, Bytes::from("event: ping\ndata: ping\n\n")),
+            None => assert!(false, "Ping Message 1 Not Received"),
+        }
+        match x.recv().await {
+            Some(x) => assert_eq!(x, Bytes::from("event: ping\ndata: ping\n\n")),
+            None => assert!(false, "Ping Message 2 Not Received"),
+        }
+        match x.recv().await {
+            Some(x) => assert_eq!(x, Bytes::from("event: ping\ndata: ping\n\n")),
+            None => assert!(false, "Ping Message 3 Not Received"),
+        }
     }
 }
