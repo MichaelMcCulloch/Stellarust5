@@ -11,7 +11,7 @@ actix_broadcaster = {path ="../actix_broadcaster"}
 game_data_info_struct_reader = {path= "../game_data_info_struct_reader"}
 directory_watcher = {path= "../directory_watcher"}
 
-notify = "5"
-crossbeam = "0.8" 
-rayon = "1.5"
-log = "0.4"
+notify = "5.0.0"
+crossbeam = "0.8.2" 
+rayon = "1.5.3"
+log = "0.4.17"

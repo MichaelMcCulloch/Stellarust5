@@ -7,5 +7,5 @@ edition = "2021"
 
 [dependencies]
 trait_file_reader = {path = "../trait_file_reader"}
-notify = "5"
-log = "0.4"
+notify = "5.0.0"
+log = "0.4.17"
