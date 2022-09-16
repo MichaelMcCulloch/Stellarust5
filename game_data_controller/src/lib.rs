@@ -4,7 +4,7 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use actix_broadcaster::{Broadcaster, Client};
+use actix_broadcaster::{ActixBroadcaster, Broadcaster, Client};
 use crossbeam::{
     channel::{unbounded, Receiver},
     thread::Scope,
@@ -22,7 +22,7 @@ use scan_root::ScanAllFoldersAndFiles;
 mod filter;
 mod scan_root;
 pub struct GameModelController {
-    broadcasters_map: Arc<RwLock<HashMap<ModelSpecEnum, (ModelEnum, Broadcaster)>>>,
+    broadcasters_map: Arc<RwLock<HashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster)>>>,
     game_data_history: Arc<RwLock<HashMap<String, Vec<ModelDataPoint>>>>,
     _watcher: RecommendedWatcher,
 }
@@ -68,7 +68,12 @@ impl GameModelController {
 
         let (model, broadcaster) = broadcaster_map
             .entry(model_spec_enum.clone())
-            .or_insert_with(|| (ModelEnum::create(model_spec_enum), Broadcaster::create()));
+            .or_insert_with(|| {
+                (
+                    ModelEnum::create(model_spec_enum),
+                    ActixBroadcaster::create(),
+                )
+            });
         //strangely, using 'or_insert' causes multiple broadcasters to be created, visible by each printing retaining 0 clients, yet only one get's ALL the clients, while the others get none
 
         let game_data_history = self.game_data_history.read().unwrap();
@@ -103,7 +108,7 @@ impl GameModelController {
         scope: &Scope,
         info_struct_receiver: Receiver<ModelDataPoint>,
         model_history: Arc<RwLock<HashMap<String, Vec<ModelDataPoint>>>>,
-        broadcasters_map: Arc<RwLock<HashMap<ModelSpecEnum, (ModelEnum, Broadcaster)>>>,
+        broadcasters_map: Arc<RwLock<HashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster)>>>,
     ) {
         scope.spawn(move |_s| loop {
             match info_struct_receiver.recv() {
@@ -116,7 +121,7 @@ impl GameModelController {
         });
     }
     fn broadcast_model_changes(
-        broadcasters_map: &Arc<RwLock<HashMap<ModelSpecEnum, (ModelEnum, Broadcaster)>>>,
+        broadcasters_map: &Arc<RwLock<HashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster)>>>,
         data_point: &ModelDataPoint,
     ) {
         let mut guard = broadcasters_map.write().unwrap();

@@ -1,4 +1,4 @@
-use actix_rt::time::{interval_at, Instant};
+use async_trait::async_trait;
 use bytes::Bytes;
 
 use futures::Stream;
@@ -13,21 +13,27 @@ use std::{
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 
 #[derive(Debug)]
-pub struct Broadcaster {
+pub struct ActixBroadcaster {
     clients: Arc<RwLock<Vec<UnboundedSender<Bytes>>>>,
 }
-impl Broadcaster {
-    const PING_INTERVAL: u64 = 10;
 
-    pub fn create() -> Self {
-        let me = Broadcaster {
+pub trait Broadcaster {
+    fn create() -> Self;
+    fn new_client(&self) -> Client;
+    fn new_client_with_message<S: Serialize>(&self, message: &S) -> Client;
+    fn send<S: Serialize>(&self, message: &S) -> usize;
+}
+
+impl Broadcaster for ActixBroadcaster {
+    fn create() -> Self {
+        let me = ActixBroadcaster {
             clients: Arc::new(RwLock::new(vec![])),
         };
         me.spawn_ping();
         me
     }
 
-    pub fn new_client(&self) -> Client {
+    fn new_client(&self) -> Client {
         let (bytes_sender, bytes_receiver) = unbounded_channel();
 
         bytes_sender
@@ -38,7 +44,7 @@ impl Broadcaster {
 
         Client(bytes_receiver)
     }
-    pub fn new_client_with_message<S: Serialize>(&self, message: &S) -> Client {
+    fn new_client_with_message<S: Serialize>(&self, message: &S) -> Client {
         let (bytes_sender, bytes_receiver) = unbounded_channel();
         let message_string = &serde_json::to_string(&message).unwrap();
         bytes_sender
@@ -54,7 +60,7 @@ impl Broadcaster {
         Client(bytes_receiver)
     }
 
-    pub fn send<S: Serialize>(&self, message: &S) -> usize {
+    fn send<S: Serialize>(&self, message: &S) -> usize {
         let guard = self.clients.read().unwrap();
         if guard.is_empty() {
             0
@@ -69,22 +75,28 @@ impl Broadcaster {
             guard.len()
         }
     }
+}
+
+impl ActixBroadcaster {
+    pub const PING_INTERVAL: u64 = 10;
 
     fn spawn_ping(&self) {
         let clients = self.clients.clone();
         actix_web::rt::spawn(async move {
-            let mut task = interval_at(Instant::now(), Duration::from_secs(Self::PING_INTERVAL));
+            let mut interval = actix_web::rt::time::interval(Duration::from_secs(10));
             loop {
-                task.tick().await;
-                Self::remove_stale_clients(&clients).await;
+                interval.tick().await;
+                Self::remove_stale_clients(&clients);
             }
         });
     }
-    async fn remove_stale_clients(clients: &Arc<RwLock<Vec<UnboundedSender<Bytes>>>>) {
+    fn remove_stale_clients(clients: &Arc<RwLock<Vec<UnboundedSender<Bytes>>>>) {
         clients.write().unwrap().retain(|sender| {
             if let Ok(()) = sender.send(Bytes::from("event: ping\ndata: ping\n\n")) {
+                println!("retaining");
                 true
             } else {
+                println!("removing");
                 false
             }
         });
@@ -100,5 +112,16 @@ impl Stream for Client {
             Poll::Ready(None) => Poll::Ready(None),
             Poll::Pending => Poll::Pending,
         }
+    }
+}
+
+#[async_trait(?Send)]
+pub trait TestClient {
+    async fn recv(&mut self) -> Option<Bytes>;
+}
+#[async_trait(?Send)]
+impl TestClient for Client {
+    async fn recv(&mut self) -> Option<Bytes> {
+        self.0.recv().await
     }
 }

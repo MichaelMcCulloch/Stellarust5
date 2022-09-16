@@ -17,20 +17,6 @@
             "group": "build"
         },
         {
-            "label": "Deploy Yew Client",
-            "type": "shell",
-            "command": "trunk serve --release",
-            "group": "build",
-            "options": {
-                "cwd": "${workspaceFolder}/yew_frontend"
-            },
-            "dependsOn": [],
-            "isBackground": true,
-            "problemMatcher": [
-                "$rustc"
-            ]
-        },
-        {
             "label": "Deploy React Client",
             "type": "shell",
             "command": "npm run build && miniserve  -p 3000  ./build/ --index index.html --spa",
