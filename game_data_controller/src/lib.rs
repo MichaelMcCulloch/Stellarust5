@@ -63,10 +63,12 @@ impl GameModelController {
     /// 3. populates a client from the broadcaster and sends that client the model it asked for
     /// 4. returns that client
     pub fn get_client(&self, model_spec_enum: ModelSpecEnum) -> Option<Client> {
-        let mut broadcaster_map = self.broadcasters_map.write().unwrap();
-        log::info!("Broadcasting {:?} to new client!", model_spec_enum);
-
-        match broadcaster_map.entry(model_spec_enum) {
+        match self
+            .broadcasters_map
+            .write()
+            .unwrap()
+            .entry(model_spec_enum)
+        {
             Entry::Occupied(entry) => {
                 let (model, broadcaster) = entry.get();
                 Some(broadcaster.new_client_with_message(&model.get()))
