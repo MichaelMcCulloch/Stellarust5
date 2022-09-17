@@ -3,8 +3,6 @@ pub mod date;
 use date::Date;
 use std::collections::HashMap;
 
-use serde::Serialize;
-
 use serde_derive::{Deserialize, Serialize};
 #[derive(Default, Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Resources {

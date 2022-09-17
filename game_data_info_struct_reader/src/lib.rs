@@ -191,8 +191,6 @@ mod test;
 #[cfg(test)]
 mod tests {
 
-    use std::fs;
-
     use crate::test::constant_str::{
         COMPLETE_MODEL_SERIALIZED, EMPIRE_DATA_SERIALIZED, GAMESTATE, META,
     };

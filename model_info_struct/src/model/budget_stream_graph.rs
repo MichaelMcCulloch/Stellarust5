@@ -1,7 +1,4 @@
-use std::collections::HashMap;
-
 use crate::{Model, ModelSpec};
-use chrono::NaiveDate;
 use dashmap::DashMap;
 use game_data_info_struct::{date::Date, EmpireData, ModelDataPoint, ResourceClass};
 use serde_derive::Serialize;
@@ -107,6 +104,9 @@ impl ModelSpec for BudgetStreamGraphModelSpec {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
+    use chrono::NaiveDate;
     use game_data_info_struct::{Budget, PlayerClass, Resources};
 
     use super::*;
@@ -263,7 +263,7 @@ mod tests {
                 resources: resources.clone(),
             }],
         };
-        let mut game_data_history = DashMap::new();
+        let game_data_history = DashMap::new();
         game_data_history.insert(
             campaign_name.clone(),
             vec![

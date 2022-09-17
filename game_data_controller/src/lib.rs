@@ -1,15 +1,11 @@
-use std::{
-    collections::{hash_map::Entry, HashMap},
-    path::Path,
-    sync::{Arc, RwLock},
-};
+use std::{path::Path, sync::Arc};
 
 use actix_broadcaster::{ActixBroadcaster, Broadcaster, Client};
 use crossbeam::{
     channel::{unbounded, Receiver},
     thread::Scope,
 };
-use dashmap::DashMap;
+use dashmap::{mapref::entry::Entry, DashMap};
 use directory_watcher::{create_directory_watcher_and_scan_root, RecursiveMode};
 use filter::{CloseWriteFilter, EndsWithSavFilter};
 use game_data_info_struct_reader::{GameDataInfoStructReader, ModelDataPoint};
@@ -18,7 +14,6 @@ use model_info_struct::{
     Model,
 };
 use notify::RecommendedWatcher;
-use rayon::prelude::{ParallelDrainFull, ParallelIterator};
 use scan_root::ScanAllFoldersAndFiles;
 mod filter;
 mod scan_root;
@@ -65,12 +60,12 @@ impl GameModelController {
     /// 4. returns that client
     pub fn get_client(&self, model_spec_enum: ModelSpecEnum) -> Option<Client> {
         match self.broadcasters_map.entry(model_spec_enum) {
-            dashmap::mapref::entry::Entry::Occupied(entry) => {
+            Entry::Occupied(entry) => {
                 let (model, broadcaster) = entry.get();
 
                 Some(broadcaster.new_client_with_message(&model.get()))
             }
-            dashmap::mapref::entry::Entry::Vacant(entry) => {
+            Entry::Vacant(entry) => {
                 let (mut model, broadcaster) = (
                     ModelEnum::create(entry.key().clone()),
                     ActixBroadcaster::create(),
@@ -94,7 +89,7 @@ impl GameModelController {
         model_history: &Arc<DashMap<String, Vec<ModelDataPoint>>>,
     ) {
         match model_history.entry(model_data.campaign_name.clone()) {
-            dashmap::mapref::entry::Entry::Occupied(mut entry) => {
+            Entry::Occupied(mut entry) => {
                 match entry
                     .get()
                     .binary_search_by_key(&model_data.date, |m| m.date)
@@ -103,7 +98,7 @@ impl GameModelController {
                     Err(pos) => entry.get_mut().insert(pos, model_data.clone()),
                 }
             }
-            dashmap::mapref::entry::Entry::Vacant(entry) => {
+            Entry::Vacant(entry) => {
                 entry.insert(vec![model_data.clone()]);
             }
         }

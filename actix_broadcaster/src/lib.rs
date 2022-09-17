@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use async_trait::async_trait;
 use bytes::Bytes;
 
@@ -54,7 +55,6 @@ impl Broadcaster for ActixBroadcaster {
             .unwrap();
 
         self.clients.write().unwrap().push(bytes_sender);
-        log::info!("{}", self.clients.read().unwrap().len());
         Client(bytes_receiver)
     }
     fn new_client_with_message<S: Serialize>(&self, message: &S) -> Client {
@@ -69,7 +69,6 @@ impl Broadcaster for ActixBroadcaster {
             ))
             .unwrap();
         self.clients.write().unwrap().push(bytes_sender);
-        log::info!("{}", self.clients.read().unwrap().len());
 
         Client(bytes_receiver)
     }
