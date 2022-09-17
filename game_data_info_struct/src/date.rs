@@ -2,11 +2,9 @@ use chrono::{Datelike, NaiveDate};
 
 use serde::{ser::SerializeTupleStruct, Serialize};
 
-#[cfg(feature = "test")]
 use serde_derive::Deserialize;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(feature = "test", derive(Deserialize))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Deserialize)]
 pub struct Date(i16, u8, u8);
 
 impl From<NaiveDate> for Date {
@@ -21,7 +19,6 @@ impl Into<NaiveDate> for &Date {
     }
 }
 
-#[cfg(feature = "test")]
 impl Serialize for Date {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

@@ -3,13 +3,10 @@ pub mod date;
 use date::Date;
 use std::collections::HashMap;
 
-#[cfg(feature = "test")]
 use serde::Serialize;
 
-#[cfg(feature = "test")]
 use serde_derive::{Deserialize, Serialize};
-#[derive(Default, Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "test", derive(Serialize, Deserialize))]
+#[derive(Default, Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Resources {
     pub energy: f64,
     pub minerals: f64,
@@ -34,8 +31,8 @@ pub struct Resources {
     pub sr_dark_matter: f64,
 }
 
-#[derive(Default, Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "test", derive(Serialize, Deserialize))]
+#[derive(Default, Debug, PartialEq, Clone, Serialize, Deserialize)]
+
 pub struct Budget {
     pub income: HashMap<ResourceClass, Vec<(String, f64)>>,
     pub expense: HashMap<ResourceClass, Vec<(String, f64)>>,
@@ -45,8 +42,7 @@ pub struct Budget {
     pub expense_last_month: HashMap<ResourceClass, Vec<(String, f64)>>,
     pub balance_last_month: HashMap<ResourceClass, Vec<(String, f64)>>,
 }
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
-#[cfg_attr(feature = "test", derive(Serialize, Deserialize))]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
 pub enum ResourceClass {
     Energy,
     Minerals,
@@ -66,23 +62,23 @@ pub enum ResourceClass {
     DarkMatter,
 }
 
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "test", derive(Serialize, Deserialize))]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+
 pub struct EmpireData {
     pub name: String,
     pub driver: PlayerClass,
     pub budget: Budget,
     pub resources: Resources,
 }
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "test", derive(Serialize, Deserialize))]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+
 pub enum PlayerClass {
     Human(String),
     Computer,
 }
 
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "test", derive(Serialize, Deserialize))]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+
 pub struct ModelDataPoint {
     pub campaign_name: String,
     pub date: Date,
