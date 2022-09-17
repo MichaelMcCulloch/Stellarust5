@@ -6,7 +6,6 @@ mod tests {
     use trait_file_reader::FileReader;
 
     const INT_TEST_ROOT: &str = &"/home/michael/Dev/Stellarust/stellarust5/int_test/";
-    
 
     #[test]
     fn test_name() {

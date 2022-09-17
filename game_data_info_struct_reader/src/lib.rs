@@ -185,3 +185,25 @@ impl GameDataInfoStructReader {
         }
     }
 }
+
+#[cfg(test)]
+mod test;
+#[cfg(test)]
+mod tests {
+
+    use std::fs;
+
+    use crate::test::{GAMESTATE, GAMESTATE_JSON, META};
+
+    use super::*;
+    #[test]
+    fn verify_model_consistent() {
+        let actual = GameDataInfoStructReader::extract(
+            &clausewitz_parser::root(&META).unwrap().1,
+            &clausewitz_parser::root(&GAMESTATE).unwrap().1,
+        );
+
+        let expected: ModelDataPoint = serde_json::from_str(&GAMESTATE_JSON).unwrap();
+        assert_eq!(expected, actual);
+    }
+}
