@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::{Model, ModelSpec};
 use chrono::NaiveDate;
+use dashmap::DashMap;
 use game_data_info_struct::{date::Date, EmpireData, ModelDataPoint, ResourceClass};
 use serde_derive::Serialize;
 
@@ -48,12 +49,12 @@ impl Model for BudgetStreamGraphModel {
 
     fn update_all(
         &mut self,
-        game_data_history: &HashMap<String, Vec<ModelDataPoint>>,
+        game_data_history: &DashMap<String, Vec<ModelDataPoint>>,
     ) -> Option<Self::Representation> {
         match game_data_history.get(&self.spec.campaign_name) {
             Some(history) => {
-                for record in history {
-                    self.update(record);
+                for record in &*history {
+                    self.update(&record);
                 }
 
                 Some(self.list.clone())
@@ -262,7 +263,7 @@ mod tests {
                 resources: resources.clone(),
             }],
         };
-        let mut game_data_history = HashMap::new();
+        let mut game_data_history = DashMap::new();
         game_data_history.insert(
             campaign_name.clone(),
             vec![

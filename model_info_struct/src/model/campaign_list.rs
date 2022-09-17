@@ -1,6 +1,7 @@
 use std::{collections::HashMap, vec};
 
 use crate::{Model, ModelSpec};
+use dashmap::DashMap;
 use game_data_info_struct::{ModelDataPoint, PlayerClass};
 use serde_derive::{Deserialize, Serialize};
 
@@ -39,11 +40,11 @@ impl Model for CampaignListModel {
 
     fn update_all(
         &mut self,
-        game_data_history: &HashMap<String, Vec<ModelDataPoint>>,
+        game_data_history: &DashMap<String, Vec<ModelDataPoint>>,
     ) -> Option<Self::Representation> {
         self.list = game_data_history
             .iter()
-            .map(|(_, v)| CampaignInfoStruct::from(v.last().unwrap()))
+            .map(|e| CampaignInfoStruct::from((*e).last().unwrap()))
             .collect::<Vec<_>>();
         Some(self.list.clone())
     }

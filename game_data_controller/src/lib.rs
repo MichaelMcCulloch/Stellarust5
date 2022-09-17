@@ -9,6 +9,7 @@ use crossbeam::{
     channel::{unbounded, Receiver},
     thread::Scope,
 };
+use dashmap::DashMap;
 use directory_watcher::{create_directory_watcher_and_scan_root, RecursiveMode};
 use filter::{CloseWriteFilter, EndsWithSavFilter};
 use game_data_info_struct_reader::{GameDataInfoStructReader, ModelDataPoint};
@@ -22,8 +23,8 @@ use scan_root::ScanAllFoldersAndFiles;
 mod filter;
 mod scan_root;
 pub struct GameModelController {
-    broadcasters_map: Arc<RwLock<HashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster)>>>,
-    game_data_history: Arc<RwLock<HashMap<String, Vec<ModelDataPoint>>>>,
+    broadcasters_map: Arc<DashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster)>>,
+    game_data_history: Arc<DashMap<String, Vec<ModelDataPoint>>>,
     _watcher: RecommendedWatcher,
 }
 
@@ -41,8 +42,8 @@ impl GameModelController {
             &game_directory,
             RecursiveMode::Recursive,
         );
-        let game_data_history = Arc::new(RwLock::new(HashMap::new()));
-        let broadcasters_map = Arc::new(RwLock::new(HashMap::new()));
+        let game_data_history = Arc::new(DashMap::new());
+        let broadcasters_map = Arc::new(DashMap::new());
         let game_model_controller = Self {
             broadcasters_map: broadcasters_map.clone(),
             game_data_history: game_data_history.clone(),
@@ -63,23 +64,18 @@ impl GameModelController {
     /// 3. populates a client from the broadcaster and sends that client the model it asked for
     /// 4. returns that client
     pub fn get_client(&self, model_spec_enum: ModelSpecEnum) -> Option<Client> {
-        match self
-            .broadcasters_map
-            .write()
-            .unwrap()
-            .entry(model_spec_enum)
-        {
-            Entry::Occupied(entry) => {
+        match self.broadcasters_map.entry(model_spec_enum) {
+            dashmap::mapref::entry::Entry::Occupied(entry) => {
                 let (model, broadcaster) = entry.get();
+
                 Some(broadcaster.new_client_with_message(&model.get()))
             }
-            Entry::Vacant(entry) => {
+            dashmap::mapref::entry::Entry::Vacant(entry) => {
                 let (mut model, broadcaster) = (
                     ModelEnum::create(entry.key().clone()),
                     ActixBroadcaster::create(),
                 );
-                let game_data_history = self.game_data_history.read().unwrap();
-                match model.update_all(&game_data_history.clone()) {
+                match model.update_all(&self.game_data_history.clone()) {
                     Some(message) => {
                         let client = broadcaster.new_client_with_message(&message);
                         entry.insert((model, broadcaster));
@@ -95,17 +91,21 @@ impl GameModelController {
     /// * `model_history` - Existing data
     fn reconcile(
         model_data: &ModelDataPoint,
-        model_history: &Arc<RwLock<HashMap<String, Vec<ModelDataPoint>>>>,
+        model_history: &Arc<DashMap<String, Vec<ModelDataPoint>>>,
     ) {
-        let mut hash_map = model_history.write().unwrap();
-
-        let model_history = hash_map
-            .entry(model_data.campaign_name.clone())
-            .or_insert(vec![]);
-
-        match model_history.binary_search_by_key(&model_data.date, |m| m.date) {
-            Ok(_index) => {}
-            Err(pos) => model_history.insert(pos, model_data.clone()),
+        match model_history.entry(model_data.campaign_name.clone()) {
+            dashmap::mapref::entry::Entry::Occupied(mut entry) => {
+                match entry
+                    .get()
+                    .binary_search_by_key(&model_data.date, |m| m.date)
+                {
+                    Ok(_index) => {}
+                    Err(pos) => entry.get_mut().insert(pos, model_data.clone()),
+                }
+            }
+            dashmap::mapref::entry::Entry::Vacant(entry) => {
+                entry.insert(vec![model_data.clone()]);
+            }
         }
     }
     /// Spawns the event loop in the scope
@@ -116,8 +116,8 @@ impl GameModelController {
     fn spawn_event_loop(
         scope: &Scope,
         info_struct_receiver: Receiver<ModelDataPoint>,
-        model_history: Arc<RwLock<HashMap<String, Vec<ModelDataPoint>>>>,
-        broadcasters_map: Arc<RwLock<HashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster)>>>,
+        model_history: Arc<DashMap<String, Vec<ModelDataPoint>>>,
+        broadcasters_map: Arc<DashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster)>>,
     ) {
         scope.spawn(move |_s| loop {
             match info_struct_receiver.recv() {
@@ -130,39 +130,15 @@ impl GameModelController {
         });
     }
     fn broadcast_model_changes(
-        broadcasters_map: &Arc<RwLock<HashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster)>>>,
+        broadcasters_map: &Arc<DashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster)>>,
         data_point: &ModelDataPoint,
     ) {
-        let mut guard = broadcasters_map.write().unwrap();
-        let mut map = std::mem::take(&mut *guard);
-        // The reason this is so ugly is because we are required to mutate the model and broadcaster, and we can't do that if they are behind a mutable reference
-        *guard = map
-            .par_drain()
-            .fold(
-                || HashMap::new(),
-                |mut a, (spec, (mut model, broadcaster))| match model.update(data_point) {
-                    Some(output) => {
-                        let recipients = broadcaster.send(&output);
-                        if recipients != 0 {
-                            log::info!("Broadcasting {:?} to {} clients!", spec, recipients);
-                            a.insert(spec, (model, broadcaster));
-                            a
-                        } else {
-                            a // Only remove the broadcaster if the broadcaster says there are no clients left
-                        }
-                    }
-                    None => {
-                        a.insert(spec, (model, broadcaster));
-                        a
-                    }
-                },
-            )
-            .reduce(
-                || HashMap::new(),
-                |mut a, b| {
-                    a.extend(b.into_iter());
-                    a
-                },
-            );
+        broadcasters_map.retain(|_, (model, broadcaster)| match model.update(data_point) {
+            Some(output) => {
+                let recipients = broadcaster.send(&output);
+                recipients != 0
+            }
+            None => true,
+        })
     }
 }

@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use dashmap::DashMap;
 use game_data_info_struct::{date::Date, ModelDataPoint, ResourceClass};
 use serde_derive::Serialize;
 
@@ -67,7 +68,7 @@ impl Model for ModelEnum {
 
     fn update_all(
         &mut self,
-        game_data_history: &HashMap<String, Vec<ModelDataPoint>>,
+        game_data_history: &DashMap<String, Vec<ModelDataPoint>>,
     ) -> Option<Self::Representation> {
         match self {
             ModelEnum::CampaignList(model) => model

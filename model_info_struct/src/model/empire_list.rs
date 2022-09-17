@@ -1,6 +1,7 @@
 use std::{collections::HashMap, vec};
 
 use crate::{Model, ModelSpec};
+use dashmap::DashMap;
 use game_data_info_struct::{ModelDataPoint, PlayerClass};
 use serde_derive::Serialize;
 
@@ -47,7 +48,7 @@ impl Model for EmpireListModel {
 
     fn update_all(
         &mut self,
-        game_data_history: &HashMap<String, Vec<ModelDataPoint>>,
+        game_data_history: &DashMap<String, Vec<ModelDataPoint>>,
     ) -> Option<Self::Representation> {
         match game_data_history.get(&self.spec.campaign_name) {
             Some(vec) => {
