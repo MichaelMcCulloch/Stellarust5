@@ -47,6 +47,10 @@ impl Model for CampaignListModel {
             .collect::<Vec<_>>();
         Some(self.list.clone())
     }
+
+    fn get(&self) -> Self::Representation {
+        self.list.clone()
+    }
 }
 
 impl From<ModelDataPoint> for CampaignInfoStruct {

@@ -70,6 +70,10 @@ impl Model for EmpireListModel {
             None => None,
         }
     }
+
+    fn get(&self) -> Self::Representation {
+        self.list.clone()
+    }
 }
 
 impl ModelSpec for EmpireListModelSpec {

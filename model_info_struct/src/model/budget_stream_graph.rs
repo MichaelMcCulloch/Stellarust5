@@ -61,6 +61,10 @@ impl Model for BudgetStreamGraphModel {
             None => None,
         }
     }
+
+    fn get(&self) -> Self::Representation {
+        self.list.clone()
+    }
 }
 
 impl BudgetStreamGraphModel {

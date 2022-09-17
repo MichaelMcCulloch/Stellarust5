@@ -82,6 +82,17 @@ impl Model for ModelEnum {
                 .map(|rep| RepresentationEnum::EmpireList(rep)),
         }
     }
+
+    fn get(&self) -> Self::Representation {
+        match self {
+            ModelEnum::CampaignList(model) => RepresentationEnum::CampaignList(model.get()),
+            ModelEnum::BudgetStreamGraph(model) => {
+                RepresentationEnum::BudgetStreamGraph(model.get())
+            }
+            ModelEnum::BudgetMonthlySankyDiagram() => todo!(),
+            ModelEnum::EmpireList(model) => RepresentationEnum::EmpireList(model.get()),
+        }
+    }
 }
 impl ModelSpec for ModelSpecEnum {
     type Model = ModelEnum;

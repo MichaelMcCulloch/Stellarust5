@@ -66,24 +66,26 @@ impl GameModelController {
         let mut broadcaster_map = self.broadcasters_map.write().unwrap();
         log::info!("Broadcasting {:?} to new client!", model_spec_enum);
 
-        let (model, broadcaster) = broadcaster_map
-            .entry(model_spec_enum.clone())
-            .or_insert_with(|| {
-                (
-                    ModelEnum::create(model_spec_enum),
-                    ActixBroadcaster::create(),
-                )
-            });
-        //strangely, using 'or_insert' causes multiple broadcasters to be created, visible by each printing retaining 0 clients, yet only one get's ALL the clients, while the others get none
-
-        let game_data_history = self.game_data_history.read().unwrap();
-        let message = model.update_all(&game_data_history.clone());
-        match message {
-            Some(message) => {
-                let client = broadcaster.new_client_with_message(&message);
-                Some(client)
+        match broadcaster_map.entry(model_spec_enum) {
+            Entry::Occupied(entry) => {
+                let (model, broadcaster) = entry.get();
+                Some(broadcaster.new_client_with_message(&model.get()))
             }
-            None => None,
+            Entry::Vacant(entry) => {
+                let (mut model, broadcaster) = (
+                    ModelEnum::create(entry.key().clone()),
+                    ActixBroadcaster::create(),
+                );
+                let game_data_history = self.game_data_history.read().unwrap();
+                match model.update_all(&game_data_history.clone()) {
+                    Some(message) => {
+                        let client = broadcaster.new_client_with_message(&message);
+                        entry.insert((model, broadcaster));
+                        return Some(client);
+                    }
+                    None => return None,
+                }
+            }
         }
     }
 

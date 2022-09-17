@@ -22,4 +22,5 @@ pub trait Model {
         &mut self,
         game_data_history: &HashMap<String, Vec<ModelDataPoint>>,
     ) -> Option<Self::Representation>;
+    fn get(&self) -> Self::Representation;
 }
