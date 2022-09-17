@@ -11,6 +11,8 @@ game_data_info_struct = {path = "../game_data_info_struct"}
 clausewitz_parser = { git = "https://github.com/MichaelMcCulloch/clausewitz-parser" }
 game_data_unzipper = {path = "../game_data_unzipper"}
 log = "0.4.17"
-serde_json = "1.0.85"
-serde = "1.0.144"
 
+[dev-dependencies]
+serde_json = "1.0.85"
+game_data_info_struct = {path = "../game_data_info_struct", features =["test"]}
+serde = "1.0.144"

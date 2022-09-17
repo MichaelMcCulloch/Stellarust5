@@ -2,9 +2,9 @@ use clausewitz_parser::{ClausewitzValue, Val};
 pub use game_data_info_struct::{
     Budget, EmpireData, ModelDataPoint, PlayerClass, ResourceClass, Resources,
 };
+
 use std::{collections::HashMap, path::Path};
 use trait_file_reader::FileReader;
-
 pub struct GameDataInfoStructReader;
 
 impl FileReader for GameDataInfoStructReader {
@@ -171,7 +171,7 @@ impl GameDataInfoStructReader {
     }
 
     fn extract(meta: &Val, gamestate: &Val) -> ModelDataPoint {
-        let country = gamestate.get_array_at_path("country").expect("array `country`  not found in parsed gamestate. Something has gone wrong, check your parser!");
+        let country = gamestate.get_array_at_path("country").expect("array `country` not found in parsed gamestate. Something has gone wrong, check your parser!");
         let empires = if let Ok(v) = gamestate.get_set_at_path("player") {
             Self::extract_empires(country, v)
         } else {
@@ -193,7 +193,9 @@ mod tests {
 
     use std::fs;
 
-    use crate::test::{GAMESTATE, GAMESTATE_JSON, META};
+    use crate::test::constant_str::{
+        COMPLETE_MODEL_SERIALIZED, EMPIRE_DATA_SERIALIZED, GAMESTATE, META,
+    };
 
     use super::*;
     #[test]
@@ -203,7 +205,19 @@ mod tests {
             &clausewitz_parser::root(&GAMESTATE).unwrap().1,
         );
 
-        let expected: ModelDataPoint = serde_json::from_str(&GAMESTATE_JSON).unwrap();
+        let expected: ModelDataPoint = serde_json::from_str(&COMPLETE_MODEL_SERIALIZED).unwrap();
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn extract_empires____() {
+        let gamestate = &clausewitz_parser::root(&GAMESTATE).unwrap().1;
+        let countries = gamestate.get_array_at_path("country").unwrap();
+        let players = gamestate.get_set_at_path("player").unwrap();
+
+        let actual = GameDataInfoStructReader::extract_empires(countries, players);
+
+        let expected: Vec<EmpireData> = serde_json::from_str(&EMPIRE_DATA_SERIALIZED).unwrap();
         assert_eq!(expected, actual);
     }
 }

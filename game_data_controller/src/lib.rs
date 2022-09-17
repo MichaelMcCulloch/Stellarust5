@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::{hash_map::Entry, HashMap},
     path::Path,
     sync::{Arc, RwLock},
 };
@@ -62,7 +62,7 @@ impl GameModelController {
     /// 2. populates a new model based on the parameters of the spec
     /// 3. populates a client from the broadcaster and sends that client the model it asked for
     /// 4. returns that client
-    pub fn get_client(&self, model_spec_enum: ModelSpecEnum) -> Client {
+    pub fn get_client(&self, model_spec_enum: ModelSpecEnum) -> Option<Client> {
         let mut broadcaster_map = self.broadcasters_map.write().unwrap();
         log::info!("Broadcasting {:?} to new client!", model_spec_enum);
 
@@ -78,8 +78,13 @@ impl GameModelController {
 
         let game_data_history = self.game_data_history.read().unwrap();
         let message = model.update_all(&game_data_history.clone());
-        let client = broadcaster.new_client_with_message(&message);
-        client
+        match message {
+            Some(message) => {
+                let client = broadcaster.new_client_with_message(&message);
+                Some(client)
+            }
+            None => None,
+        }
     }
 
     /// * `model_data` - new data point

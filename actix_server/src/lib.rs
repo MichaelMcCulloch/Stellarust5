@@ -32,11 +32,14 @@ pub async fn index(s: Data<&str>) -> impl Responder {
 pub async fn campaigns(s: Data<GameModelController>) -> impl Responder {
     log::info!("Connection Request: CampaignList");
 
-    HttpResponse::Ok()
-        .append_header(("content-type", "text/event-stream"))
-        .append_header(("connection", "keep-alive"))
-        .append_header(("cache-control", "no-cache"))
-        .streaming(s.get_client(ModelSpecEnum::CampaignList(CampaignListModelSpec)))
+    match s.get_client(ModelSpecEnum::CampaignList(CampaignListModelSpec)) {
+        Some(client) => HttpResponse::Ok()
+            .append_header(("content-type", "text/event-stream"))
+            .append_header(("connection", "keep-alive"))
+            .append_header(("cache-control", "no-cache"))
+            .streaming(client),
+        None => HttpResponse::NotFound().body(""),
+    }
 }
 
 #[get("/{campaign_name}/empires")]
@@ -45,13 +48,16 @@ pub async fn empires(
     campaign_name: web::Path<String>,
 ) -> impl Responder {
     log::info!("Connection Request: EmpireList for {}", campaign_name);
-    HttpResponse::Ok()
-        .append_header(("content-type", "text/event-stream"))
-        .append_header(("connection", "keep-alive"))
-        .append_header(("cache-control", "no-cache"))
-        .streaming(s.get_client(ModelSpecEnum::EmpireList(EmpireListModelSpec {
-            campaign_name: campaign_name.to_string(),
-        })))
+    match s.get_client(ModelSpecEnum::EmpireList(EmpireListModelSpec {
+        campaign_name: campaign_name.to_string(),
+    })) {
+        Some(client) => HttpResponse::Ok()
+            .append_header(("content-type", "text/event-stream"))
+            .append_header(("connection", "keep-alive"))
+            .append_header(("cache-control", "no-cache"))
+            .streaming(client),
+        None => HttpResponse::NotFound().body(""),
+    }
 }
 #[derive(Deserialize)]
 pub struct BudgetRequest {
@@ -68,21 +74,24 @@ pub async fn budget_data(
         budget_request.campaign_name,
         budget_request.empire_name
     );
-    HttpResponse::Ok()
-        .append_header(("content-type", "text/event-stream"))
-        .append_header(("connection", "keep-alive"))
-        .append_header(("cache-control", "no-cache"))
-        .streaming(s.get_client(ModelSpecEnum::BudgetStreamGraph(
-            BudgetStreamGraphModelSpec {
-                resources: vec![
-                    ResourceClass::Energy,
-                    ResourceClass::Minerals,
-                    ResourceClass::Alloys,
-                ],
-                campaign_name: budget_request.campaign_name.to_string(),
-                empire: budget_request.empire_name.to_string(),
-            },
-        )))
+    match s.get_client(ModelSpecEnum::BudgetStreamGraph(
+        BudgetStreamGraphModelSpec {
+            resources: vec![
+                ResourceClass::Energy,
+                ResourceClass::Minerals,
+                ResourceClass::Alloys,
+            ],
+            campaign_name: budget_request.campaign_name.to_string(),
+            empire: budget_request.empire_name.to_string(),
+        },
+    )) {
+        Some(client) => HttpResponse::Ok()
+            .append_header(("content-type", "text/event-stream"))
+            .append_header(("connection", "keep-alive"))
+            .append_header(("cache-control", "no-cache"))
+            .streaming(client),
+        None => HttpResponse::NotFound().body(""),
+    }
 }
 
 pub async fn run_app(t: Sender<ServerHandle>, scope: &Scope<'_>) -> std::io::Result<()> {
