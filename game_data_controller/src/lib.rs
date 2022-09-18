@@ -94,21 +94,30 @@ impl GameModelController {
     /// * `model_data` - new data point
     /// * `model_history` - Existing data
     fn reconcile(
-        model_data: &ModelDataPoint,
+        data_point: &ModelDataPoint,
         game_data_history: &Arc<DashMap<String, Vec<ModelDataPoint>, BuildHasherDefault<FxHasher>>>,
     ) {
-        match game_data_history.entry(model_data.campaign_name.clone()) {
+        match game_data_history.entry(data_point.campaign_name.clone()) {
             Entry::Occupied(mut entry) => {
                 match entry
                     .get()
-                    .binary_search_by_key(&model_data.date, |m| m.date)
+                    .binary_search_by_key(&data_point.date, |m| m.date)
                 {
-                    Ok(_index) => {}
-                    Err(pos) => entry.get_mut().insert(pos, model_data.clone()),
+                    Ok(index) => {
+                        log::warn!(
+                            "Tried to insert duplicate entry for campaign key {}, entries are {}",
+                            data_point.campaign_name,
+                            match entry.get().get(index).unwrap() == data_point {
+                                true => "the same",
+                                false => "Different",
+                            }
+                        )
+                    }
+                    Err(pos) => entry.get_mut().insert(pos, data_point.clone()),
                 }
             }
             Entry::Vacant(entry) => {
-                entry.insert(vec![model_data.clone()]);
+                entry.insert(vec![data_point.clone()]);
             }
         }
     }
@@ -129,6 +138,7 @@ impl GameModelController {
             match info_struct_receiver.recv() {
                 Ok(data_point) => {
                     Self::reconcile(&data_point, &game_data_history);
+
                     Self::broadcast_model_changes(&broadcasters_map, &data_point);
                 }
                 Err(_) => break,
