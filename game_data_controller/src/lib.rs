@@ -6,7 +6,7 @@ use crossbeam::{
     thread::Scope,
 };
 use dashmap::{mapref::entry::Entry, DashMap};
-use directory_watcher::{create_directory_watcher_and_scan_root, RecursiveMode};
+use directory_watcher::{DirectoryWatcher, RecursiveMode};
 use filter::{CloseWriteFilter, EndsWithSavFilter};
 use fxhash::{FxBuildHasher, FxHasher};
 use game_data_info_struct_reader::{GameDataInfoStructReader, ModelDataPoint};
@@ -24,21 +24,13 @@ pub struct GameModelController {
     game_data_history: Arc<DashMap<String, Vec<ModelDataPoint>, BuildHasherDefault<FxHasher>>>,
     _watcher: RecommendedWatcher,
 }
-
+impl DirectoryWatcher for GameModelController {}
 impl GameModelController {
-    pub fn create(game_directory: &Path, scope: &Scope<'_>) -> Self {
-        let (info_struct_sender, info_struct_receiver) = unbounded();
-        let watcher = create_directory_watcher_and_scan_root(
-            CloseWriteFilter,
-            EndsWithSavFilter,
-            GameDataInfoStructReader,
-            move |message| -> () {
-                info_struct_sender.clone().send(message).unwrap();
-            },
-            ScanAllFoldersAndFiles,
-            &game_directory,
-            RecursiveMode::Recursive,
-        );
+    fn new(
+        watcher: notify::INotifyWatcher,
+        scope: &Scope,
+        info_struct_receiver: Receiver<ModelDataPoint>,
+    ) -> GameModelController {
         let game_data_history = Arc::new(DashMap::with_hasher(FxBuildHasher::default()));
         let broadcasters_map = Arc::new(DashMap::with_hasher(FxBuildHasher::default()));
         let game_model_controller = Self {
@@ -52,8 +44,23 @@ impl GameModelController {
             game_data_history,
             broadcasters_map,
         );
-
         game_model_controller
+    }
+
+    pub fn create(game_directory: &Path, scope: &Scope<'_>) -> Self {
+        let (info_struct_sender, info_struct_receiver) = unbounded();
+        let watcher = Self::create_directory_watcher_and_scan_root(
+            CloseWriteFilter,
+            EndsWithSavFilter,
+            GameDataInfoStructReader,
+            move |message| -> () {
+                info_struct_sender.clone().send(message).unwrap();
+            },
+            ScanAllFoldersAndFiles,
+            &game_directory,
+            RecursiveMode::Recursive,
+        );
+        Self::new(watcher, scope, info_struct_receiver)
     }
 
     /// 1. Populates the map of ModelRequests to the (Model, Broadcaster) pairs

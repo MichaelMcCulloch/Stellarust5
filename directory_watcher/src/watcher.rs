@@ -51,54 +51,55 @@ where
         (self)(start_directory)
     }
 }
+pub trait DirectoryWatcher {
+    fn create_directory_watcher_and_scan_root<
+        T,
+        E: EventFilter,
+        P: PathFilter,
+        R: FileReader<OUT = T>,
+        D: Delivery<T>,
+        S: Startup,
+        Dir: AsRef<Path>,
+    >(
+        event_filter: E,
+        path_filter: P,
+        file_reader: R,
+        delivery: D,
+        startup: S,
+        directory: &Dir,
+        recursive_mode: RecursiveMode,
+    ) -> RecommendedWatcher {
+        let discovered = startup.startup(directory.as_ref());
 
-pub fn create_directory_watcher_and_scan_root<
-    T,
-    E: EventFilter,
-    P: PathFilter,
-    R: FileReader<OUT = T>,
-    D: Delivery<T>,
-    S: Startup,
-    Dir: AsRef<Path>,
->(
-    event_filter: E,
-    path_filter: P,
-    file_reader: R,
-    delivery: D,
-    startup: S,
-    directory: &Dir,
-    recursive_mode: RecursiveMode,
-) -> RecommendedWatcher {
-    let discovered = startup.startup(directory.as_ref());
-
-    for d in discovered {
-        if path_filter.filter_path(&d) {
-            let result = file_reader.read_file(d.as_path());
-            delivery.deliver(result);
-            log::info!("Discovered {:?}", d);
+        for d in discovered {
+            if path_filter.filter_path(&d) {
+                let result = file_reader.read_file(d.as_path());
+                delivery.deliver(result);
+                log::info!("Discovered {:?}", d);
+            }
         }
-    }
-    let event_handler = move |event: Result<Event, notify::Error>| -> () {
-        match event {
-            Ok(event) => {
-                if event_filter.filter_event(&event) {
-                    let paths = event.paths;
-                    for path in paths {
-                        if path_filter.filter_path(&path) {
-                            let output = file_reader.read_file(&path);
+        let event_handler = move |event: Result<Event, notify::Error>| -> () {
+            match event {
+                Ok(event) => {
+                    if event_filter.filter_event(&event) {
+                        let paths = event.paths;
+                        for path in paths {
+                            if path_filter.filter_path(&path) {
+                                let output = file_reader.read_file(&path);
 
-                            delivery.deliver(output);
+                                delivery.deliver(output);
+                            }
                         }
                     }
                 }
-            }
-            Err(_) => {}
+                Err(_) => {}
+            };
         };
-    };
 
-    let mut watcher = RecommendedWatcher::new(event_handler, Config::default()).unwrap();
+        let mut watcher = RecommendedWatcher::new(event_handler, Config::default()).unwrap();
 
-    watcher.watch(directory.as_ref(), recursive_mode).unwrap();
+        watcher.watch(directory.as_ref(), recursive_mode).unwrap();
 
-    watcher
+        watcher
+    }
 }
