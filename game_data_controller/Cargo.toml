@@ -10,7 +10,6 @@ model_info_struct = {path ="../model_info_struct"}
 actix_broadcaster = {path ="../actix_broadcaster"}
 game_data_info_struct_reader = {path= "../game_data_info_struct_reader"}
 directory_watcher = {path= "../directory_watcher"}
-trait_file_reader = {path= "../trait_file_reader"}
 
 notify = "5.0.0"
 crossbeam = "0.8.2" 

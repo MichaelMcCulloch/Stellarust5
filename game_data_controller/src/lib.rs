@@ -7,8 +7,8 @@ use crossbeam::{
 };
 use dashmap::{mapref::entry::Entry, DashMap};
 use directory_watcher::{
-    Config, Delivery, DirectoryWatcher, Event, EventFilter, PathFilter, RecursiveMode, Startup,
-    Watcher,
+    Config, DefaultWatcher, Delivery, DirectoryWatcher, Event, EventFilter, FileReader, PathFilter,
+    RecursiveMode, Startup, Watcher,
 };
 use filter::{CloseWriteFilter, EndsWithSavFilter};
 use fxhash::{FxBuildHasher, FxHasher};
@@ -19,7 +19,6 @@ use model_info_struct::{
 };
 use notify::RecommendedWatcher;
 use scan_root::ScanAllFoldersAndFiles;
-use trait_file_reader::FileReader;
 mod filter;
 mod scan_root;
 pub struct GameModelController {
@@ -28,7 +27,6 @@ pub struct GameModelController {
     game_data_history: Arc<DashMap<String, Vec<ModelDataPoint>, BuildHasherDefault<FxHasher>>>,
     _watcher: RecommendedWatcher,
 }
-impl DirectoryWatcher for GameModelController {}
 impl GameModelController {
     fn new(
         watcher: notify::INotifyWatcher,
@@ -52,56 +50,19 @@ impl GameModelController {
         game_model_controller
     }
 
-    fn create_directory_watcher_and_scan_root(
-        directory: &Path,
-        info_struct_sender: Sender<ModelDataPoint>,
-    ) -> RecommendedWatcher {
-        let startup = ScanAllFoldersAndFiles;
-        let event_filter = CloseWriteFilter;
-        let path_filter = EndsWithSavFilter;
-        let file_reader = GameDataInfoStructReader;
-        let delivery = move |message| -> () {
-            info_struct_sender.clone().send(message).unwrap();
-        };
-        let discovered = startup.startup(directory.as_ref());
-        for d in discovered {
-            if path_filter.filter_path(&d) {
-                let result = file_reader.read_file(d.as_path());
-                delivery.deliver(result);
-                log::info!("Discovered {:?}", d);
-            }
-        }
-        let event_handler = move |event: Result<Event, notify::Error>| -> () {
-            match event {
-                Ok(event) => {
-                    if event_filter.filter_event(&event) {
-                        let paths = event.paths;
-                        for path in paths {
-                            if path_filter.filter_path(&path) {
-                                let output = file_reader.read_file(&path);
-
-                                delivery.deliver(output);
-                            }
-                        }
-                    }
-                }
-                Err(_) => {}
-            };
-        };
-
-        let mut watcher = RecommendedWatcher::new(event_handler, Config::default()).unwrap();
-
-        watcher
-            .watch(directory.as_ref(), RecursiveMode::Recursive)
-            .unwrap();
-
-        watcher
-    }
-
     pub fn create(game_directory: &Path, scope: &Scope<'_>) -> Self {
         let (info_struct_sender, info_struct_receiver) = unbounded();
-        let watcher =
-            Self::create_directory_watcher_and_scan_root(game_directory, info_struct_sender);
+        let watcher = DefaultWatcher::create_directory_watcher_and_scan_root(
+            CloseWriteFilter,
+            EndsWithSavFilter,
+            GameDataInfoStructReader,
+            move |message| -> () {
+                info_struct_sender.clone().send(message).unwrap();
+            },
+            ScanAllFoldersAndFiles,
+            &game_directory,
+            RecursiveMode::Recursive,
+        );
         Self::new(watcher, scope, info_struct_receiver)
     }
 

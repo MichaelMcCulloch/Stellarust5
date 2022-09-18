@@ -1,10 +1,9 @@
 use clausewitz_parser::{ClausewitzValue, Val};
+use directory_watcher::FileReader;
 pub use game_data_info_struct::{
     Budget, EmpireData, ModelDataPoint, PlayerClass, ResourceClass, Resources,
 };
-
 use std::{collections::HashMap, path::Path};
-use trait_file_reader::FileReader;
 pub struct GameDataInfoStructReader;
 
 impl FileReader for GameDataInfoStructReader {

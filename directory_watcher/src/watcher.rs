@@ -1,7 +1,6 @@
 use std::path::{Path, PathBuf};
 
 use notify::{Config, Event, RecommendedWatcher, RecursiveMode, Watcher};
-use trait_file_reader::FileReader;
 
 pub trait EventFilter: Send + 'static {
     fn filter_event(&self, event: &Event) -> bool;
@@ -15,6 +14,20 @@ pub trait Delivery<T>: Send + 'static {
 }
 pub trait Startup: Send + 'static {
     fn startup(&self, start_directory: &Path) -> Vec<PathBuf>;
+}
+pub trait FileReader: Send + 'static {
+    type OUT: Send + 'static;
+    fn read_file(&self, file: &Path) -> Self::OUT;
+}
+impl<F, T: Send + 'static> FileReader for F
+where
+    F: Fn(&Path) -> T + Send + 'static,
+{
+    fn read_file(&self, file: &Path) -> T {
+        (self)(file)
+    }
+
+    type OUT = T;
 }
 
 impl<F> EventFilter for F
@@ -52,6 +65,28 @@ where
     }
 }
 pub trait DirectoryWatcher {
+    fn create_directory_watcher_and_scan_root<
+        T,
+        E: EventFilter,
+        P: PathFilter,
+        R: FileReader<OUT = T>,
+        D: Delivery<T>,
+        S: Startup,
+        Dir: AsRef<Path>,
+    >(
+        event_filter: E,
+        path_filter: P,
+        file_reader: R,
+        delivery: D,
+        startup: S,
+        directory: &Dir,
+        recursive_mode: RecursiveMode,
+    ) -> RecommendedWatcher;
+}
+
+pub struct DefaultWatcher;
+
+impl DirectoryWatcher for DefaultWatcher {
     fn create_directory_watcher_and_scan_root<
         T,
         E: EventFilter,

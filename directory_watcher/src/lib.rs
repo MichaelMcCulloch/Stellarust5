@@ -6,4 +6,6 @@ pub use notify::{
     },
     Config, Event, RecommendedWatcher, RecursiveMode, Watcher,
 };
-pub use watcher::{Delivery, DirectoryWatcher, EventFilter, PathFilter, Startup};
+pub use watcher::{
+    DefaultWatcher, Delivery, DirectoryWatcher, EventFilter, FileReader, PathFilter, Startup,
+};

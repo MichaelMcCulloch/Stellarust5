@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-trait_file_reader = {path = "../trait_file_reader"}
+directory_watcher = {path = "../directory_watcher"}
 game_data_info_struct = {path = "../game_data_info_struct"}
 clausewitz_parser = { git = "https://github.com/MichaelMcCulloch/clausewitz-parser" }
 game_data_unzipper = {path = "../game_data_unzipper"}

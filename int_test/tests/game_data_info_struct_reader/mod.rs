@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
+    use directory_watcher::FileReader;
     use game_data_info_struct_reader::{GameDataInfoStructReader, ModelDataPoint};
     use std::path::PathBuf;
     use stellarust::PROD_TEST_DATA_ROOT;
-    use trait_file_reader::FileReader;
 
     const INT_TEST_ROOT: &str = &"/home/michael/Dev/Stellarust/stellarust5/int_test/";
 
