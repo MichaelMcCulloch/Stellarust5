@@ -1,20 +1,16 @@
-use actix_rt::signal::ctrl_c;
-use actix_server::run_app;
+use actix_server::run_actix_server;
 use actix_web::rt;
-use crossbeam::{channel::unbounded, thread};
-fn main() -> Result<(), Box<(dyn std::any::Any + Send + 'static)>> {
+use anyhow::Result;
+use crossbeam::thread;
+fn main() -> Result<()> {
     thread::scope(|scope| {
         std::env::set_var("RUST_LOG", "info");
         env_logger::init();
 
-        let (sender, receiver) = unbounded();
-
-        scope.spawn(|scope| -> Result<_, std::io::Error> {
-            let server_future = run_app(sender, scope);
-            rt::System::new().block_on(server_future)
-        });
-
-        let _server_handle = receiver.recv().unwrap();
+        let server_future = run_actix_server(scope);
+        let system_runner = rt::System::new();
+        let server = system_runner.block_on(server_future).unwrap();
+        system_runner.block_on(server).unwrap()
     })
     .unwrap();
     Ok(())

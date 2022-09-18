@@ -3,12 +3,13 @@ use std::path::PathBuf;
 use actix_cors::Cors;
 
 use actix_web::{
-    dev::ServerHandle,
+    dev::{Server, ServerHandle},
     get, middleware,
     web::{self, Data},
     App, HttpResponse, HttpServer, Responder,
 };
 
+use anyhow::Result;
 use crossbeam::{channel::Sender, thread::Scope};
 use game_data_controller::GameModelController;
 use listenfd::ListenFd;
@@ -103,7 +104,7 @@ pub async fn budget_data(
     }
 }
 
-pub async fn run_app(t: Sender<ServerHandle>, scope: &Scope<'_>) -> std::io::Result<()> {
+pub async fn run_actix_server(scope: &Scope<'_>) -> Result<Server> {
     let game_data_controller = Data::new(GameModelController::create(
         &PathBuf::from(PROD_TEST_DATA_ROOT),
         scope,
@@ -119,19 +120,17 @@ pub async fn run_app(t: Sender<ServerHandle>, scope: &Scope<'_>) -> std::io::Res
             .service(budget_data)
     });
 
-    server = if let Some(listener) = ListenFd::from_env().take_tcp_listener(0).unwrap() {
+    server = if let Some(listener) = ListenFd::from_env().take_tcp_listener(0)? {
         log::info!("{:?}", listener);
-        server.listen(listener).unwrap()
+        server.listen(listener)?
     } else {
         log::info!("starting on 0.0.0.0:8000");
-        server.bind("0.0.0.0:8000").unwrap()
+        server.bind("0.0.0.0:8000")?
     };
 
     let s = server.run();
 
-    let _ = t.send(s.handle());
-
-    s.await
+    Ok(s)
 }
 
 #[cfg(test)]
