@@ -18,3 +18,5 @@ members = [
     "int_test",
     "model_info_struct",
 ]
+[profile.test] 
+opt-level = 3

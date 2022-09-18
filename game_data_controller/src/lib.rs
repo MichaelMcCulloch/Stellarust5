@@ -2,7 +2,7 @@ use std::{hash::BuildHasherDefault, path::Path, sync::Arc};
 
 use actix_broadcaster::{ActixBroadcaster, Broadcaster, Client};
 use crossbeam::{
-    channel::{unbounded, Receiver},
+    channel::{unbounded, Receiver, Sender},
     thread::Scope,
 };
 use dashmap::{mapref::entry::Entry, DashMap};
@@ -41,6 +41,7 @@ impl GameModelController {
         Self::spawn_event_loop(
             scope,
             info_struct_receiver,
+            None,
             game_data_history,
             broadcasters_map,
         );
@@ -109,7 +110,7 @@ impl GameModelController {
                             data_point.campaign_name,
                             match entry.get().get(index).unwrap() == data_point {
                                 true => "the same",
-                                false => "Different",
+                                false => "different",
                             }
                         )
                     }
@@ -129,6 +130,7 @@ impl GameModelController {
     fn spawn_event_loop(
         scope: &Scope,
         info_struct_receiver: Receiver<ModelDataPoint>,
+        model_database: Option<()>,
         game_data_history: Arc<DashMap<String, Vec<ModelDataPoint>, BuildHasherDefault<FxHasher>>>,
         broadcasters_map: Arc<
             DashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster), BuildHasherDefault<FxHasher>>,

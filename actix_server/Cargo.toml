@@ -24,3 +24,6 @@ serde_derive = "1.0.144"
 
 game_data_controller = {path = "../game_data_controller"}
 model_info_struct = {path = "../model_info_struct"}
+
+[dev-dependencies]
+futures = "0.3.24"

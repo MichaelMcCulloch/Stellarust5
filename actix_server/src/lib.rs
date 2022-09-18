@@ -24,8 +24,17 @@ use serde_derive::Deserialize;
 use stellarust::PROD_TEST_DATA_ROOT;
 
 #[get("/")]
-pub async fn index(s: Data<&str>) -> impl Responder {
-    HttpResponse::Ok().body(String::from(*s.get_ref()))
+pub async fn index(s: Data<GameModelController>) -> impl Responder {
+    log::info!("Connection Request: CampaignList");
+
+    match s.get_client(ModelSpecEnum::CampaignList(CampaignListModelSpec)) {
+        Some(client) => HttpResponse::Ok()
+            .append_header(("content-type", "text/event-stream"))
+            .append_header(("connection", "keep-alive"))
+            .append_header(("cache-control", "no-cache"))
+            .streaming(client),
+        None => HttpResponse::NotFound().body(""),
+    }
 }
 
 #[get("/campaigns")]
@@ -123,4 +132,54 @@ pub async fn run_app(t: Sender<ServerHandle>, scope: &Scope<'_>) -> std::io::Res
     let _ = t.send(s.handle());
 
     s.await
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use actix_rt::pin;
+    use actix_web::{
+        body::MessageBody,
+        test::{self, TestRequest},
+    };
+    use crossbeam::thread;
+    use futures::{executor, future};
+
+    use super::*;
+    #[actix_rt::test]
+    async fn test_name() {
+        thread::scope(|scope| {
+            std::env::set_var("RUST_LOG", "warn");
+            env_logger::init();
+            let game_data_controller = Data::new(GameModelController::create(
+                &PathBuf::from(PROD_TEST_DATA_ROOT),
+                scope,
+            ));
+            let app = executor::block_on(test::init_service(
+                App::new()
+                    .app_data(game_data_controller.clone())
+                    .service(campaigns),
+            ));
+
+            let req = test::TestRequest::get().uri("/campaigns").to_request();
+
+            let resp = executor::block_on(test::call_service(&app, req));
+
+            assert!(resp.status().is_success());
+            let body = resp.into_body();
+            pin!(body);
+            let bytes = executor::block_on(future::poll_fn(|cx| body.as_mut().poll_next(cx)));
+            assert_eq!(
+                bytes.unwrap().unwrap(),
+                web::Bytes::from_static(b"event: connected\ndata: connected\n\n")
+            );
+            let bytes = executor::block_on(future::poll_fn(|cx| body.as_mut().poll_next(cx)));
+            assert_eq!(
+                bytes.unwrap().unwrap(),
+                web::Bytes::from_static(b"event: message\ndata: {\"CampaignList\":[{\"campaign_name\":\"mp_Custodianship\",\"empire_list\":[{\"name\":\"Custodianship\",\"player\":\"Semantically_Invalid\"},{\"name\":\"format.olig_megachurch.1\",\"player\":\"Mountny\"},{\"name\":\"EMPIRE_DESIGN_kilik\",\"player\":\"EveTam33\"},{\"name\":\"EMPIRE_DESIGN_tebrid\",\"player\":\"mark\"},{\"name\":\"EMPIRE_DESIGN_ixidar\",\"player\":\"FlayOtters\"}]}]}\n\n")
+            );
+        })
+        .unwrap();
+    }
 }
