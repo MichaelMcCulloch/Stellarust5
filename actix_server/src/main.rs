@@ -1,3 +1,4 @@
+use actix_rt::signal::ctrl_c;
 use actix_server::run_app;
 use actix_web::rt;
 use crossbeam::{channel::unbounded, thread};
@@ -14,7 +15,7 @@ fn main() -> Result<(), Box<(dyn std::any::Any + Send + 'static)>> {
         });
 
         let _server_handle = receiver.recv().unwrap();
-
-        // rt::System::new().block_on(server_handle.stop(true))
     })
+    .unwrap();
+    Ok(())
 }
