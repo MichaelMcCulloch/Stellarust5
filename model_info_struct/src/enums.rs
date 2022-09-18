@@ -1,4 +1,7 @@
+use std::hash::BuildHasherDefault;
+
 use dashmap::DashMap;
+use fxhash::FxHasher;
 use game_data_info_struct::{date::Date, ModelDataPoint, ResourceClass};
 use serde_derive::Serialize;
 
@@ -66,7 +69,7 @@ impl Model for ModelEnum {
 
     fn update_all(
         &mut self,
-        game_data_history: &DashMap<String, Vec<ModelDataPoint>>,
+        game_data_history: &DashMap<String, Vec<ModelDataPoint>, BuildHasherDefault<FxHasher>>,
     ) -> Option<Self::Representation> {
         match self {
             ModelEnum::CampaignList(model) => model

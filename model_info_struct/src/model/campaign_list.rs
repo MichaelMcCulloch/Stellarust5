@@ -1,7 +1,8 @@
-use std::vec;
+use std::{hash::BuildHasherDefault, vec};
 
 use crate::{Model, ModelSpec};
 use dashmap::DashMap;
+use fxhash::FxHasher;
 use game_data_info_struct::{ModelDataPoint, PlayerClass};
 use serde_derive::{Deserialize, Serialize};
 
@@ -40,7 +41,7 @@ impl Model for CampaignListModel {
 
     fn update_all(
         &mut self,
-        game_data_history: &DashMap<String, Vec<ModelDataPoint>>,
+        game_data_history: &DashMap<String, Vec<ModelDataPoint>, BuildHasherDefault<FxHasher>>,
     ) -> Option<Self::Representation> {
         self.list = game_data_history
             .iter()

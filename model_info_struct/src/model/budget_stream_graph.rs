@@ -1,5 +1,8 @@
+use std::hash::BuildHasherDefault;
+
 use crate::{Model, ModelSpec};
 use dashmap::DashMap;
+use fxhash::FxHasher;
 use game_data_info_struct::{date::Date, EmpireData, ModelDataPoint, ResourceClass};
 use serde_derive::Serialize;
 
@@ -46,7 +49,7 @@ impl Model for BudgetStreamGraphModel {
 
     fn update_all(
         &mut self,
-        game_data_history: &DashMap<String, Vec<ModelDataPoint>>,
+        game_data_history: &DashMap<String, Vec<ModelDataPoint>, BuildHasherDefault<FxHasher>>,
     ) -> Option<Self::Representation> {
         match game_data_history.get(&self.spec.campaign_name) {
             Some(history) => {
@@ -107,6 +110,7 @@ mod tests {
     use std::collections::HashMap;
 
     use chrono::NaiveDate;
+    use fxhash::FxBuildHasher;
     use game_data_info_struct::{Budget, PlayerClass, Resources};
 
     use super::*;
@@ -263,7 +267,7 @@ mod tests {
                 resources: resources.clone(),
             }],
         };
-        let game_data_history = DashMap::new();
+        let game_data_history = DashMap::with_hasher(FxBuildHasher::default());
         game_data_history.insert(
             campaign_name.clone(),
             vec![

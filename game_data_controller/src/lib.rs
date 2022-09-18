@@ -1,4 +1,4 @@
-use std::{path::Path, sync::Arc};
+use std::{hash::BuildHasherDefault, path::Path, sync::Arc};
 
 use actix_broadcaster::{ActixBroadcaster, Broadcaster, Client};
 use crossbeam::{
@@ -8,6 +8,7 @@ use crossbeam::{
 use dashmap::{mapref::entry::Entry, DashMap};
 use directory_watcher::{create_directory_watcher_and_scan_root, RecursiveMode};
 use filter::{CloseWriteFilter, EndsWithSavFilter};
+use fxhash::{FxBuildHasher, FxHasher};
 use game_data_info_struct_reader::{GameDataInfoStructReader, ModelDataPoint};
 use model_info_struct::{
     enums::{ModelEnum, ModelSpecEnum},
@@ -18,8 +19,9 @@ use scan_root::ScanAllFoldersAndFiles;
 mod filter;
 mod scan_root;
 pub struct GameModelController {
-    broadcasters_map: Arc<DashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster)>>,
-    game_data_history: Arc<DashMap<String, Vec<ModelDataPoint>>>,
+    broadcasters_map:
+        Arc<DashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster), BuildHasherDefault<FxHasher>>>,
+    game_data_history: Arc<DashMap<String, Vec<ModelDataPoint>, BuildHasherDefault<FxHasher>>>,
     _watcher: RecommendedWatcher,
 }
 
@@ -37,8 +39,8 @@ impl GameModelController {
             &game_directory,
             RecursiveMode::Recursive,
         );
-        let game_data_history = Arc::new(DashMap::new());
-        let broadcasters_map = Arc::new(DashMap::new());
+        let game_data_history = Arc::new(DashMap::with_hasher(FxBuildHasher::default()));
+        let broadcasters_map = Arc::new(DashMap::with_hasher(FxBuildHasher::default()));
         let game_model_controller = Self {
             broadcasters_map: broadcasters_map.clone(),
             game_data_history: game_data_history.clone(),
@@ -86,9 +88,9 @@ impl GameModelController {
     /// * `model_history` - Existing data
     fn reconcile(
         model_data: &ModelDataPoint,
-        model_history: &Arc<DashMap<String, Vec<ModelDataPoint>>>,
+        game_data_history: &Arc<DashMap<String, Vec<ModelDataPoint>, BuildHasherDefault<FxHasher>>>,
     ) {
-        match model_history.entry(model_data.campaign_name.clone()) {
+        match game_data_history.entry(model_data.campaign_name.clone()) {
             Entry::Occupied(mut entry) => {
                 match entry
                     .get()
@@ -111,13 +113,15 @@ impl GameModelController {
     fn spawn_event_loop(
         scope: &Scope,
         info_struct_receiver: Receiver<ModelDataPoint>,
-        model_history: Arc<DashMap<String, Vec<ModelDataPoint>>>,
-        broadcasters_map: Arc<DashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster)>>,
+        game_data_history: Arc<DashMap<String, Vec<ModelDataPoint>, BuildHasherDefault<FxHasher>>>,
+        broadcasters_map: Arc<
+            DashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster), BuildHasherDefault<FxHasher>>,
+        >,
     ) {
         scope.spawn(move |_s| loop {
             match info_struct_receiver.recv() {
                 Ok(data_point) => {
-                    Self::reconcile(&data_point, &model_history);
+                    Self::reconcile(&data_point, &game_data_history);
                     Self::broadcast_model_changes(&broadcasters_map, &data_point);
                 }
                 Err(_) => break,
@@ -125,7 +129,9 @@ impl GameModelController {
         });
     }
     fn broadcast_model_changes(
-        broadcasters_map: &Arc<DashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster)>>,
+        broadcasters_map: &Arc<
+            DashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster), BuildHasherDefault<FxHasher>>,
+        >,
         data_point: &ModelDataPoint,
     ) {
         broadcasters_map.retain(|_, (model, broadcaster)| match model.update(data_point) {

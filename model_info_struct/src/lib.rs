@@ -1,6 +1,7 @@
-use std::hash::Hash;
+use std::hash::{BuildHasherDefault, Hash};
 
 use dashmap::DashMap;
+use fxhash::FxHasher;
 use game_data_info_struct::ModelDataPoint;
 use serde::Serialize;
 
@@ -21,7 +22,7 @@ pub trait Model {
     fn update(&mut self, game_data: &ModelDataPoint) -> Option<Self::Representation>;
     fn update_all(
         &mut self,
-        game_data_history: &DashMap<String, Vec<ModelDataPoint>>,
+        game_data_history: &DashMap<String, Vec<ModelDataPoint>, BuildHasherDefault<FxHasher>>,
     ) -> Option<Self::Representation>;
     fn get(&self) -> Self::Representation;
 }
