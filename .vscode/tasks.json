@@ -3,10 +3,14 @@
     "tasks": [
         {
             "label": "Deploy Server",
-            "command": "systemfd --no-pid -s http::8000 -- cargo-watch -x 'run --package actix_server --bin actix_server_bin --release'",
-            "type": "shell",
+            "type": "process",
+            "command": "./deploy_server.sh",
+            "args": [
+                "${workspaceFolder}",
+                "8000"
+            ],
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}/.vscode/"
             },
             "problemMatcher": [
                 "$rustc"
