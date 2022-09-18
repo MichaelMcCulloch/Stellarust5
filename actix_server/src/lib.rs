@@ -135,7 +135,7 @@ pub async fn run_actix_server(scope: &Scope<'_>) -> Result<Server> {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
+    use std::{sync::Arc, time::Duration};
 
     use actix_rt::pin;
     use actix_web::{
@@ -161,23 +161,28 @@ mod tests {
                     .service(campaigns),
             ));
 
+            std::thread::sleep(Duration::from_millis(500));
+
             let req = test::TestRequest::get().uri("/campaigns").to_request();
 
             let resp = executor::block_on(test::call_service(&app, req));
-
             assert!(resp.status().is_success());
             let body = resp.into_body();
             pin!(body);
-            let bytes = executor::block_on(future::poll_fn(|cx| body.as_mut().poll_next(cx)));
+            let actual = vec![
+                executor::block_on(future::poll_fn(|cx| body.as_mut().poll_next(cx))).unwrap().unwrap(),
+                executor::block_on(future::poll_fn(|cx| body.as_mut().poll_next(cx))).unwrap().unwrap()
+            ];
+
+            let expected = vec![
+                web::Bytes::from_static(b"event: connected\ndata: connected\n\n"),     
+                web::Bytes::from_static(b"event: message\ndata: {\"CampaignList\":[{\"campaign_name\":\"United Nations of Earth\",\"empire_list\":[{\"name\":\"EMPIRE_DESIGN_humans1\",\"player\":\"Semantically_Invalid\"}]}]}\n\n")];
+
             assert_eq!(
-                bytes.unwrap().unwrap(),
-                web::Bytes::from_static(b"event: connected\ndata: connected\n\n")
+                expected,
+                actual
             );
-            let bytes = executor::block_on(future::poll_fn(|cx| body.as_mut().poll_next(cx)));
-            assert_eq!(
-                bytes.unwrap().unwrap(),
-                web::Bytes::from_static(b"event: message\ndata: {\"CampaignList\":[{\"campaign_name\":\"mp_Custodianship\",\"empire_list\":[{\"name\":\"Custodianship\",\"player\":\"Semantically_Invalid\"},{\"name\":\"format.olig_megachurch.1\",\"player\":\"Mountny\"},{\"name\":\"EMPIRE_DESIGN_kilik\",\"player\":\"EveTam33\"},{\"name\":\"EMPIRE_DESIGN_tebrid\",\"player\":\"mark\"},{\"name\":\"EMPIRE_DESIGN_ixidar\",\"player\":\"FlayOtters\"}]}]}\n\n")
-            );
+          
         })
         .unwrap();
     }
