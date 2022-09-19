@@ -113,7 +113,7 @@ impl GameModelController {
                 actix_rt::spawn(async move {
                     match receiver.recv().await.unwrap() {
                         () => {
-                            log::trace!("Removing entry for {:?}", model_spec_enum);
+                            log::info!("Removing entry for {:?}", model_spec_enum);
                             broadcasters_map.remove(&model_spec_enum)
                         }
                     }
