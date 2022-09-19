@@ -15,7 +15,7 @@ fn main() -> Result<()> {
                     game_data_info_struct={},
                     game_data_info_struct_reader={},
                     game_data_unzipper={},
-                    model_info_struct={}
+                    model_info_struct={} 
                 "###,
                 "trace", "info", "trace", "trace", "trace", "trace", "trace", "trace"
             ),
