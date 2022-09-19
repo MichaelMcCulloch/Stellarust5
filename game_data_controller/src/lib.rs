@@ -186,35 +186,50 @@ mod tests {
                 scope,
                 (tx.clone(), rx),
             );
-            std::thread::sleep(Duration::from_millis(5));
+            {
+                std::thread::sleep(Duration::from_millis(5));
 
-            assert!(c.broadcasters_map.clone().is_empty());
-            assert!(c.game_data_history.clone().is_empty());
-            log::info!("Empty On Startup:: Passed");
-            let must_hold_client = c.get_client(ModelSpecEnum::CampaignList(CampaignListModelSpec));
-            assert_eq!(c.broadcasters_map.clone().len(), 1);
-            log::info!("Broadcasters populated with one key after requesting the client:: Passed");
+                assert!(c.broadcasters_map.clone().is_empty());
+                assert!(c.game_data_history.clone().is_empty());
+                log::info!("Empty On Startup:: Passed");
+            }
+            let client = {
+                let must_hold_client =
+                    c.get_client(ModelSpecEnum::CampaignList(CampaignListModelSpec));
+                assert_eq!(c.broadcasters_map.clone().len(), 1);
+                log::info!(
+                    "Broadcasters populated with one key after requesting the client:: Passed"
+                );
+                must_hold_client
+            };
+            {
+                tx.send(ModelDataPoint {
+                    campaign_name: "TEST_CAMPAIGN".to_string(),
+                    date: NaiveDate::MAX.into(),
+                    empires: vec![],
+                })
+                .unwrap();
+                std::thread::sleep(Duration::from_millis(5));
 
-            tx.send(ModelDataPoint {
-                campaign_name: "TEST_CAMPAIGN".to_string(),
-                date: NaiveDate::MAX.into(),
-                empires: vec![],
-            })
-            .unwrap();
-            std::thread::sleep(Duration::from_millis(5));
+                assert_eq!(c.game_data_history.clone().len(), 1);
+                log::info!("Game history populated with one key after pushing a model:: Passed");
+            }
+            {
+                drop(client);
+                //wait for remove client
+                std::thread::sleep(Duration::from_millis(5));
 
-            assert_eq!(c.game_data_history.clone().len(), 1);
-            log::info!("Game history populated with one key after pushing a model:: Passed");
+                tx.send(ModelDataPoint {
+                    campaign_name: "TEST_CAMPAIGN".to_string(),
+                    date: NaiveDate::MIN.into(),
+                    empires: vec![],
+                })
+                .unwrap();
+                std::thread::sleep(Duration::from_millis(5));
 
-            drop(must_hold_client);
-            //wait for remove client
-            std::thread::sleep(Duration::from_secs(1));
-
-            // tx.send(ModelDataPoint {
-            //     campaign_name: "TEST_CAMPAIGN".to_string(),
-            //     date: NaiveDate::MIN.into(),
-            //     empires: vec![],
-            // });
+                assert!(c.broadcasters_map.clone().is_empty());
+                log::info!("Broadcasters Empty if the last client drops:: Passed");
+            }
         })
         .unwrap();
     }
