@@ -10,7 +10,7 @@ use actix_web::{
 };
 
 use anyhow::Result;
-use crossbeam::{channel::Sender, thread::Scope};
+use crossbeam::{channel::{Sender, unbounded}, thread::Scope};
 use game_data_controller::GameModelController;
 use listenfd::ListenFd;
 use model_info_struct::{
@@ -108,6 +108,7 @@ pub async fn run_actix_server(scope: &Scope<'_>) -> Result<Server> {
     let game_data_controller = Data::new(GameModelController::create(
         &PathBuf::from(PROD_TEST_DATA_ROOT),
         scope,
+        unbounded()
     ));
     let mut server = HttpServer::new(move || {
         App::new()
@@ -142,7 +143,7 @@ mod tests {
         body::MessageBody,
         test::{self, TestRequest},
     };
-    use crossbeam::thread;
+    use crossbeam::{thread, channel::unbounded};
     use futures::{executor, future};
 
     use super::*;
@@ -154,6 +155,7 @@ mod tests {
             let game_data_controller = Data::new(GameModelController::create(
                 &PathBuf::from(PROD_TEST_DATA_ROOT),
                 scope,
+                unbounded()
             ));
             let app = executor::block_on(test::init_service(
                 App::new()

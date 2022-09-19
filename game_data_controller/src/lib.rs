@@ -6,10 +6,7 @@ use crossbeam::{
     thread::Scope,
 };
 use dashmap::{mapref::entry::Entry, DashMap};
-use directory_watcher::{
-    Config, DefaultWatcher, Delivery, DirectoryWatcher, Event, EventFilter, FileReader, PathFilter,
-    RecursiveMode, Startup, Watcher,
-};
+use directory_watcher::{DefaultWatcher, DirectoryWatcher, RecursiveMode};
 use filter::{CloseWriteFilter, EndsWithSavFilter};
 use fxhash::{FxBuildHasher, FxHasher};
 use game_data_info_struct_reader::{GameDataInfoStructReader, ModelDataPoint};
@@ -50,20 +47,23 @@ impl GameModelController {
         game_model_controller
     }
 
-    pub fn create(game_directory: &Path, scope: &Scope<'_>) -> Self {
-        let (info_struct_sender, info_struct_receiver) = unbounded();
+    pub fn create(
+        game_directory: &Path,
+        scope: &Scope<'_>,
+        info_struct_channel: (Sender<ModelDataPoint>, Receiver<ModelDataPoint>),
+    ) -> Self {
         let watcher = DefaultWatcher::create_directory_watcher_and_scan_root(
             CloseWriteFilter,
             EndsWithSavFilter,
             GameDataInfoStructReader,
             move |message| -> () {
-                info_struct_sender.clone().send(message).unwrap();
+                info_struct_channel.0.send(message).unwrap();
             },
             ScanAllFoldersAndFiles,
             &game_directory,
             RecursiveMode::Recursive,
         );
-        Self::new(watcher, scope, info_struct_receiver)
+        Self::new(watcher, scope, info_struct_channel.1)
     }
 
     /// 1. Populates the map of ModelRequests to the (Model, Broadcaster) pairs
@@ -162,5 +162,60 @@ impl GameModelController {
             }
             None => true,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{path::PathBuf, time::Duration};
+
+    use chrono::NaiveDate;
+    use crossbeam::thread;
+    use model_info_struct::model::campaign_list::CampaignListModelSpec;
+    use stellarust::PROD_TEST_EMPTY_FOLDER;
+
+    use super::*;
+    #[actix_rt::test]
+    async fn test_name() {
+        thread::scope(|scope| {
+            std::env::set_var("RUST_LOG", "info");
+            env_logger::init();
+            let (tx, rx) = unbounded();
+            let c = GameModelController::create(
+                &PathBuf::from(PROD_TEST_EMPTY_FOLDER),
+                scope,
+                (tx.clone(), rx),
+            );
+            std::thread::sleep(Duration::from_millis(5));
+
+            assert!(c.broadcasters_map.clone().is_empty());
+            assert!(c.game_data_history.clone().is_empty());
+            log::info!("Empty On Startup:: Passed");
+            let must_hold_client = c.get_client(ModelSpecEnum::CampaignList(CampaignListModelSpec));
+            assert_eq!(c.broadcasters_map.clone().len(), 1);
+            log::info!("Broadcasters populated with one key after requesting the client:: Passed");
+
+            tx.send(ModelDataPoint {
+                campaign_name: "TEST_CAMPAIGN".to_string(),
+                date: NaiveDate::MAX.into(),
+                empires: vec![],
+            })
+            .unwrap();
+            std::thread::sleep(Duration::from_millis(5));
+
+            assert_eq!(c.game_data_history.clone().len(), 1);
+            log::info!("Game history populated with one key after pushing a model:: Passed");
+
+            drop(must_hold_client);
+            //wait for remove client
+            std::thread::sleep(Duration::from_secs(1));
+
+            // tx.send(ModelDataPoint {
+            //     campaign_name: "TEST_CAMPAIGN".to_string(),
+            //     date: NaiveDate::MIN.into(),
+            //     empires: vec![],
+            // });
+        })
+        .unwrap();
     }
 }

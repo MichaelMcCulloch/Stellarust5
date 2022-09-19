@@ -74,19 +74,33 @@ impl Broadcaster for ActixBroadcaster {
     }
 
     fn send<S: Serialize>(&self, message: &S) -> usize {
-        let guard = self.clients.read().unwrap();
-        if guard.is_empty() {
-            0
-        } else {
-            let message_string = &serde_json::to_string(&message).unwrap();
-            let message_bytes =
-                Bytes::from(["event: message\ndata: ", message_string, "\n\n"].concat());
+        let mut write_guard = self.clients.write().unwrap();
+        let mut clients = std::mem::take(&mut *write_guard);
+        let message_string = &serde_json::to_string(&message).unwrap();
+        let message_bytes =
+            Bytes::from(["event: message\ndata: ", message_string, "\n\n"].concat());
 
-            guard
-                .par_iter()
-                .for_each(|sender| sender.send(message_bytes.clone()).unwrap());
-            guard.len()
-        }
+        let (clients, count) = clients
+            .par_drain(..)
+            .fold(
+                || (Vec::new(), 0),
+                |(mut accumulator, mut count), sender| match sender.send(message_bytes.clone()) {
+                    Ok(_) => {
+                        accumulator.push(sender);
+                        (accumulator, count + 1)
+                    }
+                    Err(_) => (accumulator, count),
+                },
+            )
+            .reduce(
+                || (Vec::new(), 0),
+                |(mut va, ca), (vb, cb)| {
+                    va.extend(vb.into_iter());
+                    (va, ca + cb)
+                },
+            );
+        *write_guard = clients;
+        count
     }
 }
 
