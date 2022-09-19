@@ -1,7 +1,6 @@
 use std::{hash::BuildHasherDefault, path::Path, sync::Arc};
 
 use actix_broadcaster::{ActixBroadcaster, Broadcaster, Client};
-use controller::Controller;
 use crossbeam::{
     channel::{unbounded, Receiver, Sender},
     thread::Scope,

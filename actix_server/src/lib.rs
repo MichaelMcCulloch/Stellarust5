@@ -11,7 +11,7 @@ use actix_web::{
 
 use anyhow::Result;
 use crossbeam::{channel::{Sender, unbounded}, thread::Scope};
-use game_data_controller::{ controller::{Controller, model_controller::GameModelController}};
+use game_data_controller::controller::GameModelController;
 use listenfd::ListenFd;
 use model_info_struct::{
     enums::ModelSpecEnum,
