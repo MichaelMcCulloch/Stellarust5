@@ -3,14 +3,14 @@ use std::path::PathBuf;
 use actix_cors::Cors;
 
 use actix_web::{
-    dev::{Server, ServerHandle},
+    dev::Server,
     get, middleware,
     web::{self, Data},
     App, HttpResponse, HttpServer, Responder,
 };
 
 use anyhow::Result;
-use crossbeam::{channel::{Sender, unbounded}, thread::Scope};
+use crossbeam::{channel::unbounded, thread::Scope};
 use game_data_controller::controller::GameModelController;
 use listenfd::ListenFd;
 use model_info_struct::{
@@ -136,12 +136,12 @@ pub async fn run_actix_server(scope: &Scope<'_>) -> Result<Server> {
 
 #[cfg(test)]
 mod tests {
-    use std::{sync::Arc, time::Duration};
+    use std::{time::Duration};
 
     use actix_rt::pin;
     use actix_web::{
         body::MessageBody,
-        test::{self, TestRequest},
+        test::{self},
     };
     use crossbeam::{thread, channel::unbounded};
     use futures::{executor, future};

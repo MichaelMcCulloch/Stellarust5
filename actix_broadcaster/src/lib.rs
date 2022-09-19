@@ -86,7 +86,7 @@ impl Broadcaster for ActixBroadcaster {
             .par_drain(..)
             .fold(
                 || (Vec::new(), 0),
-                |(mut accumulator, mut count), sender| match sender.send(message_bytes.clone()) {
+                |(mut accumulator, count), sender| match sender.send(message_bytes.clone()) {
                     Ok(_) => {
                         accumulator.push(sender);
                         (accumulator, count + 1)
@@ -133,7 +133,7 @@ impl ActixBroadcaster {
             .par_drain(..)
             .fold(
                 || (Vec::new(), 0),
-                |(mut accumulator, mut count), sender| match sender.send(message.clone()) {
+                |(mut accumulator, count), sender| match sender.send(message.clone()) {
                     Ok(_) => {
                         accumulator.push(sender);
                         (accumulator, count + 1)
@@ -195,7 +195,7 @@ mod tests {
 
     #[actix_rt::test]
     async fn broadcaster_new_client_with_message_x_receives_connection_message_then_message_x() {
-        let (t, r) = tokio::sync::mpsc::channel(1);
+        let (t, _r) = tokio::sync::mpsc::channel(1);
         let b = ActixBroadcaster::create(t);
 
         let mut x = b.new_client_with_message(&"here is a message");
@@ -214,7 +214,7 @@ mod tests {
 
     #[actix_rt::test]
     async fn broadcaster_new_client_receives_connection_message() {
-        let (t, r) = tokio::sync::mpsc::channel(1);
+        let (t, _r) = tokio::sync::mpsc::channel(1);
         let b = ActixBroadcaster::create(t);
 
         let mut x = b.new_client();
@@ -225,7 +225,7 @@ mod tests {
     }
     #[actix_rt::test]
     async fn broadcaster_existing_client_send() {
-        let (t, r) = tokio::sync::mpsc::channel(1);
+        let (t, _r) = tokio::sync::mpsc::channel(1);
         let b = ActixBroadcaster::create(t);
 
         let mut x = b.new_client();
@@ -245,7 +245,7 @@ mod tests {
 
     #[actix_rt::test]
     async fn broadcaster_ping_client_receives_pings_as_long_as_its_polling() {
-        let (t, r) = tokio::sync::mpsc::channel(1);
+        let (t, _r) = tokio::sync::mpsc::channel(1);
         let b = ActixBroadcaster::create(t);
 
         let mut x = b.new_client();
