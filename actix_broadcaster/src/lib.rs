@@ -114,14 +114,16 @@ impl ActixBroadcaster {
             let mut interval = actix_web::rt::time::interval(Self::PING_INTERVAL);
             loop {
                 interval.tick().await;
-                Self::remove_stale_clients(&clients, &self_destruct).await;
+                if Self::remove_stale_clients(&clients, &self_destruct).await {
+                    break;
+                };
             }
         });
     }
     async fn remove_stale_clients(
         clients: &Arc<RwLock<Vec<UnboundedSender<Bytes>>>>,
         self_destruct: &tokio::sync::mpsc::Sender<()>,
-    ) {
+    ) -> bool {
         let message = Bytes::from("event: ping\ndata: ping\n\n");
 
         let mut write_guard = clients.write().unwrap();
@@ -152,6 +154,9 @@ impl ActixBroadcaster {
             match self_destruct.send(()).await {
                 _ => {}
             };
+            true
+        } else {
+            false
         }
     }
 }
