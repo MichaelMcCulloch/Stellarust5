@@ -16,6 +16,7 @@ use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 #[derive(Debug)]
 pub struct ActixBroadcaster {
     clients: Arc<RwLock<Vec<UnboundedSender<Bytes>>>>,
+    self_destruct: tokio::sync::mpsc::Sender<()>,
 }
 
 pub trait Ping {
@@ -32,16 +33,17 @@ impl Ping for ActixBroadcaster {
 }
 
 pub trait Broadcaster {
-    fn create() -> Self;
+    fn create(self_destruct: tokio::sync::mpsc::Sender<()>) -> Self;
     fn new_client(&self) -> Client;
     fn new_client_with_message<S: Serialize>(&self, message: &S) -> Client;
     fn send<S: Serialize>(&self, message: &S) -> usize;
 }
 
 impl Broadcaster for ActixBroadcaster {
-    fn create() -> Self {
+    fn create(self_destruct: tokio::sync::mpsc::Sender<()>) -> Self {
         let me = ActixBroadcaster {
             clients: Arc::new(RwLock::new(vec![])),
+            self_destruct,
         };
         me.spawn_ping();
         me
@@ -107,22 +109,50 @@ impl Broadcaster for ActixBroadcaster {
 impl ActixBroadcaster {
     fn spawn_ping(&self) {
         let clients = self.clients.clone();
+        let self_destruct = self.self_destruct.clone();
         actix_web::rt::spawn(async move {
             let mut interval = actix_web::rt::time::interval(Self::PING_INTERVAL);
             loop {
                 interval.tick().await;
-                Self::remove_stale_clients(&clients);
+                Self::remove_stale_clients(&clients, &self_destruct).await;
             }
         });
     }
-    fn remove_stale_clients(clients: &Arc<RwLock<Vec<UnboundedSender<Bytes>>>>) {
-        clients.write().unwrap().retain(|sender| {
-            if let Ok(()) = sender.send(Bytes::from("event: ping\ndata: ping\n\n")) {
-                true
-            } else {
-                false
-            }
-        });
+    async fn remove_stale_clients(
+        clients: &Arc<RwLock<Vec<UnboundedSender<Bytes>>>>,
+        self_destruct: &tokio::sync::mpsc::Sender<()>,
+    ) {
+        let message = Bytes::from("event: ping\ndata: ping\n\n");
+
+        let mut write_guard = clients.write().unwrap();
+        let mut clients = std::mem::take(&mut *write_guard);
+
+        let (clients, count) = clients
+            .par_drain(..)
+            .fold(
+                || (Vec::new(), 0),
+                |(mut accumulator, mut count), sender| match sender.send(message.clone()) {
+                    Ok(_) => {
+                        accumulator.push(sender);
+                        (accumulator, count + 1)
+                    }
+                    Err(_) => (accumulator, count),
+                },
+            )
+            .reduce(
+                || (Vec::new(), 0),
+                |(mut va, ca), (vb, cb)| {
+                    va.extend(vb.into_iter());
+                    (va, ca + cb)
+                },
+            );
+        *write_guard = clients;
+        log::trace!("Ping: Retaining {} clients", count);
+        if count == 0 {
+            match self_destruct.send(()).await {
+                _ => {}
+            };
+        }
     }
 }
 pub struct Client(UnboundedReceiver<Bytes>);
@@ -160,7 +190,8 @@ mod tests {
 
     #[actix_rt::test]
     async fn broadcaster_new_client_with_message_x_receives_connection_message_then_message_x() {
-        let b = ActixBroadcaster::create();
+        let (t, r) = tokio::sync::mpsc::channel(1);
+        let b = ActixBroadcaster::create(t);
 
         let mut x = b.new_client_with_message(&"here is a message");
         match x.recv().await {
@@ -178,7 +209,8 @@ mod tests {
 
     #[actix_rt::test]
     async fn broadcaster_new_client_receives_connection_message() {
-        let b = ActixBroadcaster::create();
+        let (t, r) = tokio::sync::mpsc::channel(1);
+        let b = ActixBroadcaster::create(t);
 
         let mut x = b.new_client();
         match x.recv().await {
@@ -188,7 +220,8 @@ mod tests {
     }
     #[actix_rt::test]
     async fn broadcaster_existing_client_send() {
-        let b = ActixBroadcaster::create();
+        let (t, r) = tokio::sync::mpsc::channel(1);
+        let b = ActixBroadcaster::create(t);
 
         let mut x = b.new_client();
         b.send(&"Can you hear me? 1 2 3");
@@ -207,7 +240,8 @@ mod tests {
 
     #[actix_rt::test]
     async fn broadcaster_ping_client_receives_pings_as_long_as_its_polling() {
-        let b = ActixBroadcaster::create();
+        let (t, r) = tokio::sync::mpsc::channel(1);
+        let b = ActixBroadcaster::create(t);
 
         let mut x = b.new_client();
         match x.recv().await {

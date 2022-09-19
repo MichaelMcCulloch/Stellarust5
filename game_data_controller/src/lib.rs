@@ -71,26 +71,57 @@ impl GameModelController {
     /// 3. populates a client from the broadcaster and sends that client the model it asked for
     /// 4. returns that client
     pub fn get_client(&self, model_spec_enum: ModelSpecEnum) -> Option<Client> {
-        match self.broadcasters_map.entry(model_spec_enum) {
+        let x = match self.broadcasters_map.entry(model_spec_enum.clone()) {
             Entry::Occupied(entry) => {
                 let (model, broadcaster) = entry.get();
 
-                Some(broadcaster.new_client_with_message(&model.get()))
+                Some((broadcaster.new_client_with_message(&model.get()), None))
             }
             Entry::Vacant(entry) => {
+                let (sender, receiver) = tokio::sync::mpsc::channel(1);
+
                 let (mut model, broadcaster) = (
                     ModelEnum::create(entry.key().clone()),
-                    ActixBroadcaster::create(),
+                    ActixBroadcaster::create(sender),
                 );
+
                 match model.update_all(&self.game_data_history.clone()) {
                     Some(message) => {
                         let client = broadcaster.new_client_with_message(&message);
+
+                        // let broadcasters_map = self.broadcasters_map.clone();
+                        // let model_spec_enum = entry.key().clone();
+                        // actix_rt::spawn(async move {
+                        //     match receiver.recv().unwrap() {
+                        //         () => {
+                        //             log::trace!("Removing entry for {:?}", model_spec_enum);
+                        //             broadcasters_map.remove(&model_spec_enum)
+                        //         }
+                        //     }
+                        // });
                         entry.insert((model, broadcaster));
-                        return Some(client);
+
+                        Some((client, Some(receiver)))
                     }
                     None => return None,
                 }
             }
+        };
+        match x {
+            Some((client, Some(mut receiver))) => {
+                let broadcasters_map = self.broadcasters_map.clone();
+                actix_rt::spawn(async move {
+                    match receiver.recv().await.unwrap() {
+                        () => {
+                            log::trace!("Removing entry for {:?}", model_spec_enum);
+                            broadcasters_map.remove(&model_spec_enum)
+                        }
+                    }
+                });
+                Some(client)
+            }
+            Some((client, None)) => Some(client),
+            None => None,
         }
     }
 
@@ -143,7 +174,9 @@ impl GameModelController {
                 Ok(data_point) => {
                     Self::reconcile(&data_point, &game_data_history);
 
-                    Self::broadcast_model_changes(&broadcasters_map, &data_point);
+                    if !broadcasters_map.is_empty() {
+                        Self::broadcast_model_changes(&broadcasters_map, &data_point);
+                    }
                 }
                 Err(_) => break,
             };
@@ -155,13 +188,18 @@ impl GameModelController {
         >,
         data_point: &ModelDataPoint,
     ) {
-        broadcasters_map.retain(|_, (model, broadcaster)| match model.update(data_point) {
-            Some(output) => {
-                let recipients = broadcaster.send(&output);
-                recipients != 0
-            }
-            None => true,
-        })
+        broadcasters_map.retain(
+            |spec, (model, broadcaster)| match model.update(data_point) {
+                Some(output) => {
+                    let recipients = broadcaster.send(&output);
+
+                    log::trace!("Broadcast {:?}: Retaining {} clients", spec, recipients);
+                    recipients != 0
+                }
+                None => true,
+            },
+        );
+        log::trace!("Broadcast: Retaining {} clients", broadcasters_map.len());
     }
 }
 

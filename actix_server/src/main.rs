@@ -4,7 +4,22 @@ use anyhow::Result;
 use crossbeam::thread;
 fn main() -> Result<()> {
     thread::scope(|scope| {
-        std::env::set_var("RUST_LOG", "info");
+        std::env::set_var(
+            "RUST_LOG",
+            format!(
+                r###"
+                    actix_broadcaster={},
+                    actix_server={},
+                    directory_watcher={},
+                    game_data_controller={},
+                    game_data_info_struct={},
+                    game_data_info_struct_reader={},
+                    game_data_unzipper={},
+                    model_info_struct={}
+                "###,
+                "trace", "info", "trace", "trace", "trace", "trace", "trace", "trace"
+            ),
+        );
         env_logger::init();
 
         let server_future = run_actix_server(scope);
