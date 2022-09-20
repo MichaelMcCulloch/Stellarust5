@@ -27,24 +27,12 @@ pub struct GameModelController {
     _watcher: RecommendedWatcher,
 }
 impl GameModelController {
-    fn new(
-        watcher: RecommendedWatcher,
-        scope: &Scope,
-        info_struct_receiver: Receiver<ModelDataPoint>,
-    ) -> GameModelController {
-        let game_data_history = Arc::new(DashMap::with_hasher(FxBuildHasher::default()));
-        let broadcasters_map = Arc::new(DashMap::with_hasher(FxBuildHasher::default()));
+    fn new(watcher: notify::INotifyWatcher) -> GameModelController {
         let game_model_controller = Self {
-            broadcasters_map: broadcasters_map.clone(),
-            game_data_history: game_data_history.clone(),
+            broadcasters_map: Arc::new(DashMap::with_hasher(FxBuildHasher::default())),
+            game_data_history: Arc::new(DashMap::with_hasher(FxBuildHasher::default())),
             _watcher: watcher,
         };
-        Self::spawn_event_loop(
-            scope,
-            info_struct_receiver,
-            game_data_history,
-            broadcasters_map,
-        );
         game_model_controller
     }
 
@@ -64,7 +52,13 @@ impl GameModelController {
             &game_directory,
             RecursiveMode::Recursive,
         );
-        Self::new(watcher, scope, info_struct_channel.1)
+
+        let game_model_controller = GameModelController::new(watcher);
+        // if a database does not exist, create one
+        // read all history from the database
+        // verify contents of folder match contents of db
+        game_model_controller.spawn_event_loop(scope, info_struct_channel.1);
+        game_model_controller
     }
 
     /// * `model_data` - new data point
@@ -102,14 +96,9 @@ impl GameModelController {
     /// * `info_struct_receiver` - Receiving end of the sender embeded in the directory watcher
     /// * `model_history` - Arc to the lock for reconciling new data with existing data
     /// * `broadcasters_map` - Map of receivers indexed by the request they made
-    fn spawn_event_loop(
-        scope: &Scope,
-        info_struct_receiver: Receiver<ModelDataPoint>,
-        game_data_history: Arc<DashMap<String, Vec<ModelDataPoint>, BuildHasherDefault<FxHasher>>>,
-        broadcasters_map: Arc<
-            DashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster), BuildHasherDefault<FxHasher>>,
-        >,
-    ) {
+    fn spawn_event_loop(&self, scope: &Scope, info_struct_receiver: Receiver<ModelDataPoint>) {
+        let game_data_history = self.game_data_history.clone();
+        let broadcasters_map = self.broadcasters_map.clone();
         scope.spawn(move |_s| loop {
             match info_struct_receiver.recv() {
                 Ok(data_point) => {

@@ -130,7 +130,6 @@ impl DirectoryWatcher for DefaultWatcher {
                 Err(_) => {}
             };
         };
-
         let mut watcher = RecommendedWatcher::new(event_handler, Config::default()).unwrap();
 
         watcher.watch(directory.as_ref(), recursive_mode).unwrap();
