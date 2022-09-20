@@ -1,7 +1,7 @@
 pub mod date;
 
 use date::Date;
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 use serde_derive::{Deserialize, Serialize};
 #[derive(Default, Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -32,13 +32,36 @@ pub struct Resources {
 #[derive(Default, Debug, PartialEq, Clone, Serialize, Deserialize)]
 
 pub struct Budget {
-    pub income: HashMap<ResourceClass, Vec<(String, f64)>>,
-    pub expense: HashMap<ResourceClass, Vec<(String, f64)>>,
-    pub balance: HashMap<ResourceClass, Vec<(String, f64)>>,
+    pub income: [Vec<(String, f64)>; 16],
+    pub expense: [Vec<(String, f64)>; 16],
+    pub balance: [Vec<(String, f64)>; 16],
 
-    pub income_last_month: HashMap<ResourceClass, Vec<(String, f64)>>,
-    pub expense_last_month: HashMap<ResourceClass, Vec<(String, f64)>>,
-    pub balance_last_month: HashMap<ResourceClass, Vec<(String, f64)>>,
+    pub income_last_month: [Vec<(String, f64)>; 16],
+    pub expense_last_month: [Vec<(String, f64)>; 16],
+    pub balance_last_month: [Vec<(String, f64)>; 16],
+}
+
+pub const ALL_RESOURCES: [ResourceClass; 16] = [
+    ResourceClass::Energy,
+    ResourceClass::Minerals,
+    ResourceClass::Food,
+    ResourceClass::Physics,
+    ResourceClass::Society,
+    ResourceClass::Engineering,
+    ResourceClass::Influence,
+    ResourceClass::Unity,
+    ResourceClass::ConsumerGoods,
+    ResourceClass::Alloys,
+    ResourceClass::Motes,
+    ResourceClass::Gasses,
+    ResourceClass::Crystals,
+    ResourceClass::LivingMetal,
+    ResourceClass::Zro,
+    ResourceClass::DarkMatter,
+];
+
+pub trait BudgetMapIndex {
+    fn index(&self) -> usize;
 }
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
 pub enum ResourceClass {
@@ -58,6 +81,56 @@ pub enum ResourceClass {
     LivingMetal,
     Zro,
     DarkMatter,
+}
+
+impl BudgetMapIndex for ResourceClass {
+    fn index(&self) -> usize {
+        match self {
+            ResourceClass::Energy => 0,
+            ResourceClass::Minerals => 1,
+            ResourceClass::Food => 2,
+            ResourceClass::Physics => 3,
+            ResourceClass::Society => 4,
+            ResourceClass::Engineering => 5,
+            ResourceClass::Influence => 6,
+            ResourceClass::Unity => 7,
+            ResourceClass::ConsumerGoods => 8,
+            ResourceClass::Alloys => 9,
+            ResourceClass::Motes => 10,
+            ResourceClass::Gasses => 11,
+            ResourceClass::Crystals => 12,
+            ResourceClass::LivingMetal => 13,
+            ResourceClass::Zro => 14,
+            ResourceClass::DarkMatter => 15,
+        }
+    }
+}
+
+impl Display for ResourceClass {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                ResourceClass::Energy => "energy",
+                ResourceClass::Minerals => "minerals",
+                ResourceClass::Food => "food",
+                ResourceClass::Physics => "physics_research",
+                ResourceClass::Society => "society_research",
+                ResourceClass::Engineering => "engineering_research",
+                ResourceClass::Influence => "influence",
+                ResourceClass::Unity => "unity",
+                ResourceClass::ConsumerGoods => "consumer_goods",
+                ResourceClass::Alloys => "alloys",
+                ResourceClass::Motes => "volatile_motes",
+                ResourceClass::Gasses => "exotic_gases",
+                ResourceClass::Crystals => "rare_crystals",
+                ResourceClass::LivingMetal => "sr_living_metal",
+                ResourceClass::Zro => "sr_zro",
+                ResourceClass::DarkMatter => "sr_dark_matter",
+            }
+        )
+    }
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]

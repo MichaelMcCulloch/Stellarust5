@@ -3,7 +3,9 @@ use std::hash::BuildHasherDefault;
 use crate::{Model, ModelSpec};
 use dashmap::DashMap;
 use fxhash::FxHasher;
-use game_data_info_struct::{date::Date, EmpireData, ModelDataPoint, ResourceClass};
+use game_data_info_struct::{
+    date::Date, BudgetMapIndex, EmpireData, ModelDataPoint, ResourceClass,
+};
 use serde_derive::Serialize;
 
 #[derive(Eq, PartialEq, Hash, Serialize, Clone, Debug)]
@@ -91,7 +93,7 @@ impl BudgetStreamGraphModel {
                 empire_data
                     .budget
                     .balance
-                    .get(resource)
+                    .get(resource.index())
                     .unwrap()
                     .iter()
                     .fold(0f64, |acc, (_, x)| acc + x),
@@ -113,6 +115,7 @@ mod tests {
     use fxhash::FxBuildHasher;
     use game_data_info_struct::{Budget, PlayerClass, Resources};
 
+    const VAL: Vec<(String, f64)> = vec![];
     use super::*;
     #[test]
     fn update_given_a_model_spec_and_a_single_data_point_a_model_constructed_with_that_spec_and_given_that_data_point_returns_a_single_element_representing_that_data_point(
@@ -133,23 +136,18 @@ mod tests {
 
         let date = Date::from(NaiveDate::from_ymd(2200, 01, 01));
         let driver = PlayerClass::Human("HUMAN".to_string());
-        let mut balance = HashMap::new();
-        balance
-            .entry(ResourceClass::Energy)
-            .or_insert_with(|| vec![("ALL".to_string(), 100f64)]);
-        balance
-            .entry(ResourceClass::Alloys)
-            .or_insert_with(|| vec![("ALL".to_string(), 50f64)]);
-        balance
-            .entry(ResourceClass::Minerals)
-            .or_insert_with(|| vec![("ALL".to_string(), 25f64)]);
+        let mut balance = [VAL; 16];
+        balance[ResourceClass::Energy.index()] = vec![("ALL".to_string(), 100f64)];
+        balance[ResourceClass::Alloys.index()] = vec![("ALL".to_string(), 50f64)];
+        balance[ResourceClass::Minerals.index()] = vec![("ALL".to_string(), 25f64)];
+
         let budget = Budget {
-            income: HashMap::new(),
-            expense: HashMap::new(),
+            income: [VAL; 16],
+            expense: [VAL; 16],
             balance,
-            income_last_month: HashMap::new(),
-            expense_last_month: HashMap::new(),
-            balance_last_month: HashMap::new(),
+            income_last_month: [VAL; 16],
+            expense_last_month: [VAL; 16],
+            balance_last_month: [VAL; 16],
         };
 
         let resources = Resources {
@@ -202,17 +200,16 @@ mod tests {
         };
 
         let driver = PlayerClass::Human("HUMAN".to_string());
-        let mut balance = HashMap::new();
-        balance
-            .entry(ResourceClass::Energy)
-            .or_insert_with(|| vec![("ALL".to_string(), 100f64)]);
+        let mut balance = [VAL; 16];
+        balance[ResourceClass::Energy.index()] = vec![("ALL".to_string(), 100f64)];
+
         let budget = Budget {
-            income: HashMap::new(),
-            expense: HashMap::new(),
+            income: [VAL; 16],
+            expense: [VAL; 16],
             balance,
-            income_last_month: HashMap::new(),
-            expense_last_month: HashMap::new(),
-            balance_last_month: HashMap::new(),
+            income_last_month: [VAL; 16],
+            expense_last_month: [VAL; 16],
+            balance_last_month: [VAL; 16],
         };
 
         let resources = Resources {

@@ -3,6 +3,7 @@ use directory_watcher::FileReader;
 pub use game_data_info_struct::{
     Budget, EmpireData, ModelDataPoint, PlayerClass, ResourceClass, Resources,
 };
+use game_data_info_struct::{BudgetMapIndex, ALL_RESOURCES};
 use std::{collections::HashMap, path::Path};
 pub struct GameDataInfoStructReader;
 
@@ -17,34 +18,16 @@ impl FileReader for GameDataInfoStructReader {
     }
 }
 
-pub const ALL_RESOURCES: [(ResourceClass, &str); 16] = [
-    (ResourceClass::Energy, "energy"),
-    (ResourceClass::Minerals, "minerals"),
-    (ResourceClass::Food, "food"),
-    (ResourceClass::Physics, "physics_research"),
-    (ResourceClass::Society, "society_research"),
-    (ResourceClass::Engineering, "engineering_research"),
-    (ResourceClass::Influence, "influence"),
-    (ResourceClass::Unity, "unity"),
-    (ResourceClass::ConsumerGoods, "consumer_goods"),
-    (ResourceClass::Alloys, "alloys"),
-    (ResourceClass::Motes, "volatile_motes"),
-    (ResourceClass::Gasses, "exotic_gases"),
-    (ResourceClass::Crystals, "rare_crystals"),
-    (ResourceClass::LivingMetal, "sr_living_metal"),
-    (ResourceClass::Zro, "sr_zro"),
-    (ResourceClass::DarkMatter, "sr_dark_matter"),
-];
+const VAL: Vec<(String, f64)> = vec![];
 
 impl GameDataInfoStructReader {
     fn extract_budget(budget: &Val) -> Budget {
         let current_month_budget = budget.get_at_path("current_month").unwrap();
         let last_month_budget = budget.get_at_path("last_month").unwrap();
 
-        let get_budget_val =
-            |key: &str, budget_period: &Val| -> HashMap<ResourceClass, Vec<(String, f64)>> {
-                Self::get_budget_component_map(budget_period.get_at_path(key).unwrap())
-            };
+        let get_budget_val = |key: &str, budget_period: &Val| -> [Vec<(String, f64)>; 16] {
+            Self::get_budget_component_map(budget_period.get_at_path(key).unwrap())
+        };
 
         Budget {
             income: get_budget_val("income", current_month_budget),
@@ -55,21 +38,20 @@ impl GameDataInfoStructReader {
             balance_last_month: get_budget_val("income", last_month_budget),
         }
     }
-    fn get_budget_component_map(component: &Val<'_>) -> HashMap<ResourceClass, Vec<(String, f64)>> {
+    fn get_budget_component_map(component: &Val<'_>) -> [Vec<(String, f64)>; 16] {
         if let Val::Dict(sources) = component {
-            let map = sources.into_iter().fold(
-                HashMap::new(),
-                |mut map, (contributor, contributions)| {
+            let init = [VAL; 16];
+            let map = sources
+                .into_iter()
+                .fold(init, |mut map, (contributor, contributions)| {
                     let contribitions_per_class = Self::get_contributions_per_class(contributions);
 
                     for (key, amount) in contribitions_per_class.into_iter() {
-                        map.entry(key)
-                            .or_insert(vec![])
-                            .push((String::from(*contributor), amount));
+                        map[key.index()].push((String::from(*contributor), amount));
                     }
                     map
-                },
-            );
+                });
+
             map
         } else {
             panic!()
@@ -78,8 +60,8 @@ impl GameDataInfoStructReader {
     fn get_contributions_per_class(contributions: &Val<'_>) -> Vec<(ResourceClass, f64)> {
         ALL_RESOURCES
             .iter()
-            .filter_map(|(class, key)| {
-                if let Ok(val) = contributions.get_at_path(key) {
+            .filter_map(|class| {
+                if let Ok(val) = contributions.get_at_path(format!("{}", class).as_str()) {
                     match val {
                         Val::Decimal(d) => Some((class.clone(), *d)),
                         Val::Integer(i) => Some((class.clone(), *i as f64)),
@@ -202,6 +184,8 @@ mod tests {
             &clausewitz_parser::root(&GAMESTATE).unwrap().1,
         );
 
+        std::fs::write("/home/michael/Dev/Stellarust/stellarust5/game_data_info_struct_reader/src/test/model.json", serde_json::to_string(&actual).unwrap()).unwrap();
+
         let expected: ModelDataPoint = serde_json::from_str(&COMPLETE_MODEL_SERIALIZED).unwrap();
         assert_eq!(expected, actual);
     }
@@ -213,6 +197,7 @@ mod tests {
         let players = gamestate.get_set_at_path("player").unwrap();
 
         let actual = GameDataInfoStructReader::extract_empires(countries, players);
+        std::fs::write("/home/michael/Dev/Stellarust/stellarust5/game_data_info_struct_reader/src/test/empire.json", serde_json::to_string(&actual).unwrap()).unwrap();
 
         let expected: Vec<EmpireData> = serde_json::from_str(&EMPIRE_DATA_SERIALIZED).unwrap();
         assert_eq!(expected, actual);
