@@ -22,7 +22,7 @@ use model_info_struct::{
     ResourceClass,
 };
 use serde_derive::Deserialize;
-use stellarust::PROD_TEST_DATA_ROOT;
+use stellarust::{PROD_TEST_DATA_ROOT, PROD_TEST_EMPTY_FOLDER};
 
 #[get("/")]
 pub async fn index(s: Data<GameModelController>) -> impl Responder { 
@@ -106,7 +106,7 @@ pub async fn budget_data(
 
 pub async fn run_actix_server(scope: &Scope<'_>) -> Result<Server> {
     let game_data_controller = Data::new(GameModelController::create(
-        &PathBuf::from(PROD_TEST_DATA_ROOT),
+        &PathBuf::from(PROD_TEST_EMPTY_FOLDER),
         scope,
         unbounded()
     ));
