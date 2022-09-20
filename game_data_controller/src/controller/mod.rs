@@ -28,7 +28,7 @@ pub struct GameModelController {
 }
 impl GameModelController {
     fn new(
-        watcher: notify::INotifyWatcher,
+        watcher: RecommendedWatcher,
         scope: &Scope,
         info_struct_receiver: Receiver<ModelDataPoint>,
     ) -> GameModelController {
@@ -191,7 +191,7 @@ mod tests {
 
     use super::*;
     #[actix_rt::test]
-    async fn test_name() {
+    async fn game_data_controller_behavior_tests() {
         thread::scope(|scope| {
             std::env::set_var("RUST_LOG", "info");
             env_logger::init();
@@ -209,13 +209,12 @@ mod tests {
                 log::info!("Empty On Startup:: Passed");
             }
             let client = {
-                let must_hold_client =
-                    c.get_client(ModelSpecEnum::CampaignList(CampaignListModelSpec));
+                let client = c.get_client(ModelSpecEnum::CampaignList(CampaignListModelSpec));
                 assert_eq!(c.broadcasters_map.clone().len(), 1);
                 log::info!(
                     "Broadcasters populated with one key after requesting the client:: Passed"
                 );
-                must_hold_client
+                client
             };
             {
                 tx.send(ModelDataPoint {

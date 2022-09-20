@@ -143,8 +143,11 @@ mod tests {
         body::MessageBody,
         test::{self},
     };
+    use chrono::NaiveDate;
     use crossbeam::{thread, channel::unbounded};
     use futures::{executor, future};
+    use game_data_info_struct::ModelDataPoint;
+    use stellarust::PROD_TEST_EMPTY_FOLDER;
 
     use super::*;
     #[actix_rt::test]
@@ -152,10 +155,11 @@ mod tests {
         thread::scope(|scope| {
             std::env::set_var("RUST_LOG", "warn");
             env_logger::init();
+            let (sender, receiver) = unbounded();
             let game_data_controller = Data::new(GameModelController::create(
-                &PathBuf::from(PROD_TEST_DATA_ROOT),
+                &PathBuf::from(PROD_TEST_EMPTY_FOLDER),
                 scope,
-                unbounded()
+                (sender.clone(), receiver)
             ));
             let app = executor::block_on(test::init_service(
                 App::new()
@@ -163,7 +167,8 @@ mod tests {
                     .service(campaigns),
             ));
 
-            std::thread::sleep(Duration::from_millis(500));
+            sender.send(ModelDataPoint { campaign_name: "TEST_CAMPAIGN".to_string(), date: NaiveDate::MAX.into() , empires: vec![] }).unwrap();
+            std::thread::sleep(Duration::from_millis(50));
 
             let req = test::TestRequest::get().uri("/campaigns").to_request();
 
@@ -178,7 +183,7 @@ mod tests {
 
             let expected = vec![
                 web::Bytes::from_static(b"event: connected\ndata: connected\n\n"),     
-                web::Bytes::from_static(b"event: message\ndata: {\"CampaignList\":[{\"campaign_name\":\"United Nations of Earth\",\"empire_list\":[{\"name\":\"EMPIRE_DESIGN_humans1\",\"player\":\"Semantically_Invalid\"}]}]}\n\n")];
+                web::Bytes::from_static(b"event: message\ndata: {\"CampaignList\":[{\"campaign_name\":\"TEST_CAMPAIGN\",\"empire_list\":[]}]}\n\n")];
 
             assert_eq!(
                 expected,

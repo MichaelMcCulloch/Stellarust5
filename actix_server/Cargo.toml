@@ -27,3 +27,5 @@ model_info_struct = {path = "../model_info_struct"}
 
 [dev-dependencies]
 futures = "0.3.24"
+chrono = "0.4.22"
+game_data_info_struct = {path = "../game_data_info_struct"}
