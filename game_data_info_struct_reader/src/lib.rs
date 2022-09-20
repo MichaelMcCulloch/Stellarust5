@@ -4,7 +4,7 @@ pub use game_data_info_struct::{
     Budget, EmpireData, ModelDataPoint, PlayerClass, ResourceClass, Resources,
 };
 use game_data_info_struct::{BudgetMapIndex, ALL_RESOURCES};
-use std::{collections::HashMap, path::Path};
+use std::path::Path;
 pub struct GameDataInfoStructReader;
 
 impl FileReader for GameDataInfoStructReader {
@@ -14,7 +14,7 @@ impl FileReader for GameDataInfoStructReader {
         let (_, meta_val) = clausewitz_parser::root(&meta_raw).unwrap();
         let (_, gamestate_val) = clausewitz_parser::root(&gamestate_raw).unwrap();
 
-        Self::extract(&meta_val, &gamestate_val)
+        Self::extract(meta_val, gamestate_val)
     }
 }
 
@@ -151,7 +151,7 @@ impl GameDataInfoStructReader {
         empires
     }
 
-    fn extract(meta: &Val, gamestate: &Val) -> ModelDataPoint {
+    fn extract(meta: Val, gamestate: Val) -> ModelDataPoint {
         let country = gamestate.get_array_at_path("country").expect("array `country` not found in parsed gamestate. Something has gone wrong, check your parser!");
         let empires = if let Ok(v) = gamestate.get_set_at_path("player") {
             Self::extract_empires(country, v)
@@ -180,8 +180,8 @@ mod tests {
     #[test]
     fn verify_model_consistent() {
         let actual = GameDataInfoStructReader::extract(
-            &clausewitz_parser::root(&META).unwrap().1,
-            &clausewitz_parser::root(&GAMESTATE).unwrap().1,
+            clausewitz_parser::root(&META).unwrap().1,
+            clausewitz_parser::root(&GAMESTATE).unwrap().1,
         );
 
         std::fs::write("/home/michael/Dev/Stellarust/stellarust5/game_data_info_struct_reader/src/test/model.json", serde_json::to_string(&actual).unwrap()).unwrap();

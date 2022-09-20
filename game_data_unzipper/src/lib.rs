@@ -26,5 +26,6 @@ pub fn get_zipped_content(path: &Path) -> (String, String) {
             None => {}
         }
     }
+    drop(zip_archive);
     (meta, gamestate)
 }

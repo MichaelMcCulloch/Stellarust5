@@ -5,7 +5,7 @@ use serde::{ser::SerializeTupleStruct, Serialize};
 use serde_derive::Deserialize;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Deserialize)]
-pub struct Date(i16, u8, u8);
+pub struct Date(pub i16, pub u8, pub u8);
 
 impl From<NaiveDate> for Date {
     fn from(_d: NaiveDate) -> Self {
