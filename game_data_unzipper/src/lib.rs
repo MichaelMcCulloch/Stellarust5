@@ -1,10 +1,19 @@
-use std::{fs::File, io::Read, path::Path};
+use std::{
+    fs::File,
+    io::{Cursor, Read},
+    path::Path,
+};
 
+use memmap::Mmap;
 use zip::ZipArchive;
 
 pub fn get_zipped_content(path: &Path) -> (String, String) {
     let zip_file = File::open(path).expect(format!("Did not find a file at {:?}", path).as_str());
-    let mut zip_archive = ZipArchive::new(zip_file)
+    let mmap =
+        unsafe { Mmap::map(&zip_file).expect(&format!("Error mapping file {:?}", zip_file)) };
+
+    let x = Cursor::new(mmap.as_ref());
+    let mut zip_archive = ZipArchive::new(x)
         .expect(format!("Expected file at {:?} to be a zip archive", path).as_str());
 
     let mut meta = String::new();
