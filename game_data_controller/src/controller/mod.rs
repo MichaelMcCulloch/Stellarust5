@@ -27,7 +27,7 @@ pub struct GameModelController {
     _watcher: RecommendedWatcher,
 }
 impl GameModelController {
-    fn new(watcher: notify::INotifyWatcher) -> GameModelController {
+    fn new(watcher: RecommendedWatcher) -> GameModelController {
         let game_model_controller = Self {
             broadcasters_map: Arc::new(DashMap::with_hasher(FxBuildHasher::default())),
             game_data_history: Arc::new(DashMap::with_hasher(FxBuildHasher::default())),
