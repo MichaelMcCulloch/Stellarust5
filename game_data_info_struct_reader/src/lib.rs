@@ -12,7 +12,7 @@ impl FileReader for GameDataInfoStructReader {
     fn read_file(&self, file: &Path) -> ModelDataPoint {
         let (meta_raw, gamestate_raw) = game_data_unzipper::get_zipped_content(file);
         let (_, meta_val) = clausewitz_parser::root(&meta_raw).unwrap();
-        let (_, gamestate_val) = clausewitz_parser::root(&gamestate_raw).unwrap();
+        let (_, gamestate_val) = clausewitz_parser::par_root(&gamestate_raw, "\n}\n").unwrap();
 
         Self::extract(meta_val, gamestate_val)
     }
@@ -184,8 +184,6 @@ mod tests {
             clausewitz_parser::root(&GAMESTATE).unwrap().1,
         );
 
-        std::fs::write("/home/michael/Dev/Stellarust/stellarust5/game_data_info_struct_reader/src/test/model.json", serde_json::to_string(&actual).unwrap()).unwrap();
-
         let expected: ModelDataPoint = serde_json::from_str(&COMPLETE_MODEL_SERIALIZED).unwrap();
         assert_eq!(expected, actual);
     }
@@ -197,9 +195,23 @@ mod tests {
         let players = gamestate.get_set_at_path("player").unwrap();
 
         let actual = GameDataInfoStructReader::extract_empires(countries, players);
-        std::fs::write("/home/michael/Dev/Stellarust/stellarust5/game_data_info_struct_reader/src/test/empire.json", serde_json::to_string(&actual).unwrap()).unwrap();
 
         let expected: Vec<EmpireData> = serde_json::from_str(&EMPIRE_DATA_SERIALIZED).unwrap();
         assert_eq!(expected, actual);
+    }
+    #[test]
+    fn test____() {
+        let s = std::fs::read_to_string(
+            "/home/michael/Dev/Stellarust/stellarust5/production_data/gamestate",
+        )
+        .unwrap();
+        let gamestate = clausewitz_parser::root(&s).unwrap().1;
+        let json = format!("{}", serde_json::to_string_pretty(&gamestate).unwrap());
+
+        std::fs::write(
+            "/home/michael/Dev/Stellarust/stellarust5/production_data/gamestate.json",
+            json,
+        )
+        .unwrap();
     }
 }
