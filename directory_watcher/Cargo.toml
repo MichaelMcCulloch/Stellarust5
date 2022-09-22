@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 notify = "5.0.0"
 log = "0.4.17"
+rayon = "1.5.3"

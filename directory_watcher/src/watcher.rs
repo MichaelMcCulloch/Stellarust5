@@ -1,27 +1,28 @@
 use std::path::{Path, PathBuf};
 
 use notify::{Config, Event, RecommendedWatcher, RecursiveMode, Watcher};
+use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
 pub trait EventFilter: Send + 'static {
     fn filter_event(&self, event: &Event) -> bool;
 }
-pub trait PathFilter: Send + 'static {
+pub trait PathFilter: Sync + Send + 'static {
     fn filter_path(&self, path: &Path) -> bool;
 }
 
-pub trait Delivery<T>: Send + 'static {
+pub trait Delivery<T>: Sync + Send + 'static {
     fn deliver(&self, message: T);
 }
 pub trait Startup: Send + 'static {
     fn startup(&self, start_directory: &Path) -> Vec<PathBuf>;
 }
-pub trait FileReader: Send + 'static {
+pub trait FileReader: Sync + Send + 'static {
     type OUT: Send + 'static;
     fn read_file(&self, file: &Path) -> Self::OUT;
 }
 impl<F, T: Send + 'static> FileReader for F
 where
-    F: Fn(&Path) -> T + Send + 'static,
+    F: Fn(&Path) -> T + Sync + Send + 'static,
 {
     fn read_file(&self, file: &Path) -> T {
         (self)(file)
@@ -40,7 +41,7 @@ where
 }
 impl<F> PathFilter for F
 where
-    F: Fn(&Path) -> bool + Send + 'static,
+    F: Fn(&Path) -> bool + Send + Sync + 'static,
 {
     fn filter_path(&self, path: &Path) -> bool {
         (self)(path)
@@ -49,7 +50,7 @@ where
 
 impl<F, T> Delivery<T> for F
 where
-    F: Fn(T) + Send + 'static,
+    F: Fn(T) + Sync + Send + 'static,
 {
     fn deliver(&self, message: T) {
         (self)(message)
@@ -106,13 +107,14 @@ impl DirectoryWatcher for DefaultWatcher {
     ) -> RecommendedWatcher {
         let discovered = startup.startup(directory.as_ref());
 
-        for d in discovered {
-            if path_filter.filter_path(&d) {
-                let result = file_reader.read_file(d.as_path());
+        discovered
+            .par_iter()
+            .filter(|path| path_filter.filter_path(path))
+            .for_each(|path| {
+                let result = file_reader.read_file(path);
                 delivery.deliver(result);
-                log::info!("Discovered {:?}", d);
-            }
-        }
+                log::info!("Discovered {:?}", path);
+            });
         let event_handler = move |event: Result<Event, notify::Error>| -> () {
             match event {
                 Ok(event) => {
