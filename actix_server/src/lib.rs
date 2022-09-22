@@ -22,7 +22,7 @@ use model_info_struct::{
     ResourceClass,
 };
 use serde_derive::Deserialize;
-use stellarust::{PROD_TEST_DATA_ROOT, PROD_TEST_EMPTY_FOLDER};
+use stellarust::{PROD_TEST_DATA_ROOT, PROD_TEST_EMPTY_FOLDER, STELLARIS_SAVE_ROOT};
 
 #[get("/")]
 pub async fn index(s: Data<GameModelController>) -> impl Responder { 
@@ -106,7 +106,7 @@ pub async fn budget_data(
 
 pub async fn run_actix_server(scope: &Scope<'_>) -> Result<Server> {
     let game_data_controller = Data::new(GameModelController::create(
-        &PathBuf::from(PROD_TEST_DATA_ROOT),
+        &PathBuf::from(STELLARIS_SAVE_ROOT),
         scope,
         unbounded()
     ));
@@ -124,7 +124,7 @@ pub async fn run_actix_server(scope: &Scope<'_>) -> Result<Server> {
     server = if let Some(listener) = ListenFd::from_env().take_tcp_listener(0)? {
         log::info!("{:?}", listener);
         server.listen(listener)?
-    } else {
+    } else { 
         log::info!("starting on 0.0.0.0:8000");
         server.bind("0.0.0.0:8000")?
     };

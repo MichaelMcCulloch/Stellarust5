@@ -1,10 +1,15 @@
-use directory_watcher::{AccessKind, AccessMode, Event, EventFilter, EventKind, PathFilter};
+use directory_watcher::{AccessKind, AccessMode, Event, EventFilter, EventKind, PathFilter, ModifyKind};
 
 pub struct CloseWriteFilter;
-
+#[cfg(target_os = "linux")]
 impl EventFilter for CloseWriteFilter {
     fn filter_event(&self, event: &directory_watcher::Event) -> bool {
         matches! {event, Event { kind: EventKind::Access(AccessKind::Close(AccessMode::Write)), paths: _, attrs: _ }}
+    }
+}#[cfg(target_os = "windows")]
+impl EventFilter for CloseWriteFilter {
+    fn filter_event(&self, event: &directory_watcher::Event) -> bool {
+        matches! {event, Event { kind: EventKind::Modify(ModifyKind::Any), paths: _, attrs: _ }} 
     }
 }
 
