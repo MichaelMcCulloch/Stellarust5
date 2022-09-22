@@ -3,11 +3,10 @@
     "tasks": [
         {
             "label": "Deploy Server",
-            "type": "process",
-            "command": "./deploy_server.sh",
+            "type": "shell",
+            "command": "systemfd --no-pid -s http::8000 --  cargo-watch  --ignore 'frontend_client/*'  --ignore '.vscode/*'  --ignore '.git/*'  -x 'run --package actix_server --bin actix_server_bin --release';",
             "args": [
-                "${workspaceFolder}",
-                "8000"
+               
             ],
             "options": {
                 "cwd": "${workspaceFolder}/.vscode/"
