@@ -34,8 +34,8 @@ impl GameDataInfoStructReader {
             expense: get_budget_val("expenses", current_month_budget),
             balance: get_budget_val("balance", current_month_budget),
             income_last_month: get_budget_val("income", last_month_budget),
-            expense_last_month: get_budget_val("income", last_month_budget),
-            balance_last_month: get_budget_val("income", last_month_budget),
+            expense_last_month: get_budget_val("expenses", last_month_budget),
+            balance_last_month: get_budget_val("balance", last_month_budget),
         }
     }
     fn get_budget_component_map(component: &Val<'_>) -> [Vec<(String, f64)>; 16] {
