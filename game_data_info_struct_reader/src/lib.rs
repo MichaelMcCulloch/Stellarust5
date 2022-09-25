@@ -179,19 +179,22 @@ impl GameDataInfoStructReader {
     fn extract_empire_name(country: &Val) -> String {
         let mut parts = vec![];
         let mut spec: Option<String> = None;
+
         if let Ok(variables) = country.get_set_at_path("name.variables") {
             for v in variables {
-                if !v.get_string_at_path("key").unwrap().contains("This.") {
-                    let val = v.get_string_at_path("value.key").unwrap();
-                    parts.push(Self::strip_name(val))
-                } else {
-                    spec = Some(Self::strip_name(v.get_string_at_path("value.key").unwrap()));
+                if let (Ok(key), Ok(value_key)) = (
+                    v.get_string_at_path("key"),
+                    v.get_string_at_path("value.key"),
+                ) {
+                    if !key.contains("This.") {
+                        parts.push(Self::strip_name(value_key))
+                    } else {
+                        spec = Some(Self::strip_name(value_key))
+                    }
                 }
             }
-        } else {
-            if let Ok(name) = country.get_string_at_path("name.key") {
-                parts.push(name.replace("NAME", ""));
-            }
+        } else if let Ok(key) = country.get_string_at_path("name.key") {
+            parts.push(key.replace("NAME", ""))
         }
         if let Some(spec) = spec {
             parts.insert(0, spec);
