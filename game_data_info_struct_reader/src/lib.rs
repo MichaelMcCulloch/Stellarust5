@@ -4,7 +4,7 @@ pub use game_data_info_struct::{
     Budget, EmpireData, ModelDataPoint, PlayerClass, ResourceClass, Resources,
 };
 use game_data_info_struct::{BudgetMapIndex, ALL_RESOURCES};
-use std::path::Path;
+use std::{path::Path, process::exit};
 pub struct GameDataInfoStructReader;
 
 impl FileReader for GameDataInfoStructReader {
@@ -111,7 +111,7 @@ impl GameDataInfoStructReader {
             }
             (Err(_), PlayerClass::Computer) => None,
             (Ok(standard_economy_module), class) => Some(EmpireData {
-                name: country.get_string_at_path("name.key").unwrap().to_string(),
+                name: Self::extract_empire_name(country),
                 driver: class,
                 budget: Self::extract_budget(country.get_at_path("budget").unwrap()),
                 resources: Self::extract_resources(
@@ -164,6 +164,41 @@ impl GameDataInfoStructReader {
             date: meta.get_date_at_path("date").expect("key `date` not found in parsed meta file. Something has gone wrong, check your parser!").to_owned().into(),
             empires: empires,
         }
+    }
+
+    fn strip_name(name: &str) -> String {
+        let mut ret = name.to_string();
+        let rm = vec!["SPEC_", "SPEC", "_system", "_planet", "NAME"];
+        for r in rm {
+            ret = ret.replace(r, "");
+        }
+        ret = ret.replace("_", " ");
+        ret
+    }
+
+    fn extract_empire_name(country: &Val) -> String {
+        let mut parts = vec![];
+        let mut spec: Option<String> = None;
+        if let Ok(variables) = country.get_set_at_path("name.variables") {
+            for v in variables {
+                if !v.get_string_at_path("key").unwrap().contains("This.") {
+                    let val = v.get_string_at_path("value.key").unwrap();
+                    parts.push(Self::strip_name(val))
+                } else {
+                    spec = Some(Self::strip_name(v.get_string_at_path("value.key").unwrap()));
+                }
+            }
+        } else {
+            if let Ok(name) = country.get_string_at_path("name.key") {
+                parts.push(name.replace("NAME", ""));
+            }
+        }
+        if let Some(spec) = spec {
+            parts.insert(0, spec);
+        }
+        let ret = parts.join(" ");
+
+        ret
     }
 }
 
