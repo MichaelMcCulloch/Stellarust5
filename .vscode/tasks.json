@@ -4,9 +4,9 @@
         {
             "label": "Deploy Server",
             "type": "shell",
-            "command": "systemfd --no-pid -s http::8000 --  cargo-watch  --ignore 'frontend_client/*'  --ignore '.vscode/*'  --ignore '.git/*'  -x 'run --package actix_server --bin actix_server_bin --release';",
+            "command": "systemfd --no-pid -s http::8000 --  cargo-watch  --ignore 'frontend_client/*'  --ignore '.vscode/*'  --ignore '.git/*'  -x 'run --package backend --bin backend --release';",
             "options": {
-                "cwd": "${workspaceFolder}/"   
+                "cwd": "${workspaceFolder}/"
             },
             "problemMatcher": [
                 "$rustc"

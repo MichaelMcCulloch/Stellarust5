@@ -1,9 +1,9 @@
 [package]
-name = "actix_server"
+name = "backend"
 version = "0.1.0"
 edition = "2021"
 
-
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 stellarust = {path = ".."}
@@ -17,11 +17,4 @@ crossbeam= "0.8.2"
 anyhow= "1.0.65"
 serde = "1.0.144"
 serde_derive = "1.0.144"
-
-game_data_controller = {path = "../game_data_controller"}
-model_info_struct = {path = "../model_info_struct"}
-
-[dev-dependencies]
-futures = "0.3.24"
-chrono = "0.4.22"
-game_data_info_struct = {path = "../game_data_info_struct"}
+actix_server = {path = "../actix_server"}
