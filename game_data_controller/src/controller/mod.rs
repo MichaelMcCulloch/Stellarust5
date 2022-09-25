@@ -45,7 +45,9 @@ impl GameModelController {
             CloseWriteFilter,
             EndsWithSavFilter,
             GameDataInfoStructReader,
-            move |message| -> () {
+            move |message: ModelDataPoint| -> () {
+                log::info!("Discovered {:?} -- {}", message.date, message.campaign_name);
+
                 info_struct_channel.0.send(message).unwrap();
             },
             ScanAllFoldersAndFiles,

@@ -33,7 +33,7 @@ impl Model for BudgetStreamGraphModel {
             Some(data) => {
                 match self
                     .list
-                    .binary_search_by_key(&game_data.date, |(d, _v)| *d)
+                    .binary_search_by_key(&Date::from(game_data.date), |(d, _v)| *d)
                 {
                     Ok(index) => {
                         self.list.remove(index);
@@ -80,7 +80,7 @@ impl BudgetStreamGraphModel {
                 .iter()
                 .find(|e| e.name == self.spec.empire)
             {
-                Some((game_data.date, self.get_budget_values(empire)))
+                Some((Date::from(game_data.date), self.get_budget_values(empire)))
             } else {
                 None
             }
@@ -134,7 +134,7 @@ mod tests {
             resources,
         };
 
-        let date = Date::from(NaiveDate::from_ymd(2200, 01, 01));
+        let date = NaiveDate::from_ymd(2200, 01, 01);
         let driver = PlayerClass::Human("HUMAN".to_string());
         let mut balance = [VAL; 16];
         balance[ResourceClass::Energy.index()] = vec![("ALL".to_string(), 100f64)];
@@ -182,7 +182,7 @@ mod tests {
         let mut model = BudgetStreamGraphModel::create(spec);
 
         match model.update(&model_data_point) {
-            Some(v) => assert_eq!(v, vec![(date, vec![100f64, 50f64, 25f64])]),
+            Some(v) => assert_eq!(v, vec![(Date::from(date), vec![100f64, 50f64, 25f64])]),
             None => assert!(false, "Failed to return a value!!!"),
         };
     }
@@ -231,9 +231,9 @@ mod tests {
             sr_dark_matter: 0f64,
         };
 
-        let date_1 = Date::from(NaiveDate::from_ymd(2201, 01, 01));
-        let date_2 = Date::from(NaiveDate::from_ymd(2202, 01, 01));
-        let date_3 = Date::from(NaiveDate::from_ymd(2203, 01, 01));
+        let date_1 = NaiveDate::from_ymd(2201, 01, 01);
+        let date_2 = NaiveDate::from_ymd(2202, 01, 01);
+        let date_3 = NaiveDate::from_ymd(2203, 01, 01);
         let model_data_point_1 = ModelDataPoint {
             campaign_name: campaign_name.clone(),
             date: date_1,

@@ -113,7 +113,6 @@ impl DirectoryWatcher for DefaultWatcher {
             .for_each(|path| {
                 let result = file_reader.read_file(path);
                 delivery.deliver(result);
-                log::info!("Discovered {}", path.display());
             });
         let event_handler = move |event: Result<Event, notify::Error>| -> () {
             match event {
