@@ -124,7 +124,7 @@ impl ActixBroadcaster {
         clients: &Arc<RwLock<Vec<UnboundedSender<Bytes>>>>,
         self_destruct: &tokio::sync::mpsc::Sender<()>,
     ) -> bool {
-        let message = Bytes::from("event: ping\ndata: ping\n\n");
+        let var_name = &"event: ping\ndata: ping\n\n";
 
         let mut write_guard = clients.write().unwrap();
         let mut clients = std::mem::take(&mut *write_guard);
@@ -133,7 +133,7 @@ impl ActixBroadcaster {
             .par_drain(..)
             .fold(
                 || (Vec::new(), 0),
-                |(mut accumulator, count), sender| match sender.send(message.clone()) {
+                |(mut accumulator, count), sender| match sender.send(Bytes::from(*var_name)) {
                     Ok(_) => {
                         accumulator.push(sender);
                         (accumulator, count + 1)
