@@ -98,26 +98,27 @@ impl GameDataInfoStructReader {
             sr_living_metal: extract_resource("sr_living_metal"),
             sr_zro: extract_resource("sr_zro"),
             sr_dark_matter: extract_resource("sr_dark_matter"),
+            // sr_dark_matter: extract_resource("nanites"),
         }
     }
     fn extract_empire(country: &Val, player_class: PlayerClass) -> Option<EmpireData> {
-        match (
-            country.get_at_path("modules.standard_economy_module"),
-            player_class,
-        ) {
-            (Err(_), PlayerClass::Human(_)) => {
-                log::error!("dict `modules.standard_economy_module` not found in a country assigned to a human. Something has gone wrong, check your parser!");
-                None
-            }
-            (Err(_), PlayerClass::Computer) => None,
-            (Ok(standard_economy_module), class) => Some(EmpireData {
+        if let Err(_) = country.get_at_path("victory_rank") {
+            return None;
+        } else if let Err(_) = country.get_at_path("owned_planets") {
+            return None;
+        } else if let Ok(standard_economy_module) =
+            country.get_at_path("modules.standard_economy_module")
+        {
+            Some(EmpireData {
                 name: Self::extract_empire_name(country),
-                driver: class,
+                driver: player_class,
                 budget: Self::extract_budget(country.get_at_path("budget").unwrap()),
                 resources: Self::extract_resources(
                     standard_economy_module.get_at_path("resources").unwrap(),
                 ),
-            }),
+            })
+        } else {
+            None
         }
     }
     fn extract_empires(countries: &Vec<Val>, players: &Vec<Val>) -> Vec<EmpireData> {
