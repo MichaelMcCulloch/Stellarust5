@@ -42,7 +42,7 @@ pub struct Budget {
     pub balance_last_month: [Vec<(String, f64)>; 16],
 }
 
-pub const ALL_RESOURCES: [ResourceClass; 16] = [
+pub const ALL_RESOURCES: [ResourceClass; 17] = [
     ResourceClass::Energy,
     ResourceClass::Minerals,
     ResourceClass::Food,
@@ -59,6 +59,7 @@ pub const ALL_RESOURCES: [ResourceClass; 16] = [
     ResourceClass::LivingMetal,
     ResourceClass::Zro,
     ResourceClass::DarkMatter,
+    ResourceClass::Nanites,
 ];
 
 pub trait BudgetMapIndex {
@@ -82,6 +83,7 @@ pub enum ResourceClass {
     LivingMetal,
     Zro,
     DarkMatter,
+    Nanites,
 }
 
 impl BudgetMapIndex for ResourceClass {
@@ -103,6 +105,7 @@ impl BudgetMapIndex for ResourceClass {
             ResourceClass::LivingMetal => 13,
             ResourceClass::Zro => 14,
             ResourceClass::DarkMatter => 15,
+            ResourceClass::Nanites => 16,
         }
     }
 }
@@ -129,6 +132,7 @@ impl Display for ResourceClass {
                 ResourceClass::LivingMetal => "sr_living_metal",
                 ResourceClass::Zro => "sr_zro",
                 ResourceClass::DarkMatter => "sr_dark_matter",
+                ResourceClass::Nanites => "nanites",
             }
         )
     }
