@@ -34,11 +34,6 @@ pub struct Resources {
 pub struct Budget {
     pub income: [Vec<(String, f64)>; 16],
     pub expense: [Vec<(String, f64)>; 16],
-    pub balance: [Vec<(String, f64)>; 16],
-
-    pub income_last_month: [Vec<(String, f64)>; 16],
-    pub expense_last_month: [Vec<(String, f64)>; 16],
-    pub balance_last_month: [Vec<(String, f64)>; 16],
 }
 
 pub const ALL_RESOURCES: [ResourceClass; 17] = [

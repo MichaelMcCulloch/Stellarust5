@@ -23,7 +23,6 @@ const VAL: Vec<(String, f64)> = vec![];
 impl GameDataInfoStructReader {
     fn extract_budget(budget: &Val) -> Budget {
         let current_month_budget = budget.get_at_path("current_month").unwrap();
-        let last_month_budget = budget.get_at_path("last_month").unwrap();
 
         let get_budget_val = |key: &str, budget_period: &Val| -> [Vec<(String, f64)>; 16] {
             Self::get_budget_component_map(budget_period.get_at_path(key).unwrap())
@@ -32,10 +31,6 @@ impl GameDataInfoStructReader {
         Budget {
             income: get_budget_val("income", current_month_budget),
             expense: get_budget_val("expenses", current_month_budget),
-            balance: get_budget_val("balance", current_month_budget),
-            income_last_month: get_budget_val("income", last_month_budget),
-            expense_last_month: get_budget_val("expenses", last_month_budget),
-            balance_last_month: get_budget_val("balance", last_month_budget),
         }
     }
     fn get_budget_component_map(component: &Val<'_>) -> [Vec<(String, f64)>; 16] {

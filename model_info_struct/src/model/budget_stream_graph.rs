@@ -92,7 +92,7 @@ impl BudgetStreamGraphModel {
             ret.push(
                 empire_data
                     .budget
-                    .balance
+                    .income
                     .get(resource.index())
                     .unwrap()
                     .iter()
@@ -143,10 +143,6 @@ mod tests {
         let budget = Budget {
             income: [VAL; 16],
             expense: [VAL; 16],
-            balance,
-            income_last_month: [VAL; 16],
-            expense_last_month: [VAL; 16],
-            balance_last_month: [VAL; 16],
         };
 
         let resources = Resources {
@@ -205,10 +201,6 @@ mod tests {
         let budget = Budget {
             income: [VAL; 16],
             expense: [VAL; 16],
-            balance,
-            income_last_month: [VAL; 16],
-            expense_last_month: [VAL; 16],
-            balance_last_month: [VAL; 16],
         };
 
         let resources = Resources {

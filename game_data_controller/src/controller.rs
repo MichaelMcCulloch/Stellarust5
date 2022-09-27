@@ -50,7 +50,7 @@ impl GameModelController {
         .unwrap();
         let extant_data = query_models(&db_connection).unwrap();
         log::info!(
-            "Discovered {} datapoints files from game folder",
+            "Discovered {} files from game folder",
             info_struct_receiver.len()
         );
         log::info!(
