@@ -135,14 +135,14 @@ mod tests {
 
         let date = NaiveDate::from_ymd(2200, 01, 01);
         let driver = PlayerClass::Human("HUMAN".to_string());
-        let mut balance = [VAL; 16];
+        let mut balance = [VAL; 17];
         balance[ResourceClass::Energy.index()] = vec![("ALL".to_string(), 100f64)];
         balance[ResourceClass::Alloys.index()] = vec![("ALL".to_string(), 50f64)];
         balance[ResourceClass::Minerals.index()] = vec![("ALL".to_string(), 25f64)];
 
         let budget = Budget {
-            income: [VAL; 16],
-            expense: [VAL; 16],
+            income: [VAL; 17],
+            expense: [VAL; 17],
         };
 
         let resources = Resources {
@@ -195,12 +195,12 @@ mod tests {
         };
 
         let driver = PlayerClass::Human("HUMAN".to_string());
-        let mut balance = [VAL; 16];
+        let mut balance = [VAL; 17];
         balance[ResourceClass::Energy.index()] = vec![("ALL".to_string(), 100f64)];
 
         let budget = Budget {
-            income: [VAL; 16],
-            expense: [VAL; 16],
+            income: [VAL; 17],
+            expense: [VAL; 17],
         };
 
         let resources = Resources {

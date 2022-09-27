@@ -32,8 +32,8 @@ pub struct Resources {
 #[derive(Default, Debug, PartialEq, Clone, Serialize, Deserialize)]
 
 pub struct Budget {
-    pub income: [Vec<(String, f64)>; 16],
-    pub expense: [Vec<(String, f64)>; 16],
+    pub income: [Vec<(String, f64)>; 17],
+    pub expense: [Vec<(String, f64)>; 17],
 }
 
 pub const ALL_RESOURCES: [ResourceClass; 17] = [

@@ -24,7 +24,7 @@ impl GameDataInfoStructReader {
     fn extract_budget(budget: &Val) -> Budget {
         let current_month_budget = budget.get_at_path("current_month").unwrap();
 
-        let get_budget_val = |key: &str, budget_period: &Val| -> [Vec<(String, f64)>; 16] {
+        let get_budget_val = |key: &str, budget_period: &Val| -> [Vec<(String, f64)>; 17] {
             Self::get_budget_component_map(budget_period.get_at_path(key).unwrap())
         };
 
@@ -33,9 +33,9 @@ impl GameDataInfoStructReader {
             expense: get_budget_val("expenses", current_month_budget),
         }
     }
-    fn get_budget_component_map(component: &Val<'_>) -> [Vec<(String, f64)>; 16] {
+    fn get_budget_component_map(component: &Val<'_>) -> [Vec<(String, f64)>; 17] {
         if let Val::Dict(sources) = component {
-            let init = [VAL; 16];
+            let init = [VAL; 17];
             let map = sources
                 .into_iter()
                 .fold(init, |mut map, (contributor, contributions)| {
