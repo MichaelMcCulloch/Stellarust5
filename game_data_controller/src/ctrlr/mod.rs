@@ -41,11 +41,17 @@ pub(crate) fn get_directory_watcher(
 }
 pub(crate) fn query_models(db_connection: &Connection) -> anyhow::Result<Vec<ModelDataPoint>> {
     let sql_select_table_names =
-        &"SELECT name FROM sqlite_schema WHERE type ='table' AND name NOT LIKE 'sqlite_%';";
-    let sql_create_table_data_points = &"CREATE TABLE data_points (
+        "SELECT name FROM sqlite_schema WHERE type ='table' AND name NOT LIKE 'sqlite_%';";
+    let sql_create_table_data_points = "CREATE TABLE data_points (
             blob    TEXT NOT NULL
         );";
     let sql_select_all_data = "SELECT * FROM data_points;";
+
+    db_connection.pragma_update(None, "journal_mode", "WAL")?;
+    db_connection.pragma_update(None, "synchronous", "normal")?;
+    db_connection.pragma_update(None, "temp_store", "memory")?;
+    db_connection.pragma_update(None, "mmap_size", "30000000000")?;
+    db_connection.pragma_update(None, "page_size", "32768")?;
 
     let tables = db_connection
         .prepare(sql_select_table_names)?
