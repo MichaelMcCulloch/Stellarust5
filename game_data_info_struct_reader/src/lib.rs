@@ -4,7 +4,7 @@ pub use game_data_info_struct::{
     Budget, EmpireData, ModelDataPoint, PlayerClass, ResourceClass, Resources,
 };
 use game_data_info_struct::{BudgetMapIndex, ALL_RESOURCES};
-use std::{path::Path, process::exit};
+use std::path::Path;
 pub struct GameDataInfoStructReader;
 
 impl FileReader for GameDataInfoStructReader {

@@ -137,7 +137,9 @@ mod tests {
                     path
                 };
 
-                std::fs::remove_file(db);
+                match std::fs::remove_file(db) {
+                    _ => {}
+                };
             }
             let (tx, rx) = unbounded();
             let c = GameModelController::create(

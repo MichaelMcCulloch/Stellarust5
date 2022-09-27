@@ -1,6 +1,6 @@
 use crate::filter;
 use crate::scan_root;
-use actix_broadcaster::{ActixBroadcaster, Broadcaster, Client};
+use actix_broadcaster::{ActixBroadcaster, Broadcaster};
 use crossbeam::{
     channel::{Receiver, Sender},
     thread::Scope,
@@ -8,7 +8,7 @@ use crossbeam::{
 use dashmap::{mapref::entry::Entry, DashMap};
 use directory_watcher::{DefaultWatcher, DirectoryWatcher, RecursiveMode};
 use filter::{CloseWriteFilter, EndsWithSavFilter};
-use fxhash::{FxBuildHasher, FxHasher};
+use fxhash::FxHasher;
 use game_data_info_struct_reader::{GameDataInfoStructReader, ModelDataPoint};
 use model_info_struct::{
     enums::{ModelEnum, ModelSpecEnum},
@@ -140,11 +140,11 @@ pub(crate) fn reconcile(
                 .get()
                 .binary_search_by_key(&data_point.date, |m| m.date)
             {
-                Ok(index) => {
+                Ok(_index) => {
                     // log::warn!(
                     //     "Tried to insert duplicate entry for campaign key {}, entries are {}",
                     //     data_point.campaign_name,
-                    //     match entry.get().get(index).unwrap() == data_point {
+                    //     match entry.get().get(_index).unwrap() == data_point {
                     //         true => "the same",
                     //         false => "different",
                     //     }

@@ -109,7 +109,6 @@ impl ModelSpec for BudgetStreamGraphModelSpec {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
 
     use chrono::NaiveDate;
     use fxhash::FxBuildHasher;

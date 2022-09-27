@@ -1,8 +1,7 @@
 pub mod date;
 
 use chrono::NaiveDate;
-use date::Date;
-use std::{collections::HashMap, fmt::Display};
+use std::fmt::Display;
 
 use serde_derive::{Deserialize, Serialize};
 #[derive(Default, Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -154,7 +153,6 @@ pub enum PlayerClass {
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
-
 pub struct ModelDataPoint {
     pub campaign_name: String,
     #[serde(with = "naive_date_serde")]
