@@ -42,30 +42,15 @@ impl GameModelController {
         scope: &Scope<'_>,
         info_struct_channel: (Sender<ModelDataPoint>, Receiver<ModelDataPoint>),
     ) -> Self {
-        let info_struct_sender = info_struct_channel.0.clone();
-        let watcher = DefaultWatcher::create_directory_watcher_and_scan_root(
-            CloseWriteFilter,
-            EndsWithSavFilter,
-            GameDataInfoStructReader,
-            move |message: ModelDataPoint| -> () {
-                log::trace!("Discovered {:?} -- {}", message.date, message.campaign_name);
+        let (info_struct_sender, info_struct_receiver) = info_struct_channel;
 
-                info_struct_sender.send(message).unwrap();
-            },
-            ScanAllFoldersAndFiles,
-            &game_directory,
-            RecursiveMode::Recursive,
-        );
+        let watcher =
+            Self::get_directory_watcher(info_struct_sender, game_directory, &info_struct_receiver);
 
-        let game_model_controller = GameModelController::new(watcher);
         // if a database does not exist, create one
         // read all history from the database
         // verify contents of folder match contents of db
 
-        log::info!(
-            "Discovered {} datapoints files from game folder",
-            info_struct_channel.1.len()
-        );
         let db_connection = Connection::open({
             let mut game_directory = game_directory.to_path_buf();
             game_directory.push("stellarust_model_history.db");
@@ -74,11 +59,17 @@ impl GameModelController {
         .unwrap();
         let extant_data = Self::query_models(&db_connection).unwrap();
 
+        log::info!(
+            "Discovered {} data points from `stellarust_model_history.db` in game folder",
+            extant_data.len()
+        );
+        let game_model_controller = GameModelController::new(watcher);
+
         let game_data_history = game_model_controller.game_data_history.clone();
         for data in extant_data {
             Self::reconcile(&data, &game_data_history);
         }
-        game_model_controller.spawn_event_loop(scope, info_struct_channel.1, db_connection);
+        game_model_controller.spawn_event_loop(scope, info_struct_receiver, db_connection);
 
         game_model_controller
     }
@@ -106,11 +97,12 @@ impl GameModelController {
                 .query_map([], |row| row.get::<_, String>(0))?
                 .filter_map(|s| s.ok())
                 .filter_map(|s| serde_json::from_str(s.as_str()).ok())
+                .map(|model: ModelDataPoint| {
+                    log::trace!("Discovered {:?} -- {}", model.date, model.campaign_name);
+                    model
+                })
                 .collect::<Vec<ModelDataPoint>>();
-            log::info!(
-                "Discovered {} data points from `stellarust_model_history.db` in game folder",
-                extant_data.len()
-            );
+
             Ok(extant_data)
         }
     }
@@ -240,6 +232,30 @@ impl GameModelController {
                 Some(broadcaster.new_client_with_message(&model.get()))
             }
         }
+    }
+    fn get_directory_watcher(
+        info_struct_sender: Sender<ModelDataPoint>,
+        game_directory: &Path,
+        info_struct_receiver: &Receiver<ModelDataPoint>,
+    ) -> RecommendedWatcher {
+        let watcher = DefaultWatcher::create_directory_watcher_and_scan_root(
+            CloseWriteFilter,
+            EndsWithSavFilter,
+            GameDataInfoStructReader,
+            move |message: ModelDataPoint| -> () {
+                log::trace!("Discovered {:?} -- {}", message.date, message.campaign_name);
+
+                info_struct_sender.send(message).unwrap();
+            },
+            ScanAllFoldersAndFiles,
+            &game_directory,
+            RecursiveMode::Recursive,
+        );
+        log::info!(
+            "Discovered {} datapoints files from game folder",
+            info_struct_receiver.len()
+        );
+        watcher
     }
 }
 
