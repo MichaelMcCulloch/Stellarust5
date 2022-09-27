@@ -45,11 +45,7 @@ impl GameModelController {
         let (info_struct_sender, info_struct_receiver) = info_struct_channel;
 
         let watcher =
-            Self::get_directory_watcher(info_struct_sender, game_directory, &info_struct_receiver);
-
-        // if a database does not exist, create one
-        // read all history from the database
-        // verify contents of folder match contents of db
+            Self::get_directory_watcher(info_struct_sender, game_directory);
 
         let db_connection = Connection::open({
             let mut game_directory = game_directory.to_path_buf();
@@ -58,7 +54,10 @@ impl GameModelController {
         })
         .unwrap();
         let extant_data = Self::query_models(&db_connection).unwrap();
-
+        log::info!(
+            "Discovered {} datapoints files from game folder",
+            info_struct_receiver.len()
+        );
         log::info!(
             "Discovered {} data points from `stellarust_model_history.db` in game folder",
             extant_data.len()
@@ -236,9 +235,8 @@ impl GameModelController {
     fn get_directory_watcher(
         info_struct_sender: Sender<ModelDataPoint>,
         game_directory: &Path,
-        info_struct_receiver: &Receiver<ModelDataPoint>,
     ) -> RecommendedWatcher {
-        let watcher = DefaultWatcher::create_directory_watcher_and_scan_root(
+        DefaultWatcher::create_directory_watcher_and_scan_root(
             CloseWriteFilter,
             EndsWithSavFilter,
             GameDataInfoStructReader,
@@ -250,12 +248,7 @@ impl GameModelController {
             ScanAllFoldersAndFiles,
             &game_directory,
             RecursiveMode::Recursive,
-        );
-        log::info!(
-            "Discovered {} datapoints files from game folder",
-            info_struct_receiver.len()
-        );
-        watcher
+        )
     }
 }
 
