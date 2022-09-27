@@ -23,11 +23,10 @@ mod tests {
             .unwrap()
             .map(|s| s.unwrap())
             .collect::<Vec<_>>();
-        if !tables.contains(&"campaigns".to_string()) {
+        if !tables.contains(&"data_points".to_string()) {
             conn.execute(
-                "CREATE TABLE campaigns (
-                    id      INTEGER PRIMARY KEY,
-                    name    TEXT NOT NULL
+                "CREATE TABLE data_points (
+                    blob    TEXT NOT NULL
                 )",
                 [],
             )
