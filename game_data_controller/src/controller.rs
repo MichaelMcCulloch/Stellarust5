@@ -1,22 +1,18 @@
-use crate::filter;
-use crate::scan_root;
+use crate::ctrlr::*;
 use actix_broadcaster::{ActixBroadcaster, Broadcaster, Client};
 use crossbeam::{
     channel::{Receiver, Sender},
     thread::Scope,
 };
 use dashmap::{mapref::entry::Entry, DashMap};
-use directory_watcher::{DefaultWatcher, DirectoryWatcher, RecursiveMode};
-use filter::{CloseWriteFilter, EndsWithSavFilter};
 use fxhash::{FxBuildHasher, FxHasher};
-use game_data_info_struct_reader::{GameDataInfoStructReader, ModelDataPoint};
+use game_data_info_struct_reader::ModelDataPoint;
 use model_info_struct::{
     enums::{ModelEnum, ModelSpecEnum},
     Model,
 };
 use notify::RecommendedWatcher;
 use rusqlite::Connection;
-use scan_root::ScanAllFoldersAndFiles;
 use std::hash::BuildHasherDefault;
 use std::path::Path;
 use std::sync::Arc;
@@ -44,8 +40,7 @@ impl GameModelController {
     ) -> Self {
         let (info_struct_sender, info_struct_receiver) = info_struct_channel;
 
-        let watcher =
-            Self::get_directory_watcher(info_struct_sender, game_directory);
+        let watcher = get_directory_watcher(info_struct_sender, game_directory);
 
         let db_connection = Connection::open({
             let mut game_directory = game_directory.to_path_buf();
@@ -53,7 +48,7 @@ impl GameModelController {
             game_directory
         })
         .unwrap();
-        let extant_data = Self::query_models(&db_connection).unwrap();
+        let extant_data = query_models(&db_connection).unwrap();
         log::info!(
             "Discovered {} datapoints files from game folder",
             info_struct_receiver.len()
@@ -65,137 +60,23 @@ impl GameModelController {
         let game_model_controller = GameModelController::new(watcher);
 
         let game_data_history = game_model_controller.game_data_history.clone();
+        let broadcasters_map = game_model_controller.broadcasters_map.clone();
+
         for data in extant_data {
-            Self::reconcile(&data, &game_data_history);
+            reconcile(&data, &game_data_history);
         }
-        game_model_controller.spawn_event_loop(scope, info_struct_receiver, db_connection);
+
+        spawn_event_loop(
+            scope,
+            game_data_history,
+            broadcasters_map,
+            info_struct_receiver,
+            db_connection,
+        );
 
         game_model_controller
     }
 
-    fn query_models(db_connection: &Connection) -> anyhow::Result<Vec<ModelDataPoint>> {
-        let sql_select_table_names =
-            &"SELECT name FROM sqlite_schema WHERE type ='table' AND name NOT LIKE 'sqlite_%';";
-        let sql_create_table_data_points = &"CREATE TABLE data_points (
-                blob    TEXT NOT NULL
-            );";
-        let sql_select_all_data = "SELECT * FROM data_points;";
-
-        let tables = db_connection
-            .prepare(sql_select_table_names)?
-            .query_map([], |row| row.get::<_, String>(0))?
-            .filter_map(|s| s.ok())
-            .collect::<Vec<_>>();
-        if !tables.contains(&"data_points".to_string()) {
-            db_connection.execute(sql_create_table_data_points, [])?;
-            log::info!("Populating empty database `stellarust_model_history.db` in game folder");
-            Ok(vec![])
-        } else {
-            let extant_data = db_connection
-                .prepare(sql_select_all_data)?
-                .query_map([], |row| row.get::<_, String>(0))?
-                .filter_map(|s| s.ok())
-                .filter_map(|s| serde_json::from_str(s.as_str()).ok())
-                .map(|model: ModelDataPoint| {
-                    log::trace!("Discovered {:?} -- {}", model.date, model.campaign_name);
-                    model
-                })
-                .collect::<Vec<ModelDataPoint>>();
-
-            Ok(extant_data)
-        }
-    }
-
-    /// * `model_data` - new data point
-    /// * `model_history` - Existing data
-    fn reconcile(
-        data_point: &ModelDataPoint,
-        game_data_history: &Arc<DashMap<String, Vec<ModelDataPoint>, BuildHasherDefault<FxHasher>>>,
-    ) -> bool {
-        match game_data_history.entry(data_point.campaign_name.clone()) {
-            Entry::Occupied(mut entry) => {
-                match entry
-                    .get()
-                    .binary_search_by_key(&data_point.date, |m| m.date)
-                {
-                    Ok(index) => {
-                        // log::warn!(
-                        //     "Tried to insert duplicate entry for campaign key {}, entries are {}",
-                        //     data_point.campaign_name,
-                        //     match entry.get().get(index).unwrap() == data_point {
-                        //         true => "the same",
-                        //         false => "different",
-                        //     }
-                        // );
-                        false
-                    }
-                    Err(pos) => {
-                        entry.get_mut().insert(pos, data_point.clone());
-                        true
-                    }
-                }
-            }
-            Entry::Vacant(entry) => {
-                entry.insert(vec![data_point.clone()]);
-                true
-            }
-        }
-    }
-    /// Spawns the event loop in the scope
-    /// * `scope` - Crossbeam scope
-    /// * `info_struct_receiver` - Receiving end of the sender embeded in the directory watcher
-    /// * `model_history` - Arc to the lock for reconciling new data with existing data
-    /// * `broadcasters_map` - Map of receivers indexed by the request they made
-    fn spawn_event_loop(
-        &self,
-        scope: &Scope,
-        info_struct_receiver: Receiver<ModelDataPoint>,
-        db_connection: Connection,
-    ) {
-        let game_data_history = self.game_data_history.clone();
-        let broadcasters_map = self.broadcasters_map.clone();
-        scope.spawn(move |_s| loop {
-            match info_struct_receiver.recv() {
-                Ok(data_point) => {
-                    let new = Self::reconcile(&data_point, &game_data_history);
-
-                    if !broadcasters_map.is_empty() {
-                        Self::broadcast_model_changes(&broadcasters_map, &data_point);
-                    }
-                    if new {
-                        Self::write_to_db(&data_point, &db_connection)
-                    }
-                }
-                Err(_) => break,
-            };
-        });
-    }
-
-    fn write_to_db(data_point: &ModelDataPoint, db_connection: &Connection) {
-        let msg = serde_json::to_string(data_point).unwrap();
-        db_connection
-            .execute("INSERT INTO data_points (blob) values (?)", [msg])
-            .unwrap();
-    }
-    fn broadcast_model_changes(
-        broadcasters_map: &Arc<
-            DashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster), BuildHasherDefault<FxHasher>>,
-        >,
-        data_point: &ModelDataPoint,
-    ) {
-        broadcasters_map.retain(
-            |spec, (model, broadcaster)| match model.update(data_point) {
-                Some(output) => {
-                    let recipients = broadcaster.send(&output);
-
-                    log::trace!("Broadcast {:?}: Retaining {} clients", spec, recipients);
-                    recipients != 0
-                }
-                None => true,
-            },
-        );
-        log::trace!("Broadcast: Retaining {} clients", broadcasters_map.len());
-    }
     pub fn get_client(&self, model_spec_enum: ModelSpecEnum) -> Option<Client> {
         match self.broadcasters_map.entry(model_spec_enum.clone()) {
             Entry::Vacant(entry) => {
@@ -232,24 +113,6 @@ impl GameModelController {
             }
         }
     }
-    fn get_directory_watcher(
-        info_struct_sender: Sender<ModelDataPoint>,
-        game_directory: &Path,
-    ) -> RecommendedWatcher {
-        DefaultWatcher::create_directory_watcher_and_scan_root(
-            CloseWriteFilter,
-            EndsWithSavFilter,
-            GameDataInfoStructReader,
-            move |message: ModelDataPoint| -> () {
-                log::trace!("Discovered {:?} -- {}", message.date, message.campaign_name);
-
-                info_struct_sender.send(message).unwrap();
-            },
-            ScanAllFoldersAndFiles,
-            &game_directory,
-            RecursiveMode::Recursive,
-        )
-    }
 }
 
 #[cfg(test)]
@@ -267,12 +130,22 @@ mod tests {
         thread::scope(|scope| {
             std::env::set_var("RUST_LOG", "info");
             env_logger::init();
+            {
+                let db = {
+                    let mut path = PathBuf::from(PROD_TEST_EMPTY_FOLDER);
+                    path.push("stellarust_model_history.db");
+                    path
+                };
+
+                std::fs::remove_file(db);
+            }
             let (tx, rx) = unbounded();
             let c = GameModelController::create(
                 &PathBuf::from(PROD_TEST_EMPTY_FOLDER),
                 scope,
                 (tx.clone(), rx),
             );
+
             {
                 std::thread::sleep(Duration::from_millis(5));
 
@@ -303,7 +176,7 @@ mod tests {
             {
                 drop(client);
                 //wait for remove client
-                std::thread::sleep(Duration::from_millis(5));
+                std::thread::sleep(Duration::from_millis(30));
 
                 tx.send(ModelDataPoint {
                     campaign_name: "TEST_CAMPAIGN".to_string(),
@@ -311,7 +184,7 @@ mod tests {
                     empires: vec![],
                 })
                 .unwrap();
-                std::thread::sleep(Duration::from_millis(5));
+                std::thread::sleep(Duration::from_millis(30));
 
                 assert!(c.broadcasters_map.clone().is_empty());
                 log::info!("Broadcasters Empty if the last client drops:: Passed");
