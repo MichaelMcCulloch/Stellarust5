@@ -54,7 +54,7 @@ impl Model for EmpireListModel {
         match game_data_history.get(&self.spec.campaign_name) {
             Some(vec) => {
                 self.list = vec
-                    .last()
+                    .first()
                     .unwrap()
                     .empires
                     .iter()
