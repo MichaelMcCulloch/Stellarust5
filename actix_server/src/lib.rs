@@ -90,6 +90,7 @@ pub async fn budget_data(
                 ResourceClass::Energy,
                 ResourceClass::Minerals,
                 ResourceClass::Alloys,
+                ResourceClass::Nanites,
             ],
             campaign_name: budget_request.campaign_name.to_string(),
             empire: budget_request.empire_name.to_string(),
@@ -106,7 +107,7 @@ pub async fn budget_data(
 
 pub async fn run_actix_server(scope: &Scope<'_>) -> Result<Server> {
     let game_data_controller = Data::new(GameModelController::create(
-        &PathBuf::from(STELLARIS_SAVE_ROOT),
+        &PathBuf::from(PROD_TEST_DATA_ROOT),
         scope,
         unbounded()
     ));
