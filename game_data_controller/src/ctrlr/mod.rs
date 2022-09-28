@@ -47,7 +47,7 @@ pub(crate) fn query_models(db_connection: &Connection) -> anyhow::Result<Vec<Mod
         );";
     let sql_select_all_data = "SELECT * FROM data_points;";
 
-    db_connection.pragma_update(None, "journal_mode", "WAL")?;
+    // db_connection.pragma_update(None, "journal_mode", "WAL")?; // extra file - benefit
     db_connection.pragma_update(None, "synchronous", "normal")?;
     db_connection.pragma_update(None, "temp_store", "memory")?;
     db_connection.pragma_update(None, "mmap_size", "30000000000")?;
