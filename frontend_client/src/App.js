@@ -2,107 +2,13 @@ import React from 'react';
 import './App.css';
 
 import {
-  BrowserRouter as Router, Navigate, Route, Routes, useParams
+  BrowserRouter as Router, Navigate, Route, Routes
 } from "react-router-dom";
-function CampaignButton(props) {
 
-  let lnk = '/campaign/' + encodeURI(props.campaign_name);
-  return <li key={"props.key"}>
-
-    <a className="button" href={lnk}>
-      <div>
-        {props.campaign_name}
-      </div>
-      <div>
-        {props.empire_list.map((a) => <div key={a.player}>{a.player}</div>)}
-      </div>
-    </a>
-  </li >;
-}
-function CampaignSelect(props) {
-  return <ul>
-    {props.data.map(dict => <CampaignButton key={dict.campaign_name} campaign_name={dict.campaign_name} empire_list={dict.empire_list} />)}
-  </ul>;
-}
+import CampaignSelectPage from './CampaignSelectPage';
+import EmpireSelectPageWrapper from './EmpireSelectPage';
 
 
-class CampaignSelectPage extends React.Component {
-
-  constructor(props) {
-    super(props);
-    this.state = {};
-
-  }
-
-  componentDidMount() {
-
-    this.eventSource = new EventSource("//localhost:8000/campaigns");
-
-    this.eventSource.onmessage = (e) => {
-      this.setState(JSON.parse(e.data));
-
-    }
-  }
-  componentWillUnmount() {
-    this.eventSource.close()
-  }
-  render() {
-    if (this.state !== {}) {
-      if (this.state.CampaignList) {
-        return (<div><CampaignSelect data={this.state.CampaignList} /></div>)
-      }
-
-    } else {
-      return (<div>404</div>)
-
-    }
-
-  }
-}
-
-const EmpireSelectPageWrapper = () => {
-  const { name } = useParams();
-  return <EmpireSelectPage campaign_name={name} />;
-};
-
-class EmpireSelectPage extends React.Component {
-
-  constructor(props) {
-    super(props);
-    this.state = {};
-
-  }
-
-  componentDidMount() {
-
-    let source = "//localhost:8000/" + this.props.campaign_name + "/empires";
-    this.eventSource = new EventSource(source);
-
-    this.eventSource.onmessage = (e) => {
-      this.setState(JSON.parse(e.data));
-      console.log(e);
-
-    }
-
-  }
-  componentWillUnmount() {
-
-    this.eventSource.close()
-  }
-  render() {
-
-    console.log(this);
-
-    if (this.state !== {}) {
-      return (<div>success</div>)
-
-    } else {
-      return (<div>404</div>)
-
-    }
-
-  }
-}
 
 function Index() {
   return (
