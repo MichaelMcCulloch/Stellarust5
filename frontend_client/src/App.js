@@ -6,7 +6,7 @@ import {
 } from "react-router-dom";
 function CampaignButton(props) {
 
-  let lnk = '/campaign/' + props.campaign_name;
+  let lnk = '/campaign/' + encodeURI(props.campaign_name);
   return <li key={"props.key"}>
 
     <a className="button" href={lnk}>
@@ -35,6 +35,7 @@ class CampaignSelectPage extends React.Component {
   }
 
   componentDidMount() {
+
     this.eventSource = new EventSource("//localhost:8000/campaigns");
 
     this.eventSource.onmessage = (e) => {
@@ -46,7 +47,7 @@ class CampaignSelectPage extends React.Component {
     this.eventSource.close()
   }
   render() {
-    if (this.state != {}) {
+    if (this.state !== {}) {
       if (this.state.CampaignList) {
         return (<div><CampaignSelect data={this.state.CampaignList} /></div>)
       }
@@ -59,11 +60,48 @@ class CampaignSelectPage extends React.Component {
   }
 }
 
-function EmpireSelectPage() {
-  let { name } = useParams();
-  return (
-    <div>{name}</div>
-  )
+const EmpireSelectPageWrapper = () => {
+  const { name } = useParams();
+  return <EmpireSelectPage campaign_name={name} />;
+};
+
+class EmpireSelectPage extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {};
+
+  }
+
+  componentDidMount() {
+
+    let source = "//localhost:8000/" + this.props.campaign_name + "/empires";
+    this.eventSource = new EventSource(source);
+
+    this.eventSource.onmessage = (e) => {
+      this.setState(JSON.parse(e.data));
+      console.log(e);
+
+    }
+
+  }
+  componentWillUnmount() {
+
+    this.eventSource.close()
+  }
+  render() {
+
+    console.log(this);
+
+    if (this.state !== {}) {
+      return (<div>success</div>)
+
+    } else {
+      return (<div>404</div>)
+
+    }
+
+  }
 }
 
 function Index() {
@@ -80,7 +118,7 @@ function App() {
 
           <Route path="/" element={<Index />} />
           <Route path="/campaign_select" element={<CampaignSelectPage />} />
-          <Route path="/campaign/:name" element={<EmpireSelectPage />} />
+          <Route path="/campaign/:name" element={<EmpireSelectPageWrapper />} />
         </Routes>
       </Router>
 
