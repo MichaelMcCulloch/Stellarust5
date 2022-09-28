@@ -1,4 +1,4 @@
-use std::{hash::BuildHasherDefault, vec};
+use std::{collections::HashSet, hash::BuildHasherDefault, vec};
 
 use crate::{Model, ModelSpec};
 use dashmap::DashMap;
@@ -15,33 +15,37 @@ pub struct EmpireListModelSpec {
 
 #[derive(Serialize, Debug)]
 pub struct EmpireListModel {
-    list: Vec<Empire>,
+    set: HashSet<Empire>,
     spec: EmpireListModelSpec,
 }
 impl Model for EmpireListModel {
     type ModelSpec = EmpireListModelSpec;
 
     fn create(spec: Self::ModelSpec) -> Self {
-        Self { list: vec![], spec }
+        Self {
+            set: HashSet::new(),
+            spec,
+        }
     }
 
     type Representation = Vec<Empire>;
 
     fn update(&mut self, game_data: &ModelDataPoint) -> Option<Self::Representation> {
         if game_data.campaign_name == self.spec.campaign_name {
-            self.list = game_data
-                .empires
-                .iter()
-                .map(|e| Empire {
-                    name: e.name.clone(),
-                    player: match &e.driver {
-                        PlayerClass::Human(name) => Some(name.clone()),
-                        PlayerClass::Computer => None,
-                    },
-                })
-                .collect();
-
-            Some(self.list.clone())
+            self.set.extend(
+                game_data
+                    .empires
+                    .iter()
+                    .map(|e| Empire {
+                        name: e.name.clone(),
+                        player: match &e.driver {
+                            PlayerClass::Human(name) => Some(name.clone()),
+                            PlayerClass::Computer => None,
+                        },
+                    })
+                    .collect::<Vec<_>>(),
+            );
+            Some(self.set.clone().into_iter().collect())
         } else {
             None
         }
@@ -53,28 +57,30 @@ impl Model for EmpireListModel {
     ) -> Option<Self::Representation> {
         match game_data_history.get(&self.spec.campaign_name) {
             Some(vec) => {
-                self.list = vec
-                    .first()
-                    .unwrap()
-                    .empires
-                    .iter()
-                    .map(|e| Empire {
-                        name: e.name.clone(),
-                        player: match &e.driver {
-                            PlayerClass::Human(name) => Some(name.clone()),
-                            PlayerClass::Computer => None,
-                        },
-                    })
-                    .collect();
+                self.set = vec.iter().fold(HashSet::new(), |mut acc, game_data| {
+                    let empires = game_data
+                        .empires
+                        .iter()
+                        .map(|e| Empire {
+                            name: e.name.clone(),
+                            player: match &e.driver {
+                                PlayerClass::Human(name) => Some(name.clone()),
+                                PlayerClass::Computer => None,
+                            },
+                        })
+                        .collect::<Vec<_>>();
+                    acc.extend(empires);
+                    acc
+                });
 
-                Some(self.list.clone())
+                Some(self.set.clone().into_iter().collect())
             }
             None => None,
         }
     }
 
     fn get(&self) -> Self::Representation {
-        self.list.clone()
+        self.set.clone().into_iter().collect()
     }
 }
 

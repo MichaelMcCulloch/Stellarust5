@@ -87,7 +87,7 @@ impl ModelSpec for CampaignListModelSpec {
     type Model = CampaignListModel;
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Empire {
     pub name: String,
     pub player: Option<String>,
