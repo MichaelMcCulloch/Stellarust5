@@ -8,16 +8,17 @@ fn main() -> Result<()> {
             "RUST_LOG",
             format!(
                 r###"
-                    actix_broadcaster={},
-                    actix_server={},
-                    directory_watcher={},
-                    game_data_controller={},
-                    game_data_info_struct={},
-                    game_data_info_struct_reader={},
-                    game_data_unzipper={},
-                    model_info_struct={}  
+                    actix_broadcaster={broadcaster_level},
+                    actix_server={server_level},
+                    directory_watcher={watcher_level},
+                    game_data_controller={controller_level},
+                    game_data_info_struct_reader={reader_level},
                 "###,
-                "info", "info", "trace", "info", "trace", "trace", "trace", "trace"
+                broadcaster_level = "info",
+                server_level = "info",
+                watcher_level = "trace",
+                controller_level = "info",
+                reader_level = "trace",
             ),
         );
         env_logger::init();
