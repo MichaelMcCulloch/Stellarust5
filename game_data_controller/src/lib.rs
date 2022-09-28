@@ -2,6 +2,6 @@ mod filter;
 mod scan_root;
 
 pub mod controller;
-pub(crate) mod ctrlr;
+pub(crate) mod functions;
 #[cfg(test)]
 mod tests {}
