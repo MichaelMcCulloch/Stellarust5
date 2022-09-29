@@ -32,7 +32,7 @@ class CampaignSelectPage extends React.Component {
 
     componentDidMount() {
 
-        this.eventSource = new EventSource("//localhost:8000/campaigns");
+        this.eventSource = new EventSource("//127.0.0.1:8000/campaigns");
 
         this.eventSource.onmessage = (e) => {
             this.setState(JSON.parse(e.data));

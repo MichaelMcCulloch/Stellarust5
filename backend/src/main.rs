@@ -1,12 +1,10 @@
 use std::path::Path;
 
-use actix_server::run_actix_server_https;
+use actix_server::{run_actix_server, run_actix_server_https};
 use actix_web::rt;
 use anyhow::Result;
 use crossbeam::thread;
-use stellarust::{
-    PROD_TEST_DATA_ROOT, PROD_TEST_EMPTY_FOLDER, SSL_CERT, SSL_KEY, STELLARIS_SAVE_ROOT,
-};
+use stellarust::{PROD_TEST_DATA_ROOT, PROD_TEST_EMPTY_FOLDER, STELLARIS_SAVE_ROOT};
 fn main() -> Result<()> {
     thread::scope(|scope| {
         std::env::set_var(
@@ -27,15 +25,25 @@ fn main() -> Result<()> {
             ),
         );
         env_logger::init();
-
-        let server_future = run_actix_server_https(
-            scope,
-            Path::new(PROD_TEST_DATA_ROOT),
-            Path::new(SSL_KEY),
-            Path::new(SSL_CERT),
-        );
         let system_runner = rt::System::new();
-        let server = system_runner.block_on(server_future).unwrap();
+        let server = match (
+            std::env::var("STELLARUST_KEY"),
+            std::env::var("STELLARUST_CERT"),
+        ) {
+            (Ok(key), Ok(cert)) => {
+                let server_future = run_actix_server_https(
+                    scope,
+                    Path::new(PROD_TEST_DATA_ROOT),
+                    Path::new(&key),
+                    Path::new(&cert),
+                );
+                system_runner.block_on(server_future).unwrap()
+            }
+            _ => system_runner
+                .block_on(run_actix_server(scope, Path::new(PROD_TEST_DATA_ROOT)))
+                .unwrap(),
+        };
+
         system_runner.block_on(server).unwrap()
     })
     .unwrap();

@@ -165,6 +165,7 @@ pub async fn run_actix_server_https(scope: &Scope<'_>, game_data_root: &Path, ke
     };
 
     let s = server.run();
+    log::info!("Using HTTPS");
 
     Ok(s)
 }

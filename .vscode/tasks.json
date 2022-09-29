@@ -19,7 +19,7 @@
         {
             "label": "Deploy React Client",
             "type": "shell",
-            "command": "npm run build && miniserve  -p 3000  ./build/ --index index.html --spa",
+            "command": "npm run build && miniserve  -p 3000  ./build/ --index index.html --spa --tls-cert $STELLARUST_CERT --tls-key $STELLARUST_KEY",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}/frontend_client"
@@ -30,7 +30,7 @@
         {
             "label": "Debug React Client",
             "type": "shell",
-            "command": "npm start",
+            "command": "HTTPS=true SSL_CRT_FILE=$STELLARUST_CERT SSL_KEY_FILE=$STELLARUST_KEY npm start",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}/frontend_client"
