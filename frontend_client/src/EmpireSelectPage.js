@@ -1,6 +1,6 @@
 import React from "react";
-import GET_REMOTE_HOST from "./Const";
 import { useParams } from "react-router-dom";
+import GET_REMOTE_HOST from "./Const";
 
 class EmpireSelectPage extends React.Component {
 
@@ -42,11 +42,11 @@ function EmpireButton(props) {
 
     let player;
     if (props.player) {
-        player = <h3>{props.player}</h3>
+        player = <div className="button_subtitle">{props.player}</div>
     }
-    return <li key={"props.key"}>
+    return <li className="list_group_item" key={"props.key"}>
         <a className="button" href={lnk}>
-            <h2>{props.empire_name}</h2>
+            <div className="button_title">{props.empire_name}</div>
             {player}
         </a>
     </li >
@@ -54,7 +54,7 @@ function EmpireButton(props) {
 
 }
 function EmpireSelectList(props) {
-    return <ul>
+    return <ul className="list_group">
         {props.empire_list.map(dict => <EmpireButton key={dict.name} empire_name={dict.name} player={dict.player} campaign_name={props.campaign_name} />)}
     </ul>;
 }

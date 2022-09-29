@@ -22,7 +22,7 @@ class CampaignSelectPage extends React.Component {
     render() {
         if (this.state !== {}) {
             if (this.state.CampaignList) {
-                return <div><CampaignSelectList data={this.state.CampaignList} /></div>
+                return <div ><CampaignSelectList data={this.state.CampaignList} /></div>
             }
         } else {
             return <></>
@@ -32,20 +32,20 @@ class CampaignSelectPage extends React.Component {
 function CampaignButton(props) {
 
     let empire_select_link = '/c/' + encodeURI(props.campaign_name);
-    return <li key={"props.key"}>
+    return <li className="list_group_item" key={"props.key"}>
 
         <a className="button" href={empire_select_link}>
-            <div>
+            <div className="button_title">
                 {props.campaign_name}
             </div>
-            <div>
-                {props.empire_list.map((a) => <div key={a.player}>{a.player}</div>)}
+            <div className="button_subtitle">
+                {props.empire_list.map((a) => <div key={a.player}>{a.player} | {a.name}</div>)}
             </div>
         </a>
     </li >;
 }
 function CampaignSelectList(props) {
-    return <ul>
+    return <ul className="list_group">
         {props.data.map(dict => <CampaignButton key={dict.campaign_name} campaign_name={dict.campaign_name} empire_list={dict.empire_list} />)}
     </ul>;
 }
