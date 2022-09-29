@@ -2,7 +2,7 @@ import React from "react";
 
 function CampaignButton(props) {
 
-    let lnk = '/campaign/' + encodeURI(props.campaign_name);
+    let lnk = '/c/' + encodeURI(props.campaign_name);
     return <li key={"props.key"}>
 
         <a className="button" href={lnk}>
@@ -15,7 +15,7 @@ function CampaignButton(props) {
         </a>
     </li >;
 }
-function CampaignSelect(props) {
+function CampaignSelectList(props) {
     return <ul>
         {props.data.map(dict => <CampaignButton key={dict.campaign_name} campaign_name={dict.campaign_name} empire_list={dict.empire_list} />)}
     </ul>;
@@ -45,7 +45,7 @@ class CampaignSelectPage extends React.Component {
     render() {
         if (this.state !== {}) {
             if (this.state.CampaignList) {
-                return (<div><CampaignSelect data={this.state.CampaignList} /></div>)
+                return (<div><CampaignSelectList data={this.state.CampaignList} /></div>)
             }
 
         } else {

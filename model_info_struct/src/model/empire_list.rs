@@ -1,4 +1,4 @@
-use std::{collections::HashSet, hash::BuildHasherDefault, vec};
+use std::{collections::HashSet, hash::BuildHasherDefault};
 
 use crate::{Model, ModelSpec};
 use dashmap::DashMap;

@@ -2,19 +2,15 @@ import React from 'react';
 import './App.css';
 
 import {
-  BrowserRouter as Router, Navigate, Route, Routes
+  BrowserRouter as Router, Route, Routes
 } from "react-router-dom";
 
 import CampaignSelectPage from './CampaignSelectPage';
+import EmpirePageWrapper from './EmpirePage';
 import EmpireSelectPageWrapper from './EmpireSelectPage';
 
 
 
-function Index() {
-  return (
-    <Navigate to="/campaign_select" />
-  )
-}
 
 function App() {
   return (
@@ -22,9 +18,9 @@ function App() {
       <Router>
         <Routes>
 
-          <Route path="/" element={<Index />} />
-          <Route path="/campaign_select" element={<CampaignSelectPage />} />
-          <Route path="/campaign/:name" element={<EmpireSelectPageWrapper />} />
+          <Route path="/" element={<CampaignSelectPage />} />
+          <Route path="/c/:name" element={<EmpireSelectPageWrapper />} />
+          <Route path="/c/:name/e/:empire" element={<EmpirePageWrapper />} />
         </Routes>
       </Router>
 

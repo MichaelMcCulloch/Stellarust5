@@ -21,7 +21,6 @@ class EmpireSelectPage extends React.Component {
 
         this.eventSource.onmessage = (e) => {
             this.setState(JSON.parse(e.data));
-            console.log(e);
 
         }
 
@@ -32,10 +31,12 @@ class EmpireSelectPage extends React.Component {
     }
     render() {
 
-        console.log(this);
 
         if (this.state !== {}) {
-            return (<div>success</div>)
+            console.log(this.state.EmpireList)
+            if (this.state.EmpireList) {
+                return (<div><EmpireSelectList empire_list={this.state.EmpireList} campaign_name={this.props.campaign_name} /></div>)
+            }
 
         } else {
             return (<div>404</div>)
@@ -43,6 +44,25 @@ class EmpireSelectPage extends React.Component {
         }
 
     }
+}
+
+function EmpireButton(props) {
+
+    let lnk = '/c/' + encodeURI(props.campaign_name) + "/e/" + encodeURI(props.empire_name);
+    return <li key={"props.key"}>
+
+        <a className="button" href={lnk}>
+            <div>
+                {props.empire_name}
+            </div>
+
+        </a>
+    </li >;
+}
+function EmpireSelectList(props) {
+    return <ul>
+        {props.empire_list.map(dict => <EmpireButton key={dict.name} empire_name={dict.name} campaign_name={props.campaign_name} />)}
+    </ul>;
 }
 
 export default EmpireSelectPageWrapper;
