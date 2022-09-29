@@ -49,19 +49,28 @@ class EmpireSelectPage extends React.Component {
 function EmpireButton(props) {
 
     let lnk = '/c/' + encodeURI(props.campaign_name) + "/e/" + encodeURI(props.empire_name);
+    let player;
+    if (props.player) {
+        player = <div>
+            {props.player}
+        </div>
+    } else {
+        player = <></>
+    }
     return <li key={"props.key"}>
 
         <a className="button" href={lnk}>
             <div>
                 {props.empire_name}
             </div>
+            {player}
 
         </a>
     </li >;
 }
 function EmpireSelectList(props) {
     return <ul>
-        {props.empire_list.map(dict => <EmpireButton key={dict.name} empire_name={dict.name} campaign_name={props.campaign_name} />)}
+        {props.empire_list.map(dict => <EmpireButton key={dict.name} empire_name={dict.name} player={dict.player} campaign_name={props.campaign_name} />)}
     </ul>;
 }
 
