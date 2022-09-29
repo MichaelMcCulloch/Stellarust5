@@ -4,7 +4,7 @@
         {
             "label": "Deploy Server",
             "type": "shell",
-            "command": "systemfd --no-pid -s https::0.0.0.0:8000 --  cargo-watch  --ignore 'frontend_client/*'  --ignore '.vscode/*'  --ignore '.git/*'  -x 'run --package backend --bin backend --release';",
+            "command": "systemfd --no-pid -s https::0.0.0.0:8000 -- cargo-watch --ignore 'frontend_client/*' --ignore '.vscode/*' --ignore '.git/*' -x 'run --package backend --bin backend --release';",
             "options": {
                 "cwd": "${workspaceFolder}/"
             },
@@ -19,10 +19,11 @@
         {
             "label": "Deploy React Client",
             "type": "shell",
-            "command": "npm run build && miniserve  -p 3000  ./build/ --index index.html --spa --tls-cert $STELLARUST_CERT --tls-key $STELLARUST_KEY",
+            "linux": {"command": "npm run build && miniserve  -p 3000  ./build/ --index index.html --spa --tls-cert $STELLARUST_CERT --tls-key $STELLARUST_KEY"},
+            "windows": {"command": "npm run build ; miniserve  -p 3000  ./build/ --index index.html --spa --tls-cert ${env:STELLARUST_CERT} --tls-key ${env:STELLARUST_KEY}"},
             "group": "build",
             "options": {
-                "cwd": "${workspaceFolder}/frontend_client"
+                "cwd": "${workspaceFolder}/frontend_client",
             },
             "dependsOn": [],
             "isBackground": true,
@@ -30,10 +31,11 @@
         {
             "label": "Debug React Client",
             "type": "shell",
-            "command": "HTTPS=true SSL_CRT_FILE=$STELLARUST_CERT SSL_KEY_FILE=$STELLARUST_KEY npm start",
+            "command": "npm start",
             "group": "build",
             "options": {
-                "cwd": "${workspaceFolder}/frontend_client"
+                "cwd": "${workspaceFolder}/frontend_client",
+                "env": {"HTTPS":"true", "SSL_CRT_FILE":"${env:STELLARUST_CERT}", "SSL_KEY_FILE":"${env:STELLARUST_KEY}"}
             },
             "dependsOn": [],
             "isBackground": true,
