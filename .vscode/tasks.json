@@ -4,7 +4,7 @@
         {
             "label": "Deploy Server",
             "type": "shell",
-            "command": "systemfd --no-pid -s http::8000 --  cargo-watch  --ignore 'frontend_client/*'  --ignore '.vscode/*'  --ignore '.git/*'  -x 'run --package backend --bin backend --release';",
+            "command": "systemfd --no-pid -s https::0.0.0.0:8000 --  cargo-watch  --ignore 'frontend_client/*'  --ignore '.vscode/*'  --ignore '.git/*'  -x 'run --package backend --bin backend --release';",
             "options": {
                 "cwd": "${workspaceFolder}/"
             },
