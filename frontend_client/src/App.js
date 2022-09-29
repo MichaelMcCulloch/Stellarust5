@@ -13,6 +13,7 @@ import EmpireSelectPageWrapper from './EmpireSelectPage';
 
 
 function App() {
+
   return (
     <div className="App">
       <Router>
