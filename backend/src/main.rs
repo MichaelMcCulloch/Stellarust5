@@ -1,7 +1,12 @@
-use actix_server::run_actix_server;
+use std::path::Path;
+
+use actix_server::run_actix_server_https;
 use actix_web::rt;
 use anyhow::Result;
 use crossbeam::thread;
+use stellarust::{
+    PROD_TEST_DATA_ROOT, PROD_TEST_EMPTY_FOLDER, SSL_CERT, SSL_KEY, STELLARIS_SAVE_ROOT,
+};
 fn main() -> Result<()> {
     thread::scope(|scope| {
         std::env::set_var(
@@ -23,7 +28,12 @@ fn main() -> Result<()> {
         );
         env_logger::init();
 
-        let server_future = run_actix_server(scope);
+        let server_future = run_actix_server_https(
+            scope,
+            Path::new(PROD_TEST_DATA_ROOT),
+            Path::new(SSL_KEY),
+            Path::new(SSL_CERT),
+        );
         let system_runner = rt::System::new();
         let server = system_runner.block_on(server_future).unwrap();
         system_runner.block_on(server).unwrap()
