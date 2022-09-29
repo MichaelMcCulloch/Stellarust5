@@ -16,7 +16,7 @@ class EmpireSelectPage extends React.Component {
 
     componentDidMount() {
 
-        let source = "//localhost:8000/" + this.props.campaign_name + "/empires";
+        let source = window.location.protocol + "//" + window.location.hostname + ":8000/" + this.props.campaign_name + "/empires";
         this.eventSource = new EventSource(source);
 
         this.eventSource.onmessage = (e) => {
