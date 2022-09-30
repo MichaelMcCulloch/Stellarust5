@@ -5,6 +5,10 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "stellarust"
+path = "src/main.rs"
+
 [dependencies]
 stellarust = {path = ".."}
 actix-web = { version = "4.2.1" }
