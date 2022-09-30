@@ -1,6 +1,6 @@
 # used by cargo-watch
 Cargo.lock
 production_data/*
-frontend_client/*'
+frontend_client/*
 .vscode/*
 .git/*

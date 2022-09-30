@@ -2,9 +2,10 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Deploy Server",
+            "label": "Deploy Stellarust",
+            "detail": "Will deploy the production build of stellarust, which can serve it's own client",
             "type": "shell",
-            "command": "systemfd --no-pid -s https::0.0.0.0:8000 -- cargo-watch -c  -x 'run --package backend --bin backend --release';",
+            "command": "systemfd --no-pid -s https::0.0.0.0:8000 -- cargo-watch -c --no-gitignore -x 'run --package backend --bin backend --release';",
             "options": {
                 "cwd": "${workspaceFolder}/"
             },
@@ -19,7 +20,9 @@
         {
             "label": "Deploy React Client",
             "type": "shell",
-            "command": "npm run build ; mv -f build ../actix_server/static",
+            "linux": {
+                "command": "npm run build ; rm -rf ../actix_server/static;  mv build/ ../actix_server/static/ ",
+            },
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}/frontend_client",
