@@ -3,9 +3,7 @@ use std::hash::BuildHasherDefault;
 use crate::{Model, ModelSpec};
 use dashmap::DashMap;
 use fxhash::FxHasher;
-use game_data_info_struct::{
-    date::Date, BudgetMapIndex, EmpireData, ModelDataPoint, ResourceClass,
-};
+use game_data_info_struct::{date::Date, EmpireData, Index, ModelDataPoint, ResourceClass};
 use serde_derive::Serialize;
 
 #[derive(Eq, PartialEq, Hash, Serialize, Clone, Debug)]
@@ -91,8 +89,7 @@ impl BudgetStreamGraphModel {
                 empire_data
                     .budget
                     .income
-                    .get(resource.index())
-                    .unwrap()
+                    .index(resource)
                     .iter()
                     .fold(0f64, |acc, (_, x)| acc + x),
             )
@@ -110,7 +107,7 @@ mod tests {
 
     use chrono::NaiveDate;
     use fxhash::FxBuildHasher;
-    use game_data_info_struct::{Budget, PlayerClass, Resources};
+    use game_data_info_struct::{Budget, BudgetComponent, IndexMut, PlayerClass, Resources};
 
     const VAL: Vec<(String, f64)> = vec![];
     use super::*;
@@ -133,14 +130,19 @@ mod tests {
 
         let date = NaiveDate::from_ymd(2200, 01, 01);
         let driver = PlayerClass::Human("HUMAN".to_string());
-        let mut balance = [VAL; 17];
-        balance[ResourceClass::Energy.index()] = vec![("ALL".to_string(), 100f64)];
-        balance[ResourceClass::Alloys.index()] = vec![("ALL".to_string(), 50f64)];
-        balance[ResourceClass::Minerals.index()] = vec![("ALL".to_string(), 25f64)];
-
+        let mut balance = BudgetComponent::default();
+        balance
+            .index_mut(&ResourceClass::Energy)
+            .insert("ALL".to_string(), 100f64);
+        balance
+            .index_mut(&ResourceClass::Alloys)
+            .insert("ALL".to_string(), 50f64);
+        balance
+            .index_mut(&ResourceClass::Minerals)
+            .insert("ALL".to_string(), 25f64);
         let budget = Budget {
-            income: [VAL; 17],
-            expense: [VAL; 17],
+            expense: balance.clone(),
+            income: balance,
         };
 
         let resources = Resources {
@@ -194,12 +196,14 @@ mod tests {
         };
 
         let driver = PlayerClass::Human("HUMAN".to_string());
-        let mut balance = [VAL; 17];
-        balance[ResourceClass::Energy.index()] = vec![("ALL".to_string(), 100f64)];
+        let mut balance = BudgetComponent::default();
+        balance
+            .index_mut(&ResourceClass::Energy)
+            .insert("ALL".to_string(), 100f64);
 
         let budget = Budget {
-            income: [VAL; 17],
-            expense: [VAL; 17],
+            income: balance.clone(),
+            expense: balance,
         };
 
         let resources = Resources {

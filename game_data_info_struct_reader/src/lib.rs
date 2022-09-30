@@ -3,7 +3,7 @@ use directory_watcher::FileReader;
 pub use game_data_info_struct::{
     Budget, EmpireData, ModelDataPoint, PlayerClass, ResourceClass, Resources,
 };
-use game_data_info_struct::{BudgetMapIndex, ALL_RESOURCES};
+use game_data_info_struct::{BudgetComponent, IndexMut, ALL_RESOURCES};
 use std::path::Path;
 pub struct GameDataInfoStructReader;
 
@@ -18,13 +18,11 @@ impl FileReader for GameDataInfoStructReader {
     }
 }
 
-const VAL: Vec<(String, f64)> = vec![];
-
 impl GameDataInfoStructReader {
     fn extract_budget(budget: &Val) -> Budget {
         let current_month_budget = budget.get_at_path("current_month").unwrap();
 
-        let get_budget_val = |key: &str, budget_period: &Val| -> [Vec<(String, f64)>; 17] {
+        let get_budget_val = |key: &str, budget_period: &Val| -> BudgetComponent {
             Self::get_budget_component_map(budget_period.get_at_path(key).unwrap())
         };
 
@@ -33,21 +31,20 @@ impl GameDataInfoStructReader {
             expense: get_budget_val("expenses", current_month_budget),
         }
     }
-    fn get_budget_component_map(component: &Val<'_>) -> [Vec<(String, f64)>; 17] {
+    fn get_budget_component_map(component: &Val<'_>) -> BudgetComponent {
         if let Val::Dict(sources) = component {
-            let init = [VAL; 17];
-            let map = sources
-                .into_iter()
-                .fold(init, |mut map, (contributor, contributions)| {
+            sources.into_iter().fold(
+                BudgetComponent::default(),
+                |mut map, (contributor, contributions)| {
                     let contribitions_per_class = Self::get_contributions_per_class(contributions);
 
                     for (key, amount) in contribitions_per_class.into_iter() {
-                        map[key.index()].push((String::from(*contributor), amount));
+                        map.index_mut(&key)
+                            .insert(String::from(*contributor), amount);
                     }
                     map
-                });
-
-            map
+                },
+            )
         } else {
             panic!()
         }

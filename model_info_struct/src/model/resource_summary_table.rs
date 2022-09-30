@@ -3,7 +3,7 @@ use std::hash::BuildHasherDefault;
 use crate::{Model, ModelSpec};
 use dashmap::DashMap;
 use fxhash::FxHasher;
-use game_data_info_struct::{date::Date, EmpireData, ModelDataPoint, ResourceClass};
+use game_data_info_struct::{date::Date, EmpireData, Index, ModelDataPoint, ResourceClass};
 use serde_derive::Serialize;
 
 #[derive(Eq, PartialEq, Hash, Serialize, Clone, Debug)]
@@ -85,25 +85,7 @@ impl ResourceSummaryTableModel {
     fn get_resource_values(&self, empire_data: &EmpireData) -> Vec<f64> {
         let mut ret = vec![];
         for resource in self.spec.resources.iter() {
-            match resource {
-                ResourceClass::Energy => ret.push(empire_data.resources.energy),
-                ResourceClass::Minerals => ret.push(empire_data.resources.minerals),
-                ResourceClass::Food => ret.push(empire_data.resources.food),
-                ResourceClass::Physics => ret.push(empire_data.resources.physics_research),
-                ResourceClass::Society => ret.push(empire_data.resources.society_research),
-                ResourceClass::Engineering => ret.push(empire_data.resources.engineering_research),
-                ResourceClass::Influence => ret.push(empire_data.resources.influence),
-                ResourceClass::Unity => ret.push(empire_data.resources.unity),
-                ResourceClass::ConsumerGoods => ret.push(empire_data.resources.consumer_goods),
-                ResourceClass::Alloys => ret.push(empire_data.resources.alloys),
-                ResourceClass::Motes => ret.push(empire_data.resources.volatile_motes),
-                ResourceClass::Gasses => ret.push(empire_data.resources.exotic_gases),
-                ResourceClass::Crystals => ret.push(empire_data.resources.rare_crystals),
-                ResourceClass::LivingMetal => ret.push(empire_data.resources.sr_living_metal),
-                ResourceClass::Zro => ret.push(empire_data.resources.sr_zro),
-                ResourceClass::DarkMatter => ret.push(empire_data.resources.sr_dark_matter),
-                ResourceClass::Nanites => ret.push(empire_data.resources.nanites),
-            }
+            ret.push(*empire_data.resources.index(&resource));
         }
         ret
     }
