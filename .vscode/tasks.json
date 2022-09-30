@@ -21,7 +21,7 @@
             "label": "Deploy React Client",
             "type": "shell",
             "linux": {
-                "command": "npm run build ; rm -rf ../actix_server/static;  mv build/ ../actix_server/static/ ",
+                "command": "npm run build; rm -rf ${workspaceFolder}/actix_server/static;  mv build/ ${workspaceFolder}/actix_server/static/ ",
             },
             "group": "build",
             "options": {
@@ -35,12 +35,28 @@
             "type": "shell",
             "command": "npm start",
             "group": "build",
+            "linux": {
+                "options": {
+                    "cwd": "${workspaceFolder}/frontend_client",
+                    "env": {
+                        "SSL_CRT_FILE": "$STELLARUST_CERT",
+                        "SSL_KEY_FILE": "$STELLARUST_KEY"
+                    }
+                },
+            },
+            "windows": {
+                "options": {
+                    "cwd": "${workspaceFolder}/frontend_client",
+                    "env": {
+                        "SSL_CRT_FILE": "${env:STELLARUST_CERT}",
+                        "SSL_KEY_FILE": "${env:STELLARUST_KEY}"
+                    }
+                },
+            },
             "options": {
                 "cwd": "${workspaceFolder}/frontend_client",
                 "env": {
                     "HTTPS": "true",
-                    "SSL_CRT_FILE": "${env:STELLARUST_CERT}",
-                    "SSL_KEY_FILE": "${env:STELLARUST_KEY}"
                 }
             },
             "dependsOn": [],
