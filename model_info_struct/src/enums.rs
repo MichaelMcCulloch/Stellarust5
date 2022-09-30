@@ -1,4 +1,4 @@
-use std::hash::BuildHasherDefault;
+use std::{collections::HashMap, hash::BuildHasherDefault};
 
 use dashmap::DashMap;
 use fxhash::FxHasher;
@@ -38,7 +38,7 @@ pub enum RepresentationEnum {
     CampaignList(Vec<CampaignInfoStruct>),
     EmpireList(Vec<Empire>),
     BudgetStreamGraph(Vec<(Date, Vec<f64>)>),
-    ResourceSummaryTable(Vec<(Date, Vec<f64>)>),
+    ResourceSummaryTable(Vec<(Date, HashMap<ResourceClass, f64>)>),
 }
 impl Model for ModelEnum {
     type ModelSpec = ModelSpecEnum;

@@ -184,7 +184,7 @@ pub const ALL_RESOURCES: [ResourceClass; 17] = [
     ResourceClass::Nanites,
 ];
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
 pub enum ResourceClass {
     Energy,
     Minerals,

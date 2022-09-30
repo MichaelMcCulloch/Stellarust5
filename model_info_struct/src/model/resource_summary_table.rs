@@ -1,4 +1,7 @@
-use std::hash::BuildHasherDefault;
+use std::{
+    collections::HashMap,
+    hash::{BuildHasherDefault, Hash},
+};
 
 use crate::{Model, ModelSpec};
 use dashmap::DashMap;
@@ -15,12 +18,12 @@ pub struct ResourceSummaryTableModelSpec {
 
 #[derive(Serialize, Debug)]
 pub struct ResourceSummaryTableModel {
-    list: Vec<(Date, Vec<f64>)>,
+    list: Vec<(Date, HashMap<ResourceClass, f64>)>,
     spec: ResourceSummaryTableModelSpec,
 }
 impl Model for ResourceSummaryTableModel {
     type ModelSpec = ResourceSummaryTableModelSpec;
-    type Representation = Vec<(Date, Vec<f64>)>;
+    type Representation = Vec<(Date, HashMap<ResourceClass, f64>)>;
 
     fn create(spec: Self::ModelSpec) -> Self {
         Self { list: vec![], spec }
@@ -69,7 +72,10 @@ impl Model for ResourceSummaryTableModel {
 }
 
 impl ResourceSummaryTableModel {
-    fn form_model_point(&self, game_data: &ModelDataPoint) -> Option<(Date, Vec<f64>)> {
+    fn form_model_point(
+        &self,
+        game_data: &ModelDataPoint,
+    ) -> Option<(Date, HashMap<ResourceClass, f64>)> {
         if game_data.campaign_name != self.spec.campaign_name {
             None
         } else if let Some(empire) = game_data
@@ -82,10 +88,10 @@ impl ResourceSummaryTableModel {
             None
         }
     }
-    fn get_resource_values(&self, empire_data: &EmpireData) -> Vec<f64> {
-        let mut ret = vec![];
+    fn get_resource_values(&self, empire_data: &EmpireData) -> HashMap<ResourceClass, f64> {
+        let mut ret = HashMap::new();
         for resource in self.spec.resources.iter() {
-            ret.push(*empire_data.resources.index(&resource));
+            ret.insert(*resource, *empire_data.resources.index(&resource));
         }
         ret
     }

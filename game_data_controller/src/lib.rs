@@ -3,5 +3,3 @@ mod scan_root;
 
 pub mod controller;
 pub(crate) mod functions;
-#[cfg(test)]
-mod tests {}

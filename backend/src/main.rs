@@ -26,6 +26,7 @@ fn main() -> Result<()> {
         );
         env_logger::init();
         let system_runner = rt::System::new();
+        let game_data_root = &Path::new(STELLARIS_SAVE_ROOT);
         let server = match (
             std::env::var("STELLARUST_KEY"),
             std::env::var("STELLARUST_CERT"),
@@ -33,14 +34,14 @@ fn main() -> Result<()> {
             (Ok(key), Ok(cert)) => {
                 let server_future = run_actix_server_https(
                     scope,
-                    Path::new(PROD_TEST_DATA_ROOT),
+                    game_data_root,
                     Path::new(&key),
                     Path::new(&cert),
                 );
                 system_runner.block_on(server_future).unwrap()
             }
             _ => system_runner
-                .block_on(run_actix_server(scope, Path::new(PROD_TEST_DATA_ROOT)))
+                .block_on(run_actix_server(scope, game_data_root))
                 .unwrap(),
         };
 

@@ -1,4 +1,7 @@
-use std::{path::{PathBuf, Path}, collections::HashMap};
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+};
 
 use actix_cors::Cors;
 
@@ -18,15 +21,14 @@ use model_info_struct::{
     enums::ModelSpecEnum,
     model::{
         budget_stream_graph::BudgetStreamGraphModelSpec, campaign_list::CampaignListModelSpec,
-        empire_list::EmpireListModelSpec, resource_summary_table::ResourceSummaryTableModelSpec
+        empire_list::EmpireListModelSpec, resource_summary_table::ResourceSummaryTableModelSpec,
     },
-    ResourceClass,ALL_RESOURCES, ResourceCode
+    ResourceClass, ResourceCode, ALL_RESOURCES,
 };
 use serde_derive::Deserialize;
 
 use rustls::{Certificate, PrivateKey, ServerConfig};
 use rustls_pemfile::{certs, pkcs8_private_keys};
-
 
 include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 
@@ -93,30 +95,31 @@ pub async fn budget_data(
             .append_header(("connection", "keep-alive"))
             .append_header(("cache-control", "no-cache"))
             .streaming(client),
-        None => HttpResponse::NotFound().body(""), 
+        None => HttpResponse::NotFound().body(""),
     }
 }
 
 #[derive(Deserialize)]
-pub struct ResourceSummaryRequest { 
+pub struct ResourceSummaryRequest {
     campaign_name: String,
     empire_name: String,
-    resource_list: String, 
+    resource_list: String,
 }
 #[get("/{campaign_name}/{empire_name}/resourcesummary/{resource_list}")]
 pub async fn resource_summary_data(
     s: Data<GameModelController>,
     resource_summary_request: web::Path<ResourceSummaryRequest>,
 ) -> impl Responder {
-
     let mut resources = vec![];
 
-    for resource in ALL_RESOURCES{ 
-        if resource_summary_request.resource_list.contains(resource.code()){
+    for resource in ALL_RESOURCES {
+        if resource_summary_request
+            .resource_list
+            .contains(resource.code())
+        {
             resources.push(resource);
         }
     }
-
 
     log::info!(
         "Connection Request: Resource SummaryData for {}/{}/{:?}",
@@ -136,15 +139,15 @@ pub async fn resource_summary_data(
             .append_header(("connection", "keep-alive"))
             .append_header(("cache-control", "no-cache"))
             .streaming(client),
-        None => HttpResponse::NotFound().body(""), 
+        None => HttpResponse::NotFound().body(""),
     }
 }
 
-pub async fn run_actix_server(scope: &Scope<'_>,  game_data_root: &Path) -> Result<Server> {
+pub async fn run_actix_server(scope: &Scope<'_>, game_data_root: &Path) -> Result<Server> {
     let game_data_controller = Data::new(GameModelController::create(
         &PathBuf::from(game_data_root),
         scope,
-        unbounded()
+        unbounded(),
     ));
     let mut server = HttpServer::new(move || {
         let static_files = generate();
@@ -157,14 +160,15 @@ pub async fn run_actix_server(scope: &Scope<'_>,  game_data_root: &Path) -> Resu
             .service(empires)
             .service(budget_data)
             .service(resource_summary_data)
-            .default_service(ResourceFiles::new("", static_files).resolve_not_found_to("index.html"))
-
+            .default_service(
+                ResourceFiles::new("", static_files).resolve_not_found_to("index.html"),
+            )
     });
 
     server = if let Some(listener) = ListenFd::from_env().take_tcp_listener(0)? {
         log::info!("{:?}", listener);
         server.listen(listener)?
-    } else { 
+    } else {
         log::info!("starting on 0.0.0.0:8000");
         server.bind("0.0.0.0:8000")?
     };
@@ -174,19 +178,22 @@ pub async fn run_actix_server(scope: &Scope<'_>,  game_data_root: &Path) -> Resu
     Ok(s)
 }
 
-
-
 /// You will need to generate the `key`.pem and the `cert`.pem by following https://actix.rs/docs/http2/
-pub async fn run_actix_server_https(scope: &Scope<'_>, game_data_root: &Path, key: &Path, cert: &Path) -> Result<Server> {
+pub async fn run_actix_server_https(
+    scope: &Scope<'_>,
+    game_data_root: &Path,
+    key: &Path,
+    cert: &Path,
+) -> Result<Server> {
     let game_data_controller = Data::new(GameModelController::create(
         &PathBuf::from(game_data_root),
         scope,
-        unbounded()
+        unbounded(),
     ));
 
     let config = load_rustls_config(key, cert);
     let mut server = HttpServer::new(move || {
-        let static_files = generate(); 
+        let static_files = generate();
         App::new()
             .wrap(middleware::Logger::default())
             .wrap(Cors::default().allow_any_header().allow_any_origin())
@@ -195,15 +202,17 @@ pub async fn run_actix_server_https(scope: &Scope<'_>, game_data_root: &Path, ke
             .service(empires)
             .service(budget_data)
             .service(resource_summary_data)
-            .default_service(ResourceFiles::new("", static_files).resolve_not_found_to("index.html"))
+            .default_service(
+                ResourceFiles::new("", static_files).resolve_not_found_to("index.html"),
+            )
     });
 
     server = if let Some(listener) = ListenFd::from_env().take_tcp_listener(0)? {
         log::info!("{:?}", listener);
         server.listen_rustls(listener, config)?
-    } else { 
+    } else {
         log::info!("starting on 0.0.0.0:8000");
-        server.bind_rustls("0.0.0.0:8000", config)? 
+        server.bind_rustls("0.0.0.0:8000", config)?
     };
 
     let s = server.run();
@@ -213,8 +222,6 @@ pub async fn run_actix_server_https(scope: &Scope<'_>, game_data_root: &Path, ke
 }
 
 use std::{fs::File, io::BufReader};
-
-
 
 fn load_rustls_config(key: &Path, cert: &Path) -> rustls::ServerConfig {
     // init server config builder with safe defaults
@@ -245,64 +252,4 @@ fn load_rustls_config(key: &Path, cert: &Path) -> rustls::ServerConfig {
     }
 
     config.with_single_cert(cert_chain, keys.remove(0)).unwrap()
-}
-#[cfg(test)]
-mod tests {
-    use std::{time::Duration};
-
-    use actix_rt::pin;
-    use actix_web::{
-        body::MessageBody,
-        test::{self},
-    };
-    use chrono::NaiveDate;
-    use crossbeam::{thread, channel::unbounded};
-    use futures::{executor, future};
-    use game_data_info_struct::ModelDataPoint;
-    use stellarust::PROD_TEST_EMPTY_FOLDER;
-
-    use super::*;
-    #[actix_rt::test]
-    async fn test_name() {
-        thread::scope(|scope| {
-            std::env::set_var("RUST_LOG", "warn");
-            env_logger::init();
-            let (sender, receiver) = unbounded();
-            let game_data_controller = Data::new(GameModelController::create(
-                &PathBuf::from(PROD_TEST_EMPTY_FOLDER),
-                scope,
-                (sender.clone(), receiver)
-            ));
-            let app = executor::block_on(test::init_service(
-                App::new()
-                    .app_data(game_data_controller.clone())
-                    .service(campaigns),
-            ));
-
-            sender.send(ModelDataPoint { campaign_name: "TEST_CAMPAIGN".to_string(), date: NaiveDate::MAX.into() , empires: vec![] }).unwrap();
-            std::thread::sleep(Duration::from_millis(50));
-
-            let req = test::TestRequest::get().uri("/campaigns").to_request();
-
-            let resp = executor::block_on(test::call_service(&app, req));
-            assert!(resp.status().is_success());
-            let body = resp.into_body();
-            pin!(body);
-            let actual = vec![
-                executor::block_on(future::poll_fn(|cx| body.as_mut().poll_next(cx))).unwrap().unwrap(),
-                executor::block_on(future::poll_fn(|cx| body.as_mut().poll_next(cx))).unwrap().unwrap()
-            ];
-
-            let expected = vec![
-                web::Bytes::from_static(b"event: connected\ndata: connected\n\n"),     
-                web::Bytes::from_static(b"event: message\ndata: {\"CampaignList\":[{\"campaign_name\":\"TEST_CAMPAIGN\",\"empire_list\":[]}]}\n\n")];
-
-            assert_eq!(
-                expected,
-                actual
-            );
-          
-        })
-        .unwrap();
-    }
 }
