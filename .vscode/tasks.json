@@ -19,8 +19,7 @@
         {
             "label": "Deploy React Client",
             "type": "shell",
-            "linux": {"command": "npm run build && miniserve  -p 3000  ./build/ --index index.html --spa --tls-cert $STELLARUST_CERT --tls-key $STELLARUST_KEY"},
-            "windows": {"command": "npm run build ; miniserve  -p 3000  ./build/ --index index.html --spa --tls-cert ${env:STELLARUST_CERT} --tls-key ${env:STELLARUST_KEY}"},
+            "command": "npm run build ; mv build/ ../actix_server/static/",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}/frontend_client",
@@ -35,7 +34,11 @@
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}/frontend_client",
-                "env": {"HTTPS":"true", "SSL_CRT_FILE":"${env:STELLARUST_CERT}", "SSL_KEY_FILE":"${env:STELLARUST_KEY}"}
+                "env": {
+                    "HTTPS": "true",
+                    "SSL_CRT_FILE": "${env:STELLARUST_CERT}",
+                    "SSL_KEY_FILE": "${env:STELLARUST_KEY}"
+                }
             },
             "dependsOn": [],
             "isBackground": true,

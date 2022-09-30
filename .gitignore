@@ -1,5 +1,6 @@
 target
 Cargo.lock
+actix_server/static*
 production_data/*
 !production_data/prepare_data.sh
 !production_data/*.tar.xz

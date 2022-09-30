@@ -1,4 +1,4 @@
-use std::path::{PathBuf, Path};
+use std::{path::{PathBuf, Path}, collections::HashMap};
 
 use actix_cors::Cors;
 
@@ -9,6 +9,7 @@ use actix_web::{
     App, HttpResponse, HttpServer, Responder,
 };
 
+use actix_web_static_files::ResourceFiles;
 use anyhow::Result;
 use crossbeam::{channel::unbounded, thread::Scope};
 use game_data_controller::controller::GameModelController;
@@ -25,19 +26,10 @@ use serde_derive::Deserialize;
 
 use rustls::{Certificate, PrivateKey, ServerConfig};
 use rustls_pemfile::{certs, pkcs8_private_keys};
-#[get("/")]
-pub async fn index(s: Data<GameModelController>) -> impl Responder { 
-    log::info!("Connection Request: CampaignList");
+use static_files::Resource;
 
-    match s.get_client(ModelSpecEnum::CampaignList(CampaignListModelSpec)) {
-        Some(client) => HttpResponse::Ok()
-            .append_header(("content-type", "text/event-stream"))
-            .append_header(("connection", "keep-alive"))
-            .append_header(("cache-control", "no-cache"))
-            .streaming(client),
-        None => HttpResponse::NotFound().body(""),
-    }
-}
+
+include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 
 #[get("/campaigns")]
 pub async fn campaigns(s: Data<GameModelController>) -> impl Responder {
@@ -102,7 +94,7 @@ pub async fn budget_data(
             .append_header(("connection", "keep-alive"))
             .append_header(("cache-control", "no-cache"))
             .streaming(client),
-        None => HttpResponse::NotFound().body(""),
+        None => HttpResponse::NotFound().body(""), 
     }
 }
 
@@ -113,14 +105,17 @@ pub async fn run_actix_server(scope: &Scope<'_>,  game_data_root: &Path) -> Resu
         unbounded()
     ));
     let mut server = HttpServer::new(move || {
+        let static_files = generate();
+
         App::new()
             .wrap(middleware::Logger::default())
             .wrap(Cors::default().allow_any_header().allow_any_origin())
             .app_data(game_data_controller.clone())
-            .service(index)
             .service(campaigns)
             .service(empires)
             .service(budget_data)
+            .default_service(ResourceFiles::new("", static_files).resolve_not_found_to("index.html"))
+
     });
 
     server = if let Some(listener) = ListenFd::from_env().take_tcp_listener(0)? {
@@ -136,6 +131,8 @@ pub async fn run_actix_server(scope: &Scope<'_>,  game_data_root: &Path) -> Resu
     Ok(s)
 }
 
+
+
 /// You will need to generate the `key`.pem and the `cert`.pem by following https://actix.rs/docs/http2/
 pub async fn run_actix_server_https(scope: &Scope<'_>, game_data_root: &Path, key: &Path, cert: &Path) -> Result<Server> {
     let game_data_controller = Data::new(GameModelController::create(
@@ -146,14 +143,15 @@ pub async fn run_actix_server_https(scope: &Scope<'_>, game_data_root: &Path, ke
 
     let config = load_rustls_config(key, cert);
     let mut server = HttpServer::new(move || {
+        let static_files = generate(); 
         App::new()
             .wrap(middleware::Logger::default())
             .wrap(Cors::default().allow_any_header().allow_any_origin())
             .app_data(game_data_controller.clone())
-            .service(index)
             .service(campaigns)
             .service(empires)
             .service(budget_data)
+            .default_service(ResourceFiles::new("", static_files).resolve_not_found_to("index.html"))
     });
 
     server = if let Some(listener) = ListenFd::from_env().take_tcp_listener(0)? {
