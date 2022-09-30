@@ -18,15 +18,14 @@ use model_info_struct::{
     enums::ModelSpecEnum,
     model::{
         budget_stream_graph::BudgetStreamGraphModelSpec, campaign_list::CampaignListModelSpec,
-        empire_list::EmpireListModelSpec,
+        empire_list::EmpireListModelSpec, resource_summary_table::ResourceSummaryTableModelSpec
     },
-    ResourceClass,
+    ResourceClass,ALL_RESOURCES, ResourceCode
 };
 use serde_derive::Deserialize;
 
 use rustls::{Certificate, PrivateKey, ServerConfig};
 use rustls_pemfile::{certs, pkcs8_private_keys};
-use static_files::Resource;
 
 
 include!(concat!(env!("OUT_DIR"), "/generated.rs"));
@@ -98,6 +97,49 @@ pub async fn budget_data(
     }
 }
 
+#[derive(Deserialize)]
+pub struct ResourceSummaryRequest { 
+    campaign_name: String,
+    empire_name: String,
+    resource_list: String, 
+}
+#[get("/{campaign_name}/{empire_name}/resourcesummary/{resource_list}")]
+pub async fn resource_summary_data(
+    s: Data<GameModelController>,
+    resource_summary_request: web::Path<ResourceSummaryRequest>,
+) -> impl Responder {
+
+    let mut resources = vec![];
+
+    for resource in ALL_RESOURCES{ 
+        if resource_summary_request.resource_list.contains(resource.code()){
+            resources.push(resource);
+        }
+    }
+
+
+    log::info!(
+        "Connection Request: Resource SummaryData for {}/{}/{:?}",
+        resource_summary_request.campaign_name,
+        resource_summary_request.empire_name,
+        resources
+    );
+    match s.get_client(ModelSpecEnum::ResourceSummaryTable(
+        ResourceSummaryTableModelSpec {
+            resources,
+            campaign_name: resource_summary_request.campaign_name.to_string(),
+            empire: resource_summary_request.empire_name.to_string(),
+        },
+    )) {
+        Some(client) => HttpResponse::Ok()
+            .append_header(("content-type", "text/event-stream"))
+            .append_header(("connection", "keep-alive"))
+            .append_header(("cache-control", "no-cache"))
+            .streaming(client),
+        None => HttpResponse::NotFound().body(""), 
+    }
+}
+
 pub async fn run_actix_server(scope: &Scope<'_>,  game_data_root: &Path) -> Result<Server> {
     let game_data_controller = Data::new(GameModelController::create(
         &PathBuf::from(game_data_root),
@@ -114,6 +156,7 @@ pub async fn run_actix_server(scope: &Scope<'_>,  game_data_root: &Path) -> Resu
             .service(campaigns)
             .service(empires)
             .service(budget_data)
+            .service(resource_summary_data)
             .default_service(ResourceFiles::new("", static_files).resolve_not_found_to("index.html"))
 
     });
@@ -151,6 +194,7 @@ pub async fn run_actix_server_https(scope: &Scope<'_>, game_data_root: &Path, ke
             .service(campaigns)
             .service(empires)
             .service(budget_data)
+            .service(resource_summary_data)
             .default_service(ResourceFiles::new("", static_files).resolve_not_found_to("index.html"))
     });
 

@@ -27,6 +27,7 @@ pub struct Resources {
     pub sr_living_metal: f64,
     pub sr_zro: f64,
     pub sr_dark_matter: f64,
+    pub nanites: f64,
 }
 
 #[derive(Default, Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -78,6 +79,34 @@ pub enum ResourceClass {
     Zro,
     DarkMatter,
     Nanites,
+}
+
+pub trait ResourceCode {
+    fn code(&self) -> &str;
+}
+
+impl ResourceCode for ResourceClass {
+    fn code(&self) -> &str {
+        match self {
+            ResourceClass::Energy => "Energy",
+            ResourceClass::Minerals => "Minerals",
+            ResourceClass::Food => "Food",
+            ResourceClass::Physics => "Physics",
+            ResourceClass::Society => "Society",
+            ResourceClass::Engineering => "Engineering",
+            ResourceClass::Influence => "Influence",
+            ResourceClass::Unity => "Unity",
+            ResourceClass::ConsumerGoods => "ConsumerGoods",
+            ResourceClass::Alloys => "Alloys",
+            ResourceClass::Motes => "Motes",
+            ResourceClass::Gasses => "Gasses",
+            ResourceClass::Crystals => "Crystals",
+            ResourceClass::LivingMetal => "LivingMetal",
+            ResourceClass::Zro => "Zro",
+            ResourceClass::DarkMatter => "DarkMatter",
+            ResourceClass::Nanites => "Nanites",
+        }
+    }
 }
 
 impl BudgetMapIndex for ResourceClass {

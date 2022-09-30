@@ -35,28 +35,12 @@
             "type": "shell",
             "command": "npm start",
             "group": "build",
-            "linux": {
-                "options": {
-                    "cwd": "${workspaceFolder}/frontend_client",
-                    "env": {
-                        "SSL_CRT_FILE": "$STELLARUST_CERT",
-                        "SSL_KEY_FILE": "$STELLARUST_KEY"
-                    }
-                },
-            },
-            "windows": {
-                "options": {
-                    "cwd": "${workspaceFolder}/frontend_client",
-                    "env": {
-                        "SSL_CRT_FILE": "${env:STELLARUST_CERT}",
-                        "SSL_KEY_FILE": "${env:STELLARUST_KEY}"
-                    }
-                },
-            },
             "options": {
                 "cwd": "${workspaceFolder}/frontend_client",
                 "env": {
                     "HTTPS": "true",
+                    "SSL_CRT_FILE": "${env:STELLARUST_CERT}",
+                    "SSL_KEY_FILE": "${env:STELLARUST_KEY}"
                 }
             },
             "dependsOn": [],

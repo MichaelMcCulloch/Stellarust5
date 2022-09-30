@@ -93,7 +93,7 @@ impl GameDataInfoStructReader {
             sr_living_metal: extract_resource("sr_living_metal"),
             sr_zro: extract_resource("sr_zro"),
             sr_dark_matter: extract_resource("sr_dark_matter"),
-            // sr_dark_matter: extract_resource("nanites"),
+            nanites: extract_resource("nanites"),
         }
     }
     fn extract_empire(country: &Val, player_class: PlayerClass) -> Option<EmpireData> {

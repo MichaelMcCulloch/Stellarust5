@@ -74,16 +74,14 @@ impl BudgetStreamGraphModel {
     fn form_model_point(&self, game_data: &ModelDataPoint) -> Option<(Date, Vec<f64>)> {
         if game_data.campaign_name != self.spec.campaign_name {
             None
+        } else if let Some(empire) = game_data
+            .empires
+            .iter()
+            .find(|e| e.name == self.spec.empire)
+        {
+            Some((Date::from(game_data.date), self.get_budget_values(empire)))
         } else {
-            if let Some(empire) = game_data
-                .empires
-                .iter()
-                .find(|e| e.name == self.spec.empire)
-            {
-                Some((Date::from(game_data.date), self.get_budget_values(empire)))
-            } else {
-                None
-            }
+            None
         }
     }
     fn get_budget_values(&self, empire_data: &EmpireData) -> Vec<f64> {
@@ -162,6 +160,7 @@ mod tests {
             sr_living_metal: 0f64,
             sr_zro: 0f64,
             sr_dark_matter: 0f64,
+            nanites: 0f64,
         };
 
         let model_data_point = ModelDataPoint {
@@ -220,6 +219,7 @@ mod tests {
             sr_living_metal: 0f64,
             sr_zro: 0f64,
             sr_dark_matter: 0f64,
+            nanites: 0f64,
         };
 
         let date_1 = NaiveDate::from_ymd(2201, 01, 01);
