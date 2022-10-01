@@ -11,12 +11,14 @@ fn main() -> Result<()> {
             "RUST_LOG",
             format!(
                 r###"
+                    stellarust={stellarust_level},
                     actix_broadcaster={broadcaster_level},
                     actix_server={server_level},
                     directory_watcher={watcher_level},
                     game_data_controller={controller_level},
                     game_data_info_struct_reader={reader_level},
                 "###,
+                stellarust_level="info",
                 broadcaster_level = "info",
                 server_level = "info",
                 watcher_level = "trace",
@@ -40,9 +42,11 @@ fn main() -> Result<()> {
                 );
                 system_runner.block_on(server_future).unwrap()
             }
-            _ => system_runner
+            _ => {
+                log::warn!("Not using HTTPS. If you would like to use HTTPS, point $STELLARUST_KEY and  $STELLARUST_CERT to the key and cert files, respectively");
+                system_runner
                 .block_on(run_actix_server(scope, game_data_root))
-                .unwrap(),
+                .unwrap()},
         };
 
         system_runner.block_on(server).unwrap()
