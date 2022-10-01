@@ -38,7 +38,7 @@ pub enum RepresentationEnum {
     CampaignList(Vec<CampaignInfoStruct>),
     EmpireList(Vec<Empire>),
     BudgetStreamGraph(Vec<(Date, Vec<f64>)>),
-    ResourceSummaryTable(Vec<(Date, HashMap<ResourceClass, f64>)>),
+    ResourceSummaryTable(Vec<(u64, Vec<f64>)>),
 }
 impl Model for ModelEnum {
     type ModelSpec = ModelSpecEnum;

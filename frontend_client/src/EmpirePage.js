@@ -1,6 +1,7 @@
 
 import React from "react";
 import { useParams } from "react-router-dom";
+import ResourceSummary from "./ResourceSummary";
 
 
 class EmpirePage extends React.Component {
@@ -12,7 +13,15 @@ class EmpirePage extends React.Component {
     }
 
     render() {
-        return <div>This is the page for  {this.props.empire_name} in the {this.props.campaign_name} campaign</div>
+        if (this.props.empire_name && this.props.campaign_name) {
+
+            return <div><p>
+                This is the page for  {this.props.empire_name} in the {this.props.campaign_name} campaign</p>
+                <ResourceSummary campaign_name={this.props.campaign_name} empire_name={this.props.empire_name} />
+            </div>
+        } else {
+            return <></>
+        }
     }
 }
 const EmpirePageWrapper = () => {

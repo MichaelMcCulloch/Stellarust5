@@ -4,6 +4,7 @@ use std::{
 };
 
 use crate::{Model, ModelSpec};
+use chrono::NaiveDate;
 use dashmap::DashMap;
 use fxhash::FxHasher;
 use game_data_info_struct::{date::Date, EmpireData, Index, ModelDataPoint, ResourceClass};
@@ -18,12 +19,12 @@ pub struct ResourceSummaryTableModelSpec {
 
 #[derive(Serialize, Debug)]
 pub struct ResourceSummaryTableModel {
-    list: Vec<(Date, HashMap<ResourceClass, f64>)>,
+    list: Vec<(u64, Vec<f64>)>,
     spec: ResourceSummaryTableModelSpec,
 }
 impl Model for ResourceSummaryTableModel {
     type ModelSpec = ResourceSummaryTableModelSpec;
-    type Representation = Vec<(Date, HashMap<ResourceClass, f64>)>;
+    type Representation = Vec<(u64, Vec<f64>)>;
 
     fn create(spec: Self::ModelSpec) -> Self {
         Self { list: vec![], spec }
@@ -32,9 +33,13 @@ impl Model for ResourceSummaryTableModel {
     fn update(&mut self, game_data: &ModelDataPoint) -> Option<Self::Representation> {
         match self.form_model_point(game_data) {
             Some(data) => {
+                let days_from_start = game_data
+                    .date
+                    .signed_duration_since(NaiveDate::from_ymd(2200, 01, 01))
+                    .num_days() as u64;
                 match self
                     .list
-                    .binary_search_by_key(&Date::from(game_data.date), |(d, _v)| *d)
+                    .binary_search_by_key(&days_from_start, |(d, _v)| *d)
                 {
                     Ok(index) => {
                         self.list.remove(index);
@@ -72,10 +77,7 @@ impl Model for ResourceSummaryTableModel {
 }
 
 impl ResourceSummaryTableModel {
-    fn form_model_point(
-        &self,
-        game_data: &ModelDataPoint,
-    ) -> Option<(Date, HashMap<ResourceClass, f64>)> {
+    fn form_model_point(&self, game_data: &ModelDataPoint) -> Option<(u64, Vec<f64>)> {
         if game_data.campaign_name != self.spec.campaign_name {
             None
         } else if let Some(empire) = game_data
@@ -83,15 +85,19 @@ impl ResourceSummaryTableModel {
             .iter()
             .find(|e| e.name == self.spec.empire)
         {
-            Some((Date::from(game_data.date), self.get_resource_values(empire)))
+            let days_from_start = game_data
+                .date
+                .signed_duration_since(NaiveDate::from_ymd(2200, 01, 01))
+                .num_days() as u64;
+            Some((days_from_start, self.get_resource_values(empire)))
         } else {
             None
         }
     }
-    fn get_resource_values(&self, empire_data: &EmpireData) -> HashMap<ResourceClass, f64> {
-        let mut ret = HashMap::new();
+    fn get_resource_values(&self, empire_data: &EmpireData) -> Vec<f64> {
+        let mut ret = vec![];
         for resource in self.spec.resources.iter() {
-            ret.insert(*resource, *empire_data.resources.index(&resource));
+            ret.push(*empire_data.resources.index(&resource));
         }
         ret
     }
