@@ -24,12 +24,12 @@ class ResourceSummary extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = { data: [["date", "alloys"]] };
+        this.state = { data: [["date", "influence", "alloys",]] };
 
     }
     componentDidMount() {
 
-        this.eventSource = new EventSource(GET_REMOTE_HOST(this.props.campaign_name + "/" + this.props.empire_name + "/resourcesummary/Alloys"));
+        this.eventSource = new EventSource(GET_REMOTE_HOST(this.props.campaign_name + "/" + this.props.empire_name + "/resourcesummary/AlloysInfluence"));
 
 
 
