@@ -1,7 +1,10 @@
 {
   "dependencies": {
     "react": "^18.2.0",
+    "react-app": "^1.1.2",
     "react-dom": "^18.2.0",
-    "react-google-charts": "^4.0.0"
+    "react-google-charts": "^4.0.0",
+    "react-router-dom": "^6.4.1",
+    "web-vitals": "^3.0.2"
   }
 }

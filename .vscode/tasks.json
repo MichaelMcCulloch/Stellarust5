@@ -18,16 +18,26 @@
             "group": "build"
         },
         {
+            "label": "Install NPM Deps",
+            "type": "shell",
+            "command": "npm install react-dom react-google-charts react-router-dom web-vitals react-app",
+            "options": {
+                "cwd": "${workspaceFolder}/frontend_client",
+            },
+        },
+        {
             "label": "Deploy React Client",
             "type": "shell",
             "linux": {
                 "command": "npm run build; rm -rf ${workspaceFolder}/actix_server/static;  mv build/ ${workspaceFolder}/actix_server/static/ ",
+            },"windows": {
+                "command": "npm run build; rm -r -fo ${workspaceFolder}/actix_server/static;  mv build/ ${workspaceFolder}/actix_server/static/ ",
             },
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}/frontend_client",
             },
-            "dependsOn": [],
+            "dependsOn": ["Install NPM Deps"],
             "isBackground": true,
         },
         {

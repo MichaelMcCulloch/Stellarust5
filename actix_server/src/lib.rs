@@ -24,7 +24,7 @@ use model_info_struct::{
         empire_list::EmpireListModelSpec, resource_summary_table::ResourceSummaryTableModelSpec,
     },
     ResourceClass, ResourceCode, ALL_RESOURCES,
-};
+};  
 use serde_derive::Deserialize;
 
 use rustls::{Certificate, PrivateKey, ServerConfig};
