@@ -1,6 +1,9 @@
 mod api;
 
-use std::path::{Path, PathBuf};
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+};
 
 use actix_cors::Cors;
 
@@ -10,13 +13,12 @@ use actix_web_static_files::ResourceFiles;
 use anyhow::Result;
 use api::*;
 use crossbeam::{channel::unbounded, thread::Scope};
+use frontend_static_files::generate_static_files;
 use game_data_controller::controller::GameModelController;
 use listenfd::ListenFd;
 
 use rustls::{Certificate, PrivateKey, ServerConfig};
 use rustls_pemfile::{certs, pkcs8_private_keys};
-
-include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 
 /// Populate an actix server. If a TCP Listener is available through listenFd, then that address will be used, otherwise, localhost:8000
 pub async fn run_actix_server(
@@ -32,7 +34,7 @@ pub async fn run_actix_server(
     ));
 
     let mut server = HttpServer::new(move || {
-        let static_files = generate();
+        let static_files = generate_static_files();
         App::new()
             .wrap(middleware::Logger::default())
             .wrap(Cors::default().allow_any_header().allow_any_origin())
@@ -48,7 +50,7 @@ pub async fn run_actix_server(
 
     let listener = ListenFd::from_env().take_tcp_listener(0)?;
 
-    server = match (tls_cert, tls_key, listener) {
+    server = match (tls_key, tls_cert, listener) {
         (Some(tls_key), Some(tls_cert), Some(listener)) => {
             log::info!("Using HTTPS");
             let config = load_rustls_config(tls_key, tls_cert);

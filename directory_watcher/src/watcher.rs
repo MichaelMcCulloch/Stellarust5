@@ -65,6 +65,13 @@ where
         (self)(start_directory)
     }
 }
+
+/// Wrap the notify.rs based RecommendedWatcher in some behavior, including
+/// - How to gather files on on startup
+/// - How to filter events
+/// - How to filter files
+/// - How to process the file
+/// - How to deliver the processed result
 pub trait DirectoryWatcher {
     fn create_directory_watcher_and_scan_root<
         T,

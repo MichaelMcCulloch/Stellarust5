@@ -30,6 +30,7 @@ pub struct Resources {
     pub nanites: f64,
 }
 
+/// Represent inflow/outflow streams for the 17 base resources. Maps a resource to a `M` where `M` maps a producer/consumer to an amount
 #[derive(Default, Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct BudgetComponent {
     pub energy: HashMap<String, f64>,

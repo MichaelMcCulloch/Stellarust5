@@ -12,12 +12,11 @@ use super::broadcast_model_changes;
 use super::reconcile;
 use super::write_to_db;
 
-/// Spawns the event loop in the scope
-/// * `scope` - Crossbeam scope
-/// * `info_struct_receiver` - Receiving end of the sender embeded in the directory watcher
-/// * `model_history` - Arc to the lock for reconciling new data with existing data
-/// * `broadcasters_map` - Map of receivers indexed by the request they made
-
+/// Spawns the event loop:
+/// - Receive a data point
+/// - Reconcile it with the extant data
+/// - Broadcast the new data immedately
+/// - Persist the new data to the database
 pub(crate) fn spawn_event_loop(
     scope: &Scope,
     game_data_history: Arc<DashMap<String, Vec<ModelDataPoint>, BuildHasherDefault<FxHasher>>>,

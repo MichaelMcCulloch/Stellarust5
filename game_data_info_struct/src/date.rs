@@ -2,6 +2,7 @@ use chrono::{Datelike, NaiveDate};
 
 use serde_derive::{Deserialize, Serialize};
 
+///This is a thin wrapper to enable serialization, NaiveDate can use this to ser/de
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
 pub struct Date(pub i16, pub u8, pub u8);
 

@@ -34,6 +34,11 @@ impl GameModelController {
         game_model_controller
     }
 
+    /// - Create a directory watcher
+    /// - Open the connection to the db
+    /// - Process data from the directory watcher
+    /// - Process data from the db connection
+    /// - Start the event loop
     pub fn create(
         game_directory: &Path,
         scope: &Scope<'_>,
@@ -78,6 +83,18 @@ impl GameModelController {
         game_model_controller
     }
 
+    /// Obtain a client for the model spec
+    /// - If an entry for the spec does not exist:
+    ///     - populate a model
+    ///     - populate a broadcaster
+    ///     - get a client for the broadcaster
+    ///     - Send the model data to the client
+    ///     - Save the pair
+    /// - Else
+    ///     - Get the model & broadcaster pair
+    ///     - get a client for the broadcaster
+    ///     - Send the model data to the client
+    ///
     pub fn get_client(&self, model_spec_enum: ModelSpecEnum) -> Option<Client> {
         match self.broadcasters_map.entry(model_spec_enum.clone()) {
             Entry::Vacant(entry) => {

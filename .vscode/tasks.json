@@ -29,15 +29,18 @@
             "label": "Deploy React Client",
             "type": "shell",
             "linux": {
-                "command": "npm run build; rm -rf ${workspaceFolder}/actix_server/static;  mv build/ ${workspaceFolder}/actix_server/static/ ",
-            },"windows": {
-                "command": "npm run build; rm -r -fo ${workspaceFolder}/actix_server/static;  mv build/ ${workspaceFolder}/actix_server/static/ ",
+                "command": "npm run build; rm -rf ${workspaceFolder}/frontend_static_files/static;  mv build/ ${workspaceFolder}/frontend_static_files/static/ ",
+            },
+            "windows": {
+                "command": "npm run build; rm -r -fo ${workspaceFolder}/frontend_static_files/static;  mv build/ ${workspaceFolder}/frontend_static_files/static/ ",
             },
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}/frontend_client",
             },
-            "dependsOn": ["Install NPM Deps"],
+            "dependsOn": [
+                "Install NPM Deps"
+            ],
             "isBackground": true,
         },
         {

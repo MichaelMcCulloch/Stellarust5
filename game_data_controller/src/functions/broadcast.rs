@@ -9,6 +9,7 @@ use model_info_struct::{
 use std::hash::BuildHasherDefault;
 use std::sync::Arc;
 
+/// Process a datapoint into all available models, and broadcast model emmissions, retaining only (model, broadcaster) pairs for which the model needs no update or the broadcaster has clients
 pub(crate) fn broadcast_model_changes(
     broadcasters_map: &Arc<
         DashMap<ModelSpecEnum, (ModelEnum, ActixBroadcaster), BuildHasherDefault<FxHasher>>,

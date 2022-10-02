@@ -3,7 +3,7 @@ target/debug
 target/.rustc_info.json
 target/CACHEDIR.TAG
 Cargo.lock
-actix_server/static*
+frontend_static_files/static*
 production_data/*
 !production_data/prepare_data.sh
 !production_data/*.tar.xz

@@ -37,7 +37,6 @@ impl ScanAllFoldersAndFiles {
         }
     }
 }
-
 impl Startup for ScanAllFoldersAndFiles {
     fn startup(&self, root_directory: &Path) -> Vec<PathBuf> {
         let collect = std::fs::read_dir(root_directory)

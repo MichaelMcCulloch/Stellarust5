@@ -1,13 +1,10 @@
-use std::{
-    collections::HashMap,
-    hash::{BuildHasherDefault, Hash},
-};
+use std::hash::{BuildHasherDefault, Hash};
 
 use crate::{Model, ModelSpec};
 use chrono::NaiveDate;
 use dashmap::DashMap;
 use fxhash::FxHasher;
-use game_data_info_struct::{date::Date, EmpireData, Index, ModelDataPoint, ResourceClass};
+use game_data_info_struct::{EmpireData, Index, ModelDataPoint, ResourceClass};
 use serde_derive::Serialize;
 
 #[derive(Eq, PartialEq, Hash, Serialize, Clone, Debug)]
@@ -17,6 +14,9 @@ pub struct ResourceSummaryModelSpec {
     pub campaign_name: String,
 }
 
+/// ResourceSummary
+/// Intended to be displayable with a `LineChart`
+/// Representation = `List<(Days since 2200.01.01, Resource Values)>`
 #[derive(Serialize, Debug)]
 pub struct ResourceSummaryModel {
     list: Vec<(u64, Vec<f64>)>,

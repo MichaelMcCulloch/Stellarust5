@@ -21,15 +21,13 @@ serde_derive = "1.0.144"
 rustls =  "0.20.6" 
 rustls-pemfile = "1"
 actix-web-static-files = "4.0"
-static-files = "0.2.1"
-
+frontend_static_files = {path = "../frontend_static_files"}
 game_data_controller = {path = "../game_data_controller"}
 model_info_struct = {path = "../model_info_struct"}
+static-files = "0.2.3"
+
 
 [dev-dependencies]
 futures = "0.3.24"
 chrono = "0.4.22"
 game_data_info_struct = {path = "../game_data_info_struct"}
-
-[build-dependencies]
-static-files = "0.2.1"

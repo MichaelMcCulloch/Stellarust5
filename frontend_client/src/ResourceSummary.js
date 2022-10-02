@@ -54,7 +54,7 @@ class ResourceSummary extends React.Component {
 
 
         this.eventSource.onmessage = (e) => {
-            const new_data = JSON.parse(e.data).ResourceSummaryTable.map(x => [x[0]].concat(x[1]));
+            const new_data = JSON.parse(e.data).ResourceSummary.map(x => [x[0]].concat(x[1]));
             this.setState({ data: this.state.data.concat(new_data) })
 
         }

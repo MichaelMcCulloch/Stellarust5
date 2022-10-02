@@ -3,9 +3,7 @@ use fxhash::FxHasher;
 use game_data_info_struct_reader::ModelDataPoint;
 use std::hash::BuildHasherDefault;
 use std::sync::Arc;
-
-/// * `model_data` - new data point
-/// * `model_history` - Existing data
+/// Merges a new `data_point` with the `game_data_history`
 pub(crate) fn reconcile(
     data_point: &ModelDataPoint,
     game_data_history: &Arc<DashMap<String, Vec<ModelDataPoint>, BuildHasherDefault<FxHasher>>>,
