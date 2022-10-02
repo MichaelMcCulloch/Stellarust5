@@ -11,19 +11,19 @@ use game_data_info_struct::{date::Date, EmpireData, Index, ModelDataPoint, Resou
 use serde_derive::Serialize;
 
 #[derive(Eq, PartialEq, Hash, Serialize, Clone, Debug)]
-pub struct ResourceSummaryTableModelSpec {
+pub struct ResourceSummaryModelSpec {
     pub resources: Vec<ResourceClass>,
     pub empire: String,
     pub campaign_name: String,
 }
 
 #[derive(Serialize, Debug)]
-pub struct ResourceSummaryTableModel {
+pub struct ResourceSummaryModel {
     list: Vec<(u64, Vec<f64>)>,
-    spec: ResourceSummaryTableModelSpec,
+    spec: ResourceSummaryModelSpec,
 }
-impl Model for ResourceSummaryTableModel {
-    type ModelSpec = ResourceSummaryTableModelSpec;
+impl Model for ResourceSummaryModel {
+    type ModelSpec = ResourceSummaryModelSpec;
     type Representation = Vec<(u64, Vec<f64>)>;
 
     fn create(spec: Self::ModelSpec) -> Self {
@@ -76,7 +76,7 @@ impl Model for ResourceSummaryTableModel {
     }
 }
 
-impl ResourceSummaryTableModel {
+impl ResourceSummaryModel {
     fn form_model_point(&self, game_data: &ModelDataPoint) -> Option<(u64, Vec<f64>)> {
         if game_data.campaign_name != self.spec.campaign_name {
             None
@@ -103,8 +103,8 @@ impl ResourceSummaryTableModel {
     }
 }
 
-impl ModelSpec for ResourceSummaryTableModelSpec {
-    type Model = ResourceSummaryTableModel;
+impl ModelSpec for ResourceSummaryModelSpec {
+    type Model = ResourceSummaryModel;
 }
 
 #[cfg(test)]

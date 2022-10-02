@@ -5,7 +5,7 @@ use model_info_struct::{
     enums::ModelSpecEnum,
     model::{
         campaign_list::CampaignListModelSpec, empire_list::EmpireListModelSpec,
-        resource_summary_table::ResourceSummaryTableModelSpec,
+        resource_summary_table::ResourceSummaryModelSpec,
     },
     ResourceClass, ResourceCode, ALL_RESOURCES,
 };
@@ -118,13 +118,11 @@ pub async fn resource_summary_data(
         resource_summary_request.empire_name,
         resources
     );
-    match s.get_client(ModelSpecEnum::ResourceSummaryTable(
-        ResourceSummaryTableModelSpec {
-            resources,
-            campaign_name: resource_summary_request.campaign_name.to_string(),
-            empire: resource_summary_request.empire_name.to_string(),
-        },
-    )) {
+    match s.get_client(ModelSpecEnum::ResourceSummary(ResourceSummaryModelSpec {
+        resources,
+        campaign_name: resource_summary_request.campaign_name.to_string(),
+        empire: resource_summary_request.empire_name.to_string(),
+    })) {
         Some(client) => HttpResponse::Ok()
             .append_header(("content-type", "text/event-stream"))
             .append_header(("connection", "keep-alive"))

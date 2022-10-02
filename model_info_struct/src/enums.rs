@@ -11,7 +11,7 @@ use crate::{
         budget_stream_graph::{BudgetStreamGraphModel, BudgetStreamGraphModelSpec},
         campaign_list::{CampaignInfoStruct, CampaignListModel, CampaignListModelSpec, Empire},
         empire_list::{EmpireListModel, EmpireListModelSpec},
-        resource_summary_table::{ResourceSummaryTableModel, ResourceSummaryTableModelSpec},
+        resource_summary_table::{ResourceSummaryModel, ResourceSummaryModelSpec},
     },
     Model, ModelSpec, Representation,
 };
@@ -21,7 +21,7 @@ pub enum ModelSpecEnum {
     CampaignList(CampaignListModelSpec),
     EmpireList(EmpireListModelSpec),
     BudgetStreamGraph(BudgetStreamGraphModelSpec),
-    ResourceSummaryTable(ResourceSummaryTableModelSpec),
+    ResourceSummary(ResourceSummaryModelSpec),
     BudgetMonthlySankyDiagram(ResourceClass),
 }
 #[derive(Debug)]
@@ -29,7 +29,7 @@ pub enum ModelEnum {
     CampaignList(CampaignListModel),
     EmpireList(EmpireListModel),
     BudgetStreamGraph(BudgetStreamGraphModel),
-    ResourceSummaryTable(ResourceSummaryTableModel),
+    ResourceSummary(ResourceSummaryModel),
     BudgetMonthlySankyDiagram(),
 }
 
@@ -38,7 +38,7 @@ pub enum RepresentationEnum {
     CampaignList(Vec<CampaignInfoStruct>),
     EmpireList(Vec<Empire>),
     BudgetStreamGraph(Vec<(Date, Vec<f64>)>),
-    ResourceSummaryTable(Vec<(u64, Vec<f64>)>),
+    ResourceSummary(Vec<(u64, Vec<f64>)>),
 }
 impl Model for ModelEnum {
     type ModelSpec = ModelSpecEnum;
@@ -54,8 +54,8 @@ impl Model for ModelEnum {
             }
             ModelSpecEnum::BudgetMonthlySankyDiagram(_) => todo!(),
             ModelSpecEnum::EmpireList(spec) => ModelEnum::EmpireList(EmpireListModel::create(spec)),
-            ModelSpecEnum::ResourceSummaryTable(spec) => {
-                ModelEnum::ResourceSummaryTable(ResourceSummaryTableModel::create(spec))
+            ModelSpecEnum::ResourceSummary(spec) => {
+                ModelEnum::ResourceSummary(ResourceSummaryModel::create(spec))
             }
         }
     }
@@ -72,9 +72,9 @@ impl Model for ModelEnum {
             ModelEnum::EmpireList(model) => model
                 .update(game_data)
                 .map(|rep| RepresentationEnum::EmpireList(rep)),
-            ModelEnum::ResourceSummaryTable(model) => model
+            ModelEnum::ResourceSummary(model) => model
                 .update(game_data)
-                .map(|rep| RepresentationEnum::ResourceSummaryTable(rep)),
+                .map(|rep| RepresentationEnum::ResourceSummary(rep)),
         }
     }
 
@@ -93,9 +93,9 @@ impl Model for ModelEnum {
             ModelEnum::EmpireList(model) => model
                 .update_all(game_data_history)
                 .map(|rep| RepresentationEnum::EmpireList(rep)),
-            ModelEnum::ResourceSummaryTable(model) => model
+            ModelEnum::ResourceSummary(model) => model
                 .update_all(game_data_history)
-                .map(|rep| RepresentationEnum::ResourceSummaryTable(rep)),
+                .map(|rep| RepresentationEnum::ResourceSummary(rep)),
         }
     }
 
@@ -107,9 +107,7 @@ impl Model for ModelEnum {
             }
             ModelEnum::BudgetMonthlySankyDiagram() => todo!(),
             ModelEnum::EmpireList(model) => RepresentationEnum::EmpireList(model.get()),
-            ModelEnum::ResourceSummaryTable(model) => {
-                RepresentationEnum::ResourceSummaryTable(model.get())
-            }
+            ModelEnum::ResourceSummary(model) => RepresentationEnum::ResourceSummary(model.get()),
         }
     }
 }
