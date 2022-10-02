@@ -12,6 +12,26 @@ const PATHS: [&str; 1] = [&"Documents\\Paradox Interactive\\Stellaris\\save game
 const PATHS: [&str; 1] = [&".local/share/Paradox Interactive/Stellaris/save games"];
 
 fn main() -> Result<()> {
+    std::env::set_var(
+        "RUST_LOG",
+        format!(
+            r###"
+                stellarust={stellarust_level},
+                actix_broadcaster={broadcaster_level},
+                actix_server={server_level},
+                directory_watcher={watcher_level},
+                game_data_controller={controller_level},
+                game_data_info_struct_reader={reader_level},
+            "###,
+            stellarust_level = "info",
+            broadcaster_level = "info",
+            server_level = "info",
+            watcher_level = "info",
+            controller_level = "info",
+            reader_level = "info",
+        ),
+    );
+    env_logger::init();
     let env_home = PathBuf::from(std::env::var("HOME").expect("$HOME should be defined"));
     let mut save_dir = Option::None;
 
@@ -23,33 +43,14 @@ fn main() -> Result<()> {
             home
         };
         if dir.is_dir() {
-            save_dir = Some(dir)
+            log::info!("Using save directory found at {}", dir.display());
+            save_dir = Some(dir);
         } else {
             tried.push(dir)
         }
     }
     if let Some(game_data_root) = save_dir {
         thread::scope(|scope| {
-            std::env::set_var(
-                "RUST_LOG",
-                format!(
-                    r###"
-                        stellarust={stellarust_level},
-                        actix_broadcaster={broadcaster_level},
-                        actix_server={server_level},
-                        directory_watcher={watcher_level},
-                        game_data_controller={controller_level},
-                        game_data_info_struct_reader={reader_level},
-                    "###,
-                    stellarust_level = "info",
-                    broadcaster_level = "info",
-                    server_level = "info",
-                    watcher_level = "info",
-                    controller_level = "info",
-                    reader_level = "info",
-                ),
-            );
-            env_logger::init();
             let system_runner = rt::System::new();
 
             let tls_key = std::env::var("STELLARUST_KEY")
