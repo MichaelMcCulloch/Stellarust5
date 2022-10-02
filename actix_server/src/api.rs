@@ -1,24 +1,17 @@
-use model_info_struct::model::budget_stream_graph::BudgetStreamGraphModelSpec;
-
-use actix_web::web;
+use actix_web::{
+    get,
+    web::{self, Data},
+    HttpResponse, Responder,
+};
+use game_data_controller::controller::GameModelController;
 use model_info_struct::{
     enums::ModelSpecEnum,
     model::{
-        campaign_list::CampaignListModelSpec, empire_list::EmpireListModelSpec,
-        resource_summary_table::ResourceSummaryModelSpec,
+        budget_stream_graph::BudgetStreamGraphModelSpec, campaign_list::CampaignListModelSpec,
+        empire_list::EmpireListModelSpec, resource_summary_table::ResourceSummaryModelSpec,
     },
     ResourceClass, ResourceCode, ALL_RESOURCES,
 };
-
-use actix_web::HttpResponse;
-
-use actix_web::Responder;
-
-use game_data_controller::controller::GameModelController;
-
-use actix_web::web::Data;
-
-use actix_web::get;
 use serde_derive::Deserialize;
 
 #[get("/campaigns")]

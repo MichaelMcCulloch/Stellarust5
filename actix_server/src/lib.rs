@@ -18,47 +18,12 @@ use rustls_pemfile::{certs, pkcs8_private_keys};
 
 include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 
-pub async fn run_actix_server(scope: &Scope<'_>, game_data_root: &Path) -> Result<Server> {
-    let game_data_controller = Data::new(GameModelController::create(
-        &PathBuf::from(game_data_root),
-        scope,
-        unbounded(),
-    ));
-    let mut server = HttpServer::new(move || {
-        let static_files = generate();
-
-        App::new()
-            .wrap(middleware::Logger::default())
-            .wrap(Cors::default().allow_any_header().allow_any_origin())
-            .app_data(game_data_controller.clone())
-            .service(campaigns)
-            .service(empires)
-            .service(budget_data)
-            .service(resource_summary_data)
-            .default_service(
-                ResourceFiles::new("", static_files).resolve_not_found_to("index.html"),
-            )
-    });
-
-    server = if let Some(listener) = ListenFd::from_env().take_tcp_listener(0)? {
-        log::info!("{:?}", listener);
-        server.listen(listener)?
-    } else {
-        log::info!("starting on 0.0.0.0:8000");
-        server.bind("0.0.0.0:8000")?
-    };
-
-    let s = server.run();
-
-    Ok(s)
-}
-
-/// You will need to generate the `key`.pem and the `cert`.pem by following https://actix.rs/docs/http2/
-pub async fn run_actix_server_https(
+/// Populate an actix server. If a TCP Listener is available through listenFd, then that address will be used, otherwise, localhost:8000
+pub async fn run_actix_server(
     scope: &Scope<'_>,
     game_data_root: &Path,
-    key: &Path,
-    cert: &Path,
+    tls_key: &Option<PathBuf>,
+    tls_cert: &Option<PathBuf>,
 ) -> Result<Server> {
     let game_data_controller = Data::new(GameModelController::create(
         &PathBuf::from(game_data_root),
@@ -66,7 +31,6 @@ pub async fn run_actix_server_https(
         unbounded(),
     ));
 
-    let config = load_rustls_config(key, cert);
     let mut server = HttpServer::new(move || {
         let static_files = generate();
         App::new()
@@ -82,17 +46,29 @@ pub async fn run_actix_server_https(
             )
     });
 
-    server = if let Some(listener) = ListenFd::from_env().take_tcp_listener(0)? {
-        log::info!("{:?}", listener);
-        server.listen_rustls(listener, config)?
-    } else {
-        log::info!("starting on 0.0.0.0:8000");
-        server.bind_rustls("0.0.0.0:8000", config)?
+    let listener = ListenFd::from_env().take_tcp_listener(0)?;
+
+    server = match (tls_cert, tls_key, listener) {
+        (Some(tls_key), Some(tls_cert), Some(listener)) => {
+            log::info!("Using HTTPS");
+            let config = load_rustls_config(tls_key, tls_cert);
+            server.listen_rustls(listener, config)?
+        }
+        (Some(tls_key), Some(tls_cert), None) => {
+            log::info!("Using HTTPS");
+            let config = load_rustls_config(tls_key, tls_cert);
+            server.bind_rustls("0.0.0.0:8000", config)?
+        }
+        (_, _, Some(listener)) => {
+            log::warn!("Not using HTTPS. If you would like to use HTTPS, point $STELLARUST_KEY and  $STELLARUST_CERT to the key and cert files, respectively");
+            server.listen(listener)?
+        }
+        (_, _, None) => {
+            log::warn!("Not using HTTPS. If you would like to use HTTPS, point $STELLARUST_KEY and  $STELLARUST_CERT to the key and cert files, respectively");
+            server.bind("0.0.0.0:8000")?
+        }
     };
-
     let s = server.run();
-    log::info!("Using HTTPS");
-
     Ok(s)
 }
 

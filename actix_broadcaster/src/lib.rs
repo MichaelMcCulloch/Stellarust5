@@ -87,7 +87,6 @@ impl Broadcaster for ActixBroadcaster {
         let message_string = &serde_json::to_string(&message).unwrap();
         let message_bytes =
             Bytes::from(["event: message\ndata: ", message_string, "\n\n"].concat());
-        // Gather the successful sends and keep them in the client list
         let (clients, count) = clients
             .par_drain(..)
             .fold(
@@ -134,7 +133,6 @@ impl ActixBroadcaster {
         let var_name = &"event: ping\ndata: ping\n\n";
         let mut write_guard = clients.write().unwrap();
         let mut clients = std::mem::take(&mut *write_guard);
-        // Gather the successful sends and keep them in the client list
         let (clients, count) = clients
             .par_drain(..)
             .fold(

@@ -109,7 +109,6 @@ mod tests {
     use fxhash::FxBuildHasher;
     use game_data_info_struct::{Budget, BudgetComponent, IndexMut, PlayerClass, Resources};
 
-    const VAL: Vec<(String, f64)> = vec![];
     use super::*;
     #[test]
     fn update_given_a_model_spec_and_a_single_data_point_a_model_constructed_with_that_spec_and_given_that_data_point_returns_a_single_element_representing_that_data_point(

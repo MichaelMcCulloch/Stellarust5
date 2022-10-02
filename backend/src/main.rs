@@ -1,56 +1,75 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-use actix_server::{run_actix_server, run_actix_server_https};
+use actix_server::run_actix_server;
 use actix_web::rt;
 use anyhow::Result;
 use crossbeam::thread;
-use stellarust::{PROD_TEST_DATA_ROOT, PROD_TEST_EMPTY_FOLDER, STELLARIS_SAVE_ROOT};
-fn main() -> Result<()> {
-    thread::scope(|scope| {
-        std::env::set_var(
-            "RUST_LOG",
-            format!(
-                r###"
-                    stellarust={stellarust_level},
-                    actix_broadcaster={broadcaster_level},
-                    actix_server={server_level},
-                    directory_watcher={watcher_level},
-                    game_data_controller={controller_level},
-                    game_data_info_struct_reader={reader_level},
-                "###,
-                stellarust_level="info",
-                broadcaster_level = "info",
-                server_level = "info",
-                watcher_level = "trace",
-                controller_level = "info",
-                reader_level = "trace",
-            ),
-        );
-        env_logger::init();
-        let system_runner = rt::System::new();
-        let game_data_root = &Path::new(STELLARIS_SAVE_ROOT);
-        let server = match (
-            std::env::var("STELLARUST_KEY"),
-            std::env::var("STELLARUST_CERT"),
-        ) {
-            (Ok(key), Ok(cert)) => {
-                let server_future = run_actix_server_https(
-                    scope,
-                    game_data_root,
-                    Path::new(&key),
-                    Path::new(&cert),
-                );
-                system_runner.block_on(server_future).unwrap()
-            }
-            _ => {
-                log::warn!("Not using HTTPS. If you would like to use HTTPS, point $STELLARUST_KEY and  $STELLARUST_CERT to the key and cert files, respectively");
-                system_runner
-                .block_on(run_actix_server(scope, game_data_root))
-                .unwrap()},
-        };
+use stellarust::{PROD_TEST_DATA_ROOT, PROD_TEST_EMPTY_FOLDER};
 
-        system_runner.block_on(server).unwrap()
-    })
-    .unwrap();
-    Ok(())
+#[cfg(target_os = "windows")]
+const PATHS: [&str; 1] = [&"Documents\\Paradox Interactive\\Stellaris\\save games"];
+
+#[cfg(target_os = "linux")]
+const PATHS: [&str; 1] = [&".local/share/Paradox Interactive/Stellaris/save games"];
+
+fn main() -> Result<()> {
+    let env_home = PathBuf::from(std::env::var("HOME").expect("$HOME should be defined"));
+    let mut save_dir = Option::None;
+
+    let mut tried = vec![];
+    for p in PATHS {
+        let dir = {
+            let mut home = env_home.clone();
+            home.push(p);
+            home
+        };
+        if dir.is_dir() {
+            save_dir = Some(dir)
+        } else {
+            tried.push(dir)
+        }
+    }
+    if let Some(game_data_root) = save_dir {
+        thread::scope(|scope| {
+            std::env::set_var(
+                "RUST_LOG",
+                format!(
+                    r###"
+                        stellarust={stellarust_level},
+                        actix_broadcaster={broadcaster_level},
+                        actix_server={server_level},
+                        directory_watcher={watcher_level},
+                        game_data_controller={controller_level},
+                        game_data_info_struct_reader={reader_level},
+                    "###,
+                    stellarust_level = "info",
+                    broadcaster_level = "info",
+                    server_level = "info",
+                    watcher_level = "info",
+                    controller_level = "info",
+                    reader_level = "info",
+                ),
+            );
+            env_logger::init();
+            let system_runner = rt::System::new();
+
+            let tls_key = std::env::var("STELLARUST_KEY")
+                .map(|s| PathBuf::from(s))
+                .ok();
+            let tls_cert = std::env::var("STELLARUST_CERT")
+                .map(|s| PathBuf::from(s))
+                .ok();
+            let server_future = run_actix_server(scope, &game_data_root, &tls_key, &tls_cert);
+            let server = system_runner.block_on(server_future).unwrap();
+
+            system_runner.block_on(server).unwrap()
+        })
+        .unwrap();
+        Ok(())
+    } else {
+        Err(anyhow::Error::new(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            format!("Save Data directory not found! Tried {:?}", tried),
+        )))
+    }
 }
