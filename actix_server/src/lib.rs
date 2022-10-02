@@ -1,147 +1,22 @@
-use std::{
-    collections::HashMap,
-    path::{Path, PathBuf},
-};
+mod api;
+
+use std::path::{Path, PathBuf};
 
 use actix_cors::Cors;
 
-use actix_web::{
-    dev::Server,
-    get, middleware,
-    web::{self, Data},
-    App, HttpResponse, HttpServer, Responder,
-};
+use actix_web::{dev::Server, middleware, web::Data, App, HttpServer};
 
 use actix_web_static_files::ResourceFiles;
 use anyhow::Result;
+use api::*;
 use crossbeam::{channel::unbounded, thread::Scope};
 use game_data_controller::controller::GameModelController;
 use listenfd::ListenFd;
-use model_info_struct::{
-    enums::ModelSpecEnum,
-    model::{
-        budget_stream_graph::BudgetStreamGraphModelSpec, campaign_list::CampaignListModelSpec,
-        empire_list::EmpireListModelSpec, resource_summary_table::ResourceSummaryTableModelSpec,
-    },
-    ResourceClass, ResourceCode, ALL_RESOURCES,
-};  
-use serde_derive::Deserialize;
 
 use rustls::{Certificate, PrivateKey, ServerConfig};
 use rustls_pemfile::{certs, pkcs8_private_keys};
 
 include!(concat!(env!("OUT_DIR"), "/generated.rs"));
-
-#[get("/campaigns")]
-pub async fn campaigns(s: Data<GameModelController>) -> impl Responder {
-    log::info!("Connection Request: CampaignList");
-
-    match s.get_client(ModelSpecEnum::CampaignList(CampaignListModelSpec)) {
-        Some(client) => HttpResponse::Ok()
-            .append_header(("content-type", "text/event-stream"))
-            .append_header(("connection", "keep-alive"))
-            .append_header(("cache-control", "no-cache"))
-            .streaming(client),
-        None => HttpResponse::NotFound().body(""),
-    }
-}
-
-#[get("/{campaign_name}/empires")]
-pub async fn empires(
-    s: Data<GameModelController>,
-    campaign_name: web::Path<String>,
-) -> impl Responder {
-    log::info!("Connection Request: EmpireList for {}", campaign_name);
-    match s.get_client(ModelSpecEnum::EmpireList(EmpireListModelSpec {
-        campaign_name: campaign_name.to_string(),
-    })) {
-        Some(client) => HttpResponse::Ok()
-            .append_header(("content-type", "text/event-stream"))
-            .append_header(("connection", "keep-alive"))
-            .append_header(("cache-control", "no-cache"))
-            .streaming(client),
-        None => HttpResponse::NotFound().body(""),
-    }
-}
-#[derive(Deserialize)]
-pub struct BudgetRequest {
-    campaign_name: String,
-    empire_name: String,
-}
-#[get("/{campaign_name}/{empire_name}/budget")]
-pub async fn budget_data(
-    s: Data<GameModelController>,
-    budget_request: web::Path<BudgetRequest>,
-) -> impl Responder {
-    log::info!(
-        "Connection Request: BudgetData for {}/{}",
-        budget_request.campaign_name,
-        budget_request.empire_name
-    );
-    match s.get_client(ModelSpecEnum::BudgetStreamGraph(
-        BudgetStreamGraphModelSpec {
-            resources: vec![
-                ResourceClass::Energy,
-                ResourceClass::Minerals,
-                ResourceClass::Alloys,
-                ResourceClass::Nanites,
-            ],
-            campaign_name: budget_request.campaign_name.to_string(),
-            empire: budget_request.empire_name.to_string(),
-        },
-    )) {
-        Some(client) => HttpResponse::Ok()
-            .append_header(("content-type", "text/event-stream"))
-            .append_header(("connection", "keep-alive"))
-            .append_header(("cache-control", "no-cache"))
-            .streaming(client),
-        None => HttpResponse::NotFound().body(""),
-    }
-}
-
-#[derive(Deserialize)]
-pub struct ResourceSummaryRequest {
-    campaign_name: String,
-    empire_name: String,
-    resource_list: String,
-}
-#[get("/{campaign_name}/{empire_name}/resourcesummary/{resource_list}")]
-pub async fn resource_summary_data(
-    s: Data<GameModelController>,
-    resource_summary_request: web::Path<ResourceSummaryRequest>,
-) -> impl Responder {
-    let mut resources = vec![];
-
-    for resource in ALL_RESOURCES {
-        if resource_summary_request
-            .resource_list
-            .contains(resource.code())
-        {
-            resources.push(resource);
-        }
-    }
-
-    log::info!(
-        "Connection Request: Resource SummaryData for {}/{}/{:?}",
-        resource_summary_request.campaign_name,
-        resource_summary_request.empire_name,
-        resources
-    );
-    match s.get_client(ModelSpecEnum::ResourceSummaryTable(
-        ResourceSummaryTableModelSpec {
-            resources,
-            campaign_name: resource_summary_request.campaign_name.to_string(),
-            empire: resource_summary_request.empire_name.to_string(),
-        },
-    )) {
-        Some(client) => HttpResponse::Ok()
-            .append_header(("content-type", "text/event-stream"))
-            .append_header(("connection", "keep-alive"))
-            .append_header(("cache-control", "no-cache"))
-            .streaming(client),
-        None => HttpResponse::NotFound().body(""),
-    }
-}
 
 pub async fn run_actix_server(scope: &Scope<'_>, game_data_root: &Path) -> Result<Server> {
     let game_data_controller = Data::new(GameModelController::create(

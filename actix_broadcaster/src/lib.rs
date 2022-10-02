@@ -13,16 +13,17 @@ use std::{
 };
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 
+/// Actix Web HTTP Server Sent Events -based implementaiton
 #[derive(Debug)]
 pub struct ActixBroadcaster {
     clients: Arc<RwLock<Vec<UnboundedSender<Bytes>>>>,
     self_destruct: tokio::sync::mpsc::Sender<()>,
 }
 
+/// Trait for the ping interval, so that we can have different much shorter timeouts in test
 pub trait Ping {
     const PING_INTERVAL: Duration;
 }
-
 #[cfg(not(test))]
 impl Ping for ActixBroadcaster {
     const PING_INTERVAL: Duration = Duration::from_secs(10);
@@ -32,10 +33,15 @@ impl Ping for ActixBroadcaster {
     const PING_INTERVAL: Duration = Duration::from_millis(10);
 }
 
+/// Trait for exporting the broadcaster.
 pub trait Broadcaster {
-    fn create(self_destruct: tokio::sync::mpsc::Sender<()>) -> Self;
+    /// Creates a new broadcaster with a sender `signal_empty` to signal when there are zero clients left in the broadcaster client list.
+    fn create(signal_empty: tokio::sync::mpsc::Sender<()>) -> Self;
+    /// Populates a new client. Unused in production, consider removing it
     fn new_client(&self) -> Client;
+    /// Populates a new and sends that client a message.
     fn new_client_with_message<S: Serialize>(&self, message: &S) -> Client;
+    /// Serializes and sends a message to all clients. Report back the number of clients could be sent the message.
     fn send<S: Serialize>(&self, message: &S) -> usize;
 }
 
@@ -81,7 +87,7 @@ impl Broadcaster for ActixBroadcaster {
         let message_string = &serde_json::to_string(&message).unwrap();
         let message_bytes =
             Bytes::from(["event: message\ndata: ", message_string, "\n\n"].concat());
-
+        // Gather the successful sends and keep them in the client list
         let (clients, count) = clients
             .par_drain(..)
             .fold(
@@ -107,6 +113,7 @@ impl Broadcaster for ActixBroadcaster {
 }
 
 impl ActixBroadcaster {
+    /// Send a ping to all clients every `PING_INTERVAL` and drop the clients for which the send failed.
     fn spawn_ping(&self) {
         let clients = self.clients.clone();
         let self_destruct = self.self_destruct.clone();
@@ -125,10 +132,9 @@ impl ActixBroadcaster {
         self_destruct: &tokio::sync::mpsc::Sender<()>,
     ) -> bool {
         let var_name = &"event: ping\ndata: ping\n\n";
-
         let mut write_guard = clients.write().unwrap();
         let mut clients = std::mem::take(&mut *write_guard);
-
+        // Gather the successful sends and keep them in the client list
         let (clients, count) = clients
             .par_drain(..)
             .fold(
@@ -163,7 +169,7 @@ impl ActixBroadcaster {
 pub struct Client(UnboundedReceiver<Bytes>);
 impl Stream for Client {
     type Item = Result<Bytes, actix_web::http::Error>;
-
+    /// This does NOT work without self.0 being a tokio receiver of some kind
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         match Pin::new(&mut self.0).poll_recv(cx) {
             Poll::Ready(Some(v)) => Poll::Ready(Some(Ok(v))),
