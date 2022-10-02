@@ -4,7 +4,6 @@ use actix_server::run_actix_server;
 use actix_web::rt;
 use anyhow::Result;
 use crossbeam::thread;
-use stellarust::{PROD_TEST_DATA_ROOT, PROD_TEST_EMPTY_FOLDER};
 
 #[cfg(target_os = "windows")]
 const PATHS: [&str; 1] = [&"Documents\\Paradox Interactive\\Stellaris\\save games"];
