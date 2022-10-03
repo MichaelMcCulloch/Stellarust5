@@ -20,6 +20,7 @@ pub struct EmpireListModel {
 }
 impl Model for EmpireListModel {
     type ModelSpec = EmpireListModelSpec;
+    type Representation = Vec<Empire>;
 
     fn create(spec: Self::ModelSpec) -> Self {
         Self {
@@ -27,8 +28,6 @@ impl Model for EmpireListModel {
             spec,
         }
     }
-
-    type Representation = Vec<Empire>;
 
     fn update(&mut self, game_data: &ModelDataPoint) -> Option<Self::Representation> {
         if game_data.campaign_name == self.spec.campaign_name {

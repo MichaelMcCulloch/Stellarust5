@@ -2,5 +2,6 @@
 Cargo.lock
 production_data/*
 frontend_client/*
+frontend/*
 .vscode/*
 .git/*

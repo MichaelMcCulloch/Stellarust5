@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Deploy Stellarust",
+            "label": "Deploy Server",
             "detail": "Will deploy the production build of stellarust, which can serve it's own client",
             "type": "shell",
             "command": "systemfd --no-pid -s https::0.0.0.0:8000 -- cargo-watch -c --no-gitignore -x 'run --package backend --bin stellarust --release';",
@@ -18,15 +18,15 @@
             "group": "build"
         },
         {
-            "label": "Install NPM Deps",
+            "label": "Install Typescript Deps",
             "type": "shell",
-            "command": "npm install react-dom react-google-charts react-router-dom web-vitals react-app react-select",
+            "command": "npm install ",
             "options": {
-                "cwd": "${workspaceFolder}/frontend_client",
+                "cwd": "${workspaceFolder}/frontend",
             },
         },
         {
-            "label": "Deploy React Client",
+            "label": "Deploy Client",
             "type": "shell",
             "linux": {
                 "command": "npm run build; rm -rf ${workspaceFolder}/frontend_static_files/static;  mv build/ ${workspaceFolder}/frontend_static_files/static/ ",
@@ -36,20 +36,20 @@
             },
             "group": "build",
             "options": {
-                "cwd": "${workspaceFolder}/frontend_client",
+                "cwd": "${workspaceFolder}/frontend",
             },
             "dependsOn": [
-                "Install NPM Deps"
+                "Install Typescript Deps"
             ],
             "isBackground": true,
         },
         {
-            "label": "Debug React Client",
+            "label": "Debug Client",
             "type": "shell",
             "command": "npm start",
             "group": "build",
             "options": {
-                "cwd": "${workspaceFolder}/frontend_client",
+                "cwd": "${workspaceFolder}/frontend",
                 "env": {
                     "HTTPS": "true",
                     "SSL_CRT_FILE": "${env:STELLARUST_CERT}",
