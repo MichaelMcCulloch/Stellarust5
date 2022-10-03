@@ -19,7 +19,6 @@ function ResourceSummaryChart(props) {
 
 };
 
-
 class ResourceSummary extends React.Component {
 
     constructor(props) {
@@ -44,23 +43,18 @@ class ResourceSummary extends React.Component {
             if (this.eventSource) { this.eventSource.close() }
             this.state.data = [];
             this.eventSource = new EventSource(GET_REMOTE_HOST(this.props.campaign_name + "/" + this.props.empire_name + "/resourcesummary/" + nextProps.resources.join("")));
-
-            this.eventSource.onmessage = (e) => this.process_message(e);
+            this.eventSource.onmessage = (e) => this.processMessage(e);
             return false
-        } else if (this.state.data !== nextState.data) {
-            if (nextState.data[0].length === nextProps.resources.length + 1) return true
-            else return false
-        } else return false
+        } else if (this.state.data !== nextState.data && nextState.data[0].length === nextProps.resources.length + 1) return true
+        else return false
     }
 
     createEventSource() {
 
-
         this.eventSource = new EventSource(GET_REMOTE_HOST(this.props.campaign_name + "/" + this.props.empire_name + "/resourcesummary/" + this.props.resources.join("")));
-
-        this.eventSource.onmessage = (e) => this.process_message(e);
+        this.eventSource.onmessage = (e) => this.processMessage(e);
     }
-    process_message(e) {
+    processMessage(e) {
         const new_data = JSON.parse(e.data).ResourceSummary.map(x => [x[0]].concat(x[1]));
         this.setState({ data: this.state.data.concat(new_data) });
     }
