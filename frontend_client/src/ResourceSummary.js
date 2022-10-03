@@ -25,30 +25,15 @@ class ResourceSummary extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            data: [["Date", "Energy",
-                "Minerals",
-                "Food",
-                "Physics",
-                "Society",
-                "Engineering",
-                "Influence",
-                "Unity",
-                "ConsumerGoods",
-                "Alloys",
-                "Motes",
-                "Gasses",
-                "Crystals",
-                "LivingMetal",
-                "Zro",
-                "DarkMatter",
-                "Nanites"
-            ]]
+            data: [["Date"].concat(this.props.resources)]
         };
 
     }
     componentDidMount() {
 
-        this.eventSource = new EventSource(GET_REMOTE_HOST(this.props.campaign_name + "/" + this.props.empire_name + "/resourcesummary/EnergyMineralsFoodPhysicsSocietyEngineeringInfluenceUnityConsumerGoodsAlloysMotesGassesCrystalsLivingMetalZroDarkMatterNanites"));
+        let resource_code_string = this.props.resources.join("")
+
+        this.eventSource = new EventSource(GET_REMOTE_HOST(this.props.campaign_name + "/" + this.props.empire_name + "/resourcesummary/" + resource_code_string));
 
 
 

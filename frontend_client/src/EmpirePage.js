@@ -17,7 +17,7 @@ class EmpirePage extends React.Component {
 
             return <div><p>
                 This is the page for  {this.props.empire_name} in the {this.props.campaign_name} campaign</p>
-                <ResourceSummary campaign_name={this.props.campaign_name} empire_name={this.props.empire_name} />
+                <ResourceSummary campaign_name={this.props.campaign_name} empire_name={this.props.empire_name} resources={["Alloys", "Influence"]} />
             </div>
         } else {
             return <></>
