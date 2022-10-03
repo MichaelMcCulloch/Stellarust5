@@ -2,7 +2,7 @@
 import React from "react";
 import { Chart } from "react-google-charts";
 
-import GET_REMOTE_HOST from "./Const";
+import REMOTE_HOST from "./Const";
 function ResourceSummaryChart(props) {
 
     return <Chart
@@ -23,35 +23,24 @@ class ResourceSummary extends React.Component {
 
     constructor(props) {
         super(props);
-
         this.state = { data: [] }
-
-    }
-    componentDidMount() { this.createEventSource(); }
-    componentDidUpdate(prevProps) {
-        if (this.props.resources != prevProps.resources) // Check if it's a new user, you can also use some unique property, like the ID  (this.props.user.id !== prevProps.user.id)
-        {
-            if (this.eventSource) { this.eventSource.close() }
-            this.state.data = [];
-            this.createEventSource();
-        }
+        this.createEventSource(this.props.resources);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        if (this.props.resources !== nextProps.resources) // Check if it's a new user, you can also use some unique property, like the ID  (this.props.user.id !== prevProps.user.id)
-        {
+        if (this.props.resources !== nextProps.resources) {
             if (this.eventSource) { this.eventSource.close() }
+            // We need to set this here explicitly so that when it is picked up on the next iteration of process message it is not using old data
+            // eslint-disable-next-line
             this.state.data = [];
-            this.eventSource = new EventSource(GET_REMOTE_HOST(this.props.campaign_name + "/" + this.props.empire_name + "/resourcesummary/" + nextProps.resources.join("")));
-            this.eventSource.onmessage = (e) => this.processMessage(e);
+            this.createEventSource(nextProps.resources);
             return false
         } else if (this.state.data !== nextState.data && nextState.data[0].length === nextProps.resources.length + 1) return true
         else return false
     }
 
-    createEventSource() {
-
-        this.eventSource = new EventSource(GET_REMOTE_HOST(this.props.campaign_name + "/" + this.props.empire_name + "/resourcesummary/" + this.props.resources.join("")));
+    createEventSource(resources) {
+        this.eventSource = new EventSource(REMOTE_HOST + this.props.campaign_name + "/" + this.props.empire_name + "/resourcesummary/" + resources.join(""));
         this.eventSource.onmessage = (e) => this.processMessage(e);
     }
     processMessage(e) {
@@ -59,19 +48,12 @@ class ResourceSummary extends React.Component {
         this.setState({ data: this.state.data.concat(new_data) });
     }
 
-    componentWillUnmount() {
+    componentWillUnmount() { this.eventSource.close() }
 
-
-        this.eventSource.close()
-    }
     render() {
-
-
-        if (this.state.data.length > 1) {
-            if (this.props.empire_name && this.props.campaign_name) {
-                let data = [["Date"].concat(this.props.resources)].concat(this.state.data)
-                return <ResourceSummaryChart data={data} />
-            } else return <></>
+        if (this.state.data.length > 0 && this.props.empire_name && this.props.campaign_name) {
+            let data = [["Date"].concat(this.props.resources)].concat(this.state.data)
+            return <ResourceSummaryChart data={data} />
         }
     }
 }

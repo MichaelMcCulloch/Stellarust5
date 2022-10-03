@@ -1,5 +1,5 @@
 import React from "react";
-import GET_REMOTE_HOST from "./Const";
+import REMOTE_HOST from "./Const";
 
 
 class CampaignSelectPage extends React.Component {
@@ -12,7 +12,7 @@ class CampaignSelectPage extends React.Component {
 
     componentDidMount() {
 
-        this.eventSource = new EventSource(GET_REMOTE_HOST("campaigns"));
+        this.eventSource = new EventSource(REMOTE_HOST + "campaigns");
 
         this.eventSource.onmessage = (e) => this.setState(JSON.parse(e.data))
     }
@@ -22,7 +22,7 @@ class CampaignSelectPage extends React.Component {
     render() {
         if (this.state !== {}) {
             if (this.state.CampaignList) {
-                return <div ><CampaignSelectList data={this.state.CampaignList} /></div>
+                return <CampaignSelectList data={this.state.CampaignList} />
             }
         } else {
             return <></>

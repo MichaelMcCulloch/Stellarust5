@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import GET_REMOTE_HOST from "./Const";
+import REMOTE_HOST from "./Const";
 
 class EmpireSelectPage extends React.Component {
 
@@ -12,7 +12,7 @@ class EmpireSelectPage extends React.Component {
 
     componentDidMount() {
 
-        this.eventSource = new EventSource(GET_REMOTE_HOST(this.props.campaign_name + "/empires"));
+        this.eventSource = new EventSource(REMOTE_HOST + this.props.campaign_name + "/empires");
 
         this.eventSource.onmessage = (e) => this.setState(JSON.parse(e.data))
 
@@ -26,11 +26,11 @@ class EmpireSelectPage extends React.Component {
 
         if (this.state !== {}) {
             if (this.state.EmpireList) {
-                return (<div><EmpireSelectList empire_list={this.state.EmpireList} campaign_name={this.props.campaign_name} /></div>)
+                return <EmpireSelectList empire_list={this.state.EmpireList} campaign_name={this.props.campaign_name} />
             }
 
         } else {
-            return (<></>)
+            return <></>
 
         }
 
