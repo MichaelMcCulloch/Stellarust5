@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useParams } from "react-router-dom";
-import ResourceSummary from "./ResourceSummary";
+import ResourceSummaryContainer from "./ResourceSummaryContainer";
 
 
 class EmpirePage extends React.Component {
@@ -15,9 +15,13 @@ class EmpirePage extends React.Component {
     render() {
         if (this.props.empire_name && this.props.campaign_name) {
 
+
+
+
+
             return <div><p>
                 This is the page for  {this.props.empire_name} in the {this.props.campaign_name} campaign</p>
-                <ResourceSummary campaign_name={this.props.campaign_name} empire_name={this.props.empire_name} resources={["Alloys", "Influence"]} />
+                <ResourceSummaryContainer campaign_name={this.props.campaign_name} empire_name={this.props.empire_name} />
             </div>
         } else {
             return <></>

@@ -20,7 +20,7 @@
         {
             "label": "Install NPM Deps",
             "type": "shell",
-            "command": "npm install react-dom react-google-charts react-router-dom web-vitals react-app",
+            "command": "npm install react-dom react-google-charts react-router-dom web-vitals react-app react-select",
             "options": {
                 "cwd": "${workspaceFolder}/frontend_client",
             },
