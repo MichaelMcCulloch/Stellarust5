@@ -41,30 +41,16 @@ class ResourceSummary extends React.Component {
     shouldComponentUpdate(nextProps, nextState) {
         if (this.props.resources !== nextProps.resources) // Check if it's a new user, you can also use some unique property, like the ID  (this.props.user.id !== prevProps.user.id)
         {
-
             if (this.eventSource) { this.eventSource.close() }
             this.state.data = [];
             this.eventSource = new EventSource(GET_REMOTE_HOST(this.props.campaign_name + "/" + this.props.empire_name + "/resourcesummary/" + nextProps.resources.join("")));
 
-            this.eventSource.onmessage = (e) => {
-                const new_data = JSON.parse(e.data).ResourceSummary.map(x => [x[0]].concat(x[1]));
-                this.setState({ data: this.state.data.concat(new_data) });
-
-            };
+            this.eventSource.onmessage = (e) => this.process_message(e);
             return false
         } else if (this.state.data !== nextState.data) {
-            if (nextState.data[0].length === nextProps.resources.length + 1) {
-
-                return true
-
-            } else {
-
-                return false
-            }
-        } else {
-
-            return false
-        }
+            if (nextState.data[0].length === nextProps.resources.length + 1) return true
+            else return false
+        } else return false
     }
 
     createEventSource() {
@@ -72,12 +58,13 @@ class ResourceSummary extends React.Component {
 
         this.eventSource = new EventSource(GET_REMOTE_HOST(this.props.campaign_name + "/" + this.props.empire_name + "/resourcesummary/" + this.props.resources.join("")));
 
-        this.eventSource.onmessage = (e) => {
-            const new_data = JSON.parse(e.data).ResourceSummary.map(x => [x[0]].concat(x[1]));
-            this.setState({ data: this.state.data.concat(new_data) });
-
-        };
+        this.eventSource.onmessage = (e) => this.process_message(e);
     }
+    process_message(e) {
+        const new_data = JSON.parse(e.data).ResourceSummary.map(x => [x[0]].concat(x[1]));
+        this.setState({ data: this.state.data.concat(new_data) });
+    }
+
     componentWillUnmount() {
 
 
@@ -90,9 +77,7 @@ class ResourceSummary extends React.Component {
             if (this.props.empire_name && this.props.campaign_name) {
                 let data = [["Date"].concat(this.props.resources)].concat(this.state.data)
                 return <ResourceSummaryChart data={data} />
-            } else {
-                return <></>
-            }
+            } else return <></>
         }
     }
 }
