@@ -94,16 +94,17 @@ pub async fn resource_summary_data(
     s: Data<GameModelController>,
     resource_summary_request: web::Path<ResourceSummaryRequest>,
 ) -> impl Responder {
-    let mut resources = vec![];
+    let mut resources = ALL_RESOURCES
+        .iter()
+        .filter_map(
+            |resource| match resource_summary_request.resource_list.find(resource.code()) {
+                Some(index) => Some((resource, index)),
+                None => None,
+            },
+        )
+        .collect::<Vec<_>>();
 
-    for resource in ALL_RESOURCES {
-        if resource_summary_request
-            .resource_list
-            .contains(resource.code())
-        {
-            resources.push(resource);
-        }
-    }
+    resources.sort_by(|(_ar, ai), (_br, bi)| ai.cmp(bi));
 
     log::info!(
         "Connection Request: Resource SummaryData for {}/{}/{:?}",
@@ -112,7 +113,7 @@ pub async fn resource_summary_data(
         resources
     );
     match s.get_client(ModelSpecEnum::ResourceSummary(ResourceSummaryModelSpec {
-        resources,
+        resources: resources.iter().map(|(r, _i)| **r).collect::<Vec<_>>(),
         campaign_name: resource_summary_request.campaign_name.to_string(),
         empire: resource_summary_request.empire_name.to_string(),
     })) {
