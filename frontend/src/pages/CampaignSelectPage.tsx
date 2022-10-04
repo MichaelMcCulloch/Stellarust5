@@ -1,5 +1,5 @@
 import React from "react";
-import REMOTE_HOST from "./Const";
+import REMOTE_HOST from "../Const";
 interface CampaignState {
     campaign_list?: [CampaignInfoStruct]
 };

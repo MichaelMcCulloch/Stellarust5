@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import REMOTE_HOST from "./Const";
+import REMOTE_HOST from "../Const";
 
 interface EmpireSelectPageProps {
     campaign_name: string

@@ -2,7 +2,7 @@
 import React from "react";
 import { Chart } from "react-google-charts";
 
-import REMOTE_HOST from "./Const";
+import REMOTE_HOST from "../Const";
 
 interface ResourceSummaryChartProps {
     data: any
@@ -12,11 +12,11 @@ function ResourceSummaryChart(props: ResourceSummaryChartProps) {
 
     return <Chart
         chartType="LineChart"
-        width="100%"
+        width="400px"
         height="400px"
         data={props.data}
         options={{
-            title: "Alloy Stockpile Over Time",
+            title: "Stockpile Over Time",
             curveType: "function",
             legend: { position: "bottom" },
         }}

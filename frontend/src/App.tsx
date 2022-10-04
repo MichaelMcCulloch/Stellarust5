@@ -1,8 +1,9 @@
 import { Route, Routes } from "react-router-dom";
 import './App.css';
-import CampaignSelectPage from "./CampaignSelectPage";
-import EmpirePageWrapper from "./EmpirePage";
-import EmpireSelectPageWrapper from "./EmpireSelectPage";
+
+import CampaignSelectPage from "./pages/CampaignSelectPage";
+import EmpirePageWrapper from "./pages/EmpirePage";
+import EmpireSelectPageWrapper from "./pages/EmpireSelectPage";
 export default function App() {
   return (
     <div className="App">

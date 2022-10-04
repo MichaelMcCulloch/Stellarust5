@@ -58,16 +58,8 @@ class ResourceSummaryContainer extends React.Component<ResourceSummaryContainerP
             return <div>
                 <ResourceSelection on_change={this.onChange} />
                 <ResourceSummary campaign_name={this.props.campaign_name} empire_name={this.props.empire_name} resources={this.state.selection} />
-
             </div>
-        } else {
-
-            return <div>
-                <ResourceSelection on_change={this.onChange} />
-
-            </div>
-
-        }
+        } else return <div><ResourceSelection on_change={this.onChange} /></div>
     }
 
 }
