@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Watch Build Check",
+            "label": "Watch Backend",
             "type": "shell",
             "command": "cargo watch -c --quiet -d 0 --no-gitignore -x 'check --all' -s 'touch .trigger'",
             "options": {
@@ -16,7 +16,21 @@
             },
         },
         {
-            "label": "Watch Build Check Success",
+            "label": "Watch Frontend",
+            "type": "shell",
+            "command": "cargo watch  -d 0 --no-gitignore --no-ignore  -w frontend/src/ -s '(cd frontend/; npm run lint)' -s 'rm -r target/release/build/frontend_static_files* && touch .trigger'",
+            "options": {
+                "cwd": "${workspaceFolder}/"
+            },
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+        },
+        {
+            "label": "Watch Trigger File Success",
             "detail": "Will deploy the production build of stellarust, which can serve it's own client",
             "type": "shell",
             "command": "systemfd --no-pid -s https::0.0.0.0:8000 -- cargo watch -c --quiet --no-gitignore --no-ignore -d 0 -w '.trigger' -x 'run --package backend --bin stellarust --release';",
@@ -33,8 +47,9 @@
         {
             "label": "Deploy Stellarust In Production Mode With Automagic Redeployement",
             "dependsOn": [
-                "Watch Build Check",
-                "Watch Build Check Success"
+                "Watch Backend",
+                "Watch Frontend",
+                "Watch Build Check Success",
             ],
             "dependsOrder": "parallel",
             "group": {
