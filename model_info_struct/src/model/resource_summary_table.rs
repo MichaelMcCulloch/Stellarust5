@@ -24,7 +24,7 @@ pub struct ResourceSummaryModel {
 }
 impl Model for ResourceSummaryModel {
     type ModelSpec = ResourceSummaryModelSpec;
-    type Representation = Vec<(u64, Vec<f64>)>;
+    type Representation = Vec<(u64, Vec<f64>)>; // This is not very readable. TODO: Instead let's wrap it in a struct, then employ serde::serialize_with to turn a code acceptable copy into the representation google charts needs
 
     fn create(spec: Self::ModelSpec) -> Self {
         Self { list: vec![], spec }
