@@ -1,9 +1,6 @@
 mod api;
 
-use std::{
-    collections::HashMap,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 use actix_cors::Cors;
 

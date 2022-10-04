@@ -9,3 +9,4 @@ production_data/*
 !production_data/*.tar.xz
 !target/release/stellarust.exe
 !target/release/stellarust
+.trigger

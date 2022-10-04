@@ -5,3 +5,4 @@ frontend_client/*
 frontend/*
 .vscode/*
 .git/*
+.trigger
