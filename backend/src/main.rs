@@ -11,7 +11,13 @@ const PATHS: [&str; 1] = [&"Documents\\Paradox Interactive\\Stellaris\\save game
 #[cfg(target_os = "linux")]
 const PATHS: [&str; 1] = [&".local/share/Paradox Interactive/Stellaris/save games"];
 
-fn main() -> Result<()> {
+
+#[cfg(target_os = "windows")]
+const HOME: &str = "USERPROFILE";
+#[cfg(target_os = "linux")]
+const HOME: &str = "HOME";
+
+fn main() -> Result<()> { 
     std::env::set_var(
         "RUST_LOG",
         format!(
@@ -32,7 +38,7 @@ fn main() -> Result<()> {
         ),
     );
     env_logger::init();
-    let env_home = PathBuf::from(std::env::var("HOME").expect("$HOME should be defined"));
+    let env_home = PathBuf::from(std::env::var(HOME).expect("$HOME should be defined")); 
     let mut save_dir = Option::None;
 
     let mut tried = vec![];

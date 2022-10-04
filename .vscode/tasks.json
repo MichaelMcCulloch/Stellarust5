@@ -4,7 +4,12 @@
         {
             "label": "Watch Backend And Trigger",
             "type": "shell",
-            "command": "cargo watch -c --quiet -d 0 --no-gitignore -x 'check --all' -s 'touch .trigger'",
+            "linux": {
+                "command": "cargo watch -c --quiet -d 0 --no-gitignore -x 'check --all' -s 'touch .trigger'"
+            },
+            "windows": {
+                "command": "cargo watch -c --quiet -d 0 --no-gitignore -x 'check --all' -s 'type '' > .trigger'"
+            },
             "options": {
                 "cwd": "${workspaceFolder}/"
             },
@@ -18,9 +23,15 @@
         {
             "label": "Watch Frontend And Trigger",
             "type": "shell",
-            "command": "cargo watch -c --quiet -d 0 --no-gitignore --no-ignore  -w frontend/src/ -s '(cd frontend/; npm run lint)' -s 'rm -r target/release/build/frontend_static_files* ; touch .trigger'",
+            "linux": {
+                "command": "cargo watch -c --quiet -d 0 --no-gitignore --no-ignore  -w frontend/src/ -s '(cd frontend/; npm run lint)' -s 'rm -r target/release/build/frontend_static_files* ; touch .trigger'",
+            },
+            "windows": {
+                "command": "cargo watch --use-shell=powershell -c --quiet -d 0 --no-gitignore --no-ignore  -w .\\frontend\\src\\ -s 'cd frontend; npm run lint; if ($?) {cd .. ; Remove-Item -Path .\\target\\release\\build\\frontend_static_files-* -Recurse -Force -Confirm:$false; echo $null >>  .trigger } else { cd .. } ;'  ",
+                
+            },
             "options": {
-                "cwd": "${workspaceFolder}/"
+                "cwd": "${workspaceFolder}"
             },
             "problemMatcher": [
                 "$rustc"
