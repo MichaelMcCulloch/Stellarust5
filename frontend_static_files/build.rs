@@ -1,5 +1,6 @@
-use static_files::resource_dir;
+use static_files::{resource_dir, NpmBuild};
 
 fn main() -> std::io::Result<()> {
-    resource_dir("static").build()
+    NpmBuild::new("../frontend").install()?.run("build")?;
+    resource_dir("../frontend/build").build()
 }
