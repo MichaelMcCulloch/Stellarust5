@@ -5,7 +5,7 @@
             "label": "Watch Backend And Trigger",
             "type": "shell",
             "linux": {
-                "command": "cargo watch -c --quiet -d 0 --no-gitignore -x 'check --all' -s 'touch .trigger'"
+                "command": "./.vscode/watch_backend.sh"
             },
             "windows": {
                 "command": "cargo watch -c --quiet -d 0 --no-gitignore -x 'check --all' -s 'type '' > .trigger'"
@@ -22,13 +22,12 @@
         },
         {
             "label": "Watch Frontend And Trigger",
-            "type": "shell",
+            "type": "process",
             "linux": {
-                "command": "cargo watch -c --quiet -d 0 --no-gitignore --no-ignore  -w frontend/src/ -s '(cd frontend/; npm run lint)' -s 'rm -r target/release/build/frontend_static_files* ; touch .trigger'",
+                "command": "./.vscode/watch_frontend.sh",
             },
             "windows": {
-                "command": "cargo watch --use-shell=powershell -c --quiet -d 0 --no-gitignore --no-ignore  -w .\\frontend\\src\\ -s 'cd frontend; npm run lint; if ($?) {cd .. ; Remove-Item -Path .\\target\\release\\build\\frontend_static_files-* -Recurse -Force -Confirm:$false; echo $null >>  .trigger } else { cd .. } ;'  ",
-                
+                "command": "cargo watch --use-shell=powershell -c --quiet -d 0 --no-gitignore --no-ignore  -w .\\frontend\\src\\ -s 'cd frontend; npm run lint; if ($?) {cd .. ; Remove-Item -Path .\\target\\release\\build\\frontend_static_files-* -Recurse -Force -Confirm:$false ; Remove-Item -Path .\\target\\debug\\build\\frontend_static_files-* -Recurse -Force -Confirm:$false ; echo $null >>  .trigger } else { cd .. } ;'  ",
             },
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -44,7 +43,7 @@
             "label": "Watch Trigger And Build",
             "detail": "Will deploy the production build of stellarust, which can serve it's own client",
             "type": "shell",
-            "command": "systemfd --no-pid -s https::0.0.0.0:8000 -- cargo watch -c --quiet --no-gitignore --no-ignore -d 0 -w '.trigger' -x 'run --package backend --bin stellarust --release';",
+            "command": "./.vscode/watch_trigger.sh",
             "options": {
                 "cwd": "${workspaceFolder}/"
             },
@@ -63,6 +62,18 @@
                 "Watch Trigger And Build",
             ],
             "dependsOrder": "parallel",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Deploy Stellarust In Production Mode With Automagic Redeployement With Script",
+            "type": "process",
+            "command": "${workspaceFolder}/.vscode/monitor.sh",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "group": {
                 "kind": "build",
                 "isDefault": true
