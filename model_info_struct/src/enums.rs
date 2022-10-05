@@ -11,7 +11,7 @@ use crate::{
         budget_stream_graph::{BudgetStreamGraphModel, BudgetStreamGraphModelSpec},
         campaign_list::{CampaignInfoStruct, CampaignListModel, CampaignListModelSpec, Empire},
         empire_list::{EmpireListModel, EmpireListModelSpec},
-        resource_summary_table::{ResourceSummaryModel, ResourceSummaryModelSpec},
+        resource_summary_table::{LineChartData, ResourceSummaryModel, ResourceSummaryModelSpec},
     },
     Model, ModelSpec, Representation,
 };
@@ -38,7 +38,7 @@ pub enum RepresentationEnum {
     CampaignList(Vec<CampaignInfoStruct>),
     EmpireList(Vec<Empire>),
     BudgetStreamGraph(Vec<(Date, Vec<f64>)>),
-    ResourceSummary(Vec<(u64, Vec<f64>)>),
+    ResourceSummary(LineChartData),
 }
 impl Model for ModelEnum {
     type ModelSpec = ModelSpecEnum;

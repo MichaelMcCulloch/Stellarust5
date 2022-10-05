@@ -55,7 +55,7 @@ class ResourceSummary extends React.Component<ResourceSummaryProps, ResourceSumm
     createEventSource(resources: string[]) {
         this.event_source = new EventSource(REMOTE_HOST + this.props.campaign_name + "/" + this.props.empire_name + "/resourcesummary/" + resources.join(""));
         this.event_source.onmessage = (e) => {
-            const new_data = JSON.parse(e.data).ResourceSummary.map((x: [number, []]) => [x[0]].concat(x[1]));
+            const new_data = JSON.parse(e.data).ResourceSummary;
             if (this.state) {
                 this.setState({ data: this.state.data.concat(new_data) });
 
