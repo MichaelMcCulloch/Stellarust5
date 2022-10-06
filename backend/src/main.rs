@@ -33,7 +33,7 @@ fn main() -> Result<()> {
             server_level = "info",
             watcher_level = "info",
             controller_level = "info",
-            reader_level = "info",
+            reader_level = "info", 
         ),
     );
     env_logger::init();

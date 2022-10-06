@@ -22,7 +22,7 @@
         },
         {
             "label": "Watch Frontend And Trigger",
-            "type": "process",
+            "type": "shell",
             "linux": {
                 "command": "./.vscode/watch_frontend.sh",
             },
@@ -43,7 +43,12 @@
             "label": "Watch Trigger And Build",
             "detail": "Will deploy the production build of stellarust, which can serve it's own client",
             "type": "shell",
-            "command": "./.vscode/watch_trigger.sh",
+            "linux": {
+                "command": "./.vscode/watch_trigger.sh"
+            },
+            "windows": {
+                "command": "systemfd --no-pid -s https::0.0.0.0:8000 -- cargo watch -c --quiet --no-gitignore --no-ignore -d 0 -w '.trigger' -x 'run --package backend --bin stellarust --release';"
+            },
             "options": {
                 "cwd": "${workspaceFolder}/"
             },
@@ -68,9 +73,13 @@
         },
         {
             "label": "Deploy Stellarust In Production Mode With Automagic Redeployement With Script",
-            "type": "process",
             "linux": {
+                "type": "process",
                 "command": "${workspaceFolder}/.vscode/monitor.sh",
+            },
+            "windows": {
+                "type": "shell",
+                "command": "${workspaceFolder}/.vscode/monitor.ps1"
             },
             "options": {
                 "cwd": "${workspaceFolder}"

@@ -12,8 +12,8 @@ function ResourceSummaryChart(props: ResourceSummaryChartProps) {
 
     return <Chart
         chartType="LineChart"
-        width="400px"
-        height="400px"
+        width="100%"
+        height="100%"
         data={props.data}
         options={{
             title: "Stockpile Over Time",
