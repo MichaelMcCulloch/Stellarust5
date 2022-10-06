@@ -64,13 +64,14 @@
             "dependsOrder": "parallel",
             "group": {
                 "kind": "build",
-                "isDefault": true
             }
         },
         {
             "label": "Deploy Stellarust In Production Mode With Automagic Redeployement With Script",
             "type": "process",
-            "command": "${workspaceFolder}/.vscode/monitor.sh",
+            "linux": {
+                "command": "${workspaceFolder}/.vscode/monitor.sh",
+            },
             "options": {
                 "cwd": "${workspaceFolder}"
             },
