@@ -98,24 +98,6 @@
             },
         },
         {
-            "label": "Deploy Client",
-            "type": "shell",
-            "linux": {
-                "command": "npm run build; rm -rf ${workspaceFolder}/frontend_static_files/static;  mv build/ ${workspaceFolder}/frontend_static_files/static/ ",
-            },
-            "windows": {
-                "command": "npm run build; rm -r -fo ${workspaceFolder}/frontend_static_files/static;  mv build/ ${workspaceFolder}/frontend_static_files/static/ ",
-            },
-            "group": "build",
-            "options": {
-                "cwd": "${workspaceFolder}/frontend",
-            },
-            "dependsOn": [
-                "Install Typescript Deps"
-            ],
-            "isBackground": true,
-        },
-        {
             "label": "Debug Client",
             "type": "shell",
             "command": "npm start",
