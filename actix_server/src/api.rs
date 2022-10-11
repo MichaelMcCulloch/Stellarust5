@@ -16,7 +16,7 @@ use serde_derive::Deserialize;
 
 #[get("/campaigns")]
 pub async fn campaigns(s: Data<GameModelController>) -> impl Responder {
-    log::info!("Connection Request: CampaignList");
+    log::trace!("Connection Request: CampaignList");
 
     match s.get_client(ModelSpecEnum::CampaignList(CampaignListModelSpec)) {
         Some(client) => HttpResponse::Ok()
@@ -33,7 +33,7 @@ pub async fn empires(
     s: Data<GameModelController>,
     campaign_name: web::Path<String>,
 ) -> impl Responder {
-    log::info!("Connection Request: EmpireList for {}", campaign_name);
+    log::trace!("Connection Request: EmpireList for {}", campaign_name);
     match s.get_client(ModelSpecEnum::EmpireList(EmpireListModelSpec {
         campaign_name: campaign_name.to_string(),
     })) {
@@ -57,7 +57,7 @@ pub async fn budget_data(
     s: Data<GameModelController>,
     budget_request: web::Path<BudgetRequest>,
 ) -> impl Responder {
-    log::info!(
+    log::trace!(
         "Connection Request: BudgetData for {}/{}",
         budget_request.campaign_name,
         budget_request.empire_name
@@ -106,7 +106,7 @@ pub async fn resource_summary_data(
 
     resources.sort_by(|(_ar, ai), (_br, bi)| ai.cmp(bi));
 
-    log::info!(
+    log::trace!(
         "Connection Request: Resource SummaryData for {}/{}/{:?}",
         resource_summary_request.campaign_name,
         resource_summary_request.empire_name,
