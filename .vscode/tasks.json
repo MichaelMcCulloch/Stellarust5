@@ -98,20 +98,44 @@
             },
         },
         {
-            "label": "Debug Client",
+            "label": "Debug HTTPS Client",
+            "type": "shell",
+            "command": "npm start",
+            "group": "build",
+            "linux": {
+                "options": {
+                    "env": {
+                        "SSL_CRT_FILE": "${STELLARUST_CERT}",
+                        "SSL_KEY_FILE": "${STELLARUST_KEY}"
+                    }
+                }
+            },
+            "windows": {
+                "options": {
+                    "env": {
+                        "SSL_CRT_FILE": "${env:STELLARUST_CERT}",
+                        "SSL_KEY_FILE": "${env:STELLARUST_KEY}"
+                    }
+                }
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/frontend",
+                "env": {
+                    "HTTPS": "true",
+                }
+            },
+        },
+        {
+            "label": "Debug HTTP Client",
             "type": "shell",
             "command": "npm start",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}/frontend",
                 "env": {
-                    "HTTPS": "true",
-                    "SSL_CRT_FILE": "${env:STELLARUST_CERT}",
-                    "SSL_KEY_FILE": "${env:STELLARUST_KEY}"
+                    "HTTPS": "false",
                 }
             },
-            "dependsOn": [],
-            "isBackground": true,
         }
     ]
 }
