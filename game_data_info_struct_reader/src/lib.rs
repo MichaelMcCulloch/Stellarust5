@@ -1,5 +1,7 @@
 mod extractor;
-use extractor::{budget::BudgetExtractor, fleet::FleetExtractor, Extractor};
+use extractor::{
+    budget::BudgetExtractor, fleet::FleetExtractor, resources::ResourcesExtractor, Extractor,
+};
 
 use clausewitz_parser::{ClausewitzValue, Val};
 use directory_watcher::FileReader;
@@ -22,50 +24,6 @@ impl FileReader for GameDataInfoStructReader {
 }
 
 impl GameDataInfoStructReader {
-    fn get_contributions_per_class(contributions: &Val<'_>) -> Vec<(ResourceClass, f64)> {
-        ALL_RESOURCES
-            .iter()
-            .filter_map(|class| {
-                if let Ok(val) = contributions.get_at_path(format!("{}", class).as_str()) {
-                    match val {
-                        Val::Decimal(d) => Some((class.clone(), *d)),
-                        Val::Integer(i) => Some((class.clone(), *i as f64)),
-                        _ => None,
-                    }
-                } else {
-                    None
-                }
-            })
-            .collect()
-    }
-    fn extract_resources(resources: &Val) -> Resources {
-        let extract_resource = |resource_path: &str| -> f64 {
-            if let Ok(x) = resources.get_number_at_path(resource_path) {
-                x
-            } else {
-                0.0f64
-            }
-        };
-        Resources {
-            energy: extract_resource("energy"),
-            minerals: extract_resource("minerals"),
-            food: extract_resource("food"),
-            physics_research: extract_resource("physics_research"),
-            society_research: extract_resource("society_research"),
-            engineering_research: extract_resource("engineering_research"),
-            influence: extract_resource("influence"),
-            unity: extract_resource("unity"),
-            consumer_goods: extract_resource("consumer_goods"),
-            alloys: extract_resource("alloys"),
-            volatile_motes: extract_resource("volatile_motes"),
-            exotic_gases: extract_resource("exotic_gases"),
-            rare_crystals: extract_resource("rare_crystals"),
-            sr_living_metal: extract_resource("sr_living_metal"),
-            sr_zro: extract_resource("sr_zro"),
-            sr_dark_matter: extract_resource("sr_dark_matter"),
-            nanites: extract_resource("nanites"),
-        }
-    }
     fn extract_empire(country: &Val, player_class: PlayerClass) -> Option<EmpireData> {
         if let Err(_) = country.get_at_path("victory_rank") {
             return None;
@@ -78,7 +36,7 @@ impl GameDataInfoStructReader {
                 name: Self::extract_empire_name(country),
                 driver: player_class,
                 budget: BudgetExtractor::extract(country.get_at_path("budget").unwrap()),
-                resources: Self::extract_resources(
+                resources: ResourcesExtractor::extract(
                     standard_economy_module.get_at_path("resources").unwrap(),
                 ),
             })
