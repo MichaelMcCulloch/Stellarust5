@@ -1,3 +1,6 @@
+mod extractor;
+use extractor::{budget::BudgetExtractor, fleet::FleetExtractor, Extractor};
+
 use clausewitz_parser::{ClausewitzValue, Val};
 use directory_watcher::FileReader;
 pub use game_data_info_struct::{
@@ -19,36 +22,6 @@ impl FileReader for GameDataInfoStructReader {
 }
 
 impl GameDataInfoStructReader {
-    fn extract_budget(budget: &Val) -> Budget {
-        let current_month_budget = budget.get_at_path("current_month").unwrap();
-
-        let get_budget_val = |key: &str, budget_period: &Val| -> BudgetComponent {
-            Self::get_budget_component_map(budget_period.get_at_path(key).unwrap())
-        };
-
-        Budget {
-            income: get_budget_val("income", current_month_budget),
-            expense: get_budget_val("expenses", current_month_budget),
-        }
-    }
-    fn get_budget_component_map(component: &Val<'_>) -> BudgetComponent {
-        if let Val::Dict(sources) = component {
-            sources.into_iter().fold(
-                BudgetComponent::default(),
-                |mut map, (contributor, contributions)| {
-                    let contribitions_per_class = Self::get_contributions_per_class(contributions);
-
-                    for (key, amount) in contribitions_per_class.into_iter() {
-                        map.index_mut(&key)
-                            .insert(String::from(*contributor), amount);
-                    }
-                    map
-                },
-            )
-        } else {
-            panic!()
-        }
-    }
     fn get_contributions_per_class(contributions: &Val<'_>) -> Vec<(ResourceClass, f64)> {
         ALL_RESOURCES
             .iter()
@@ -104,7 +77,7 @@ impl GameDataInfoStructReader {
             Some(EmpireData {
                 name: Self::extract_empire_name(country),
                 driver: player_class,
-                budget: Self::extract_budget(country.get_at_path("budget").unwrap()),
+                budget: BudgetExtractor::extract(country.get_at_path("budget").unwrap()),
                 resources: Self::extract_resources(
                     standard_economy_module.get_at_path("resources").unwrap(),
                 ),
