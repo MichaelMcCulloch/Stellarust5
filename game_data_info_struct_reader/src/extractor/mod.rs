@@ -8,5 +8,5 @@ pub(crate) mod resources;
 pub(crate) trait Extractor {
     type Yield;
 
-    fn extract(val: &Val) -> Self::Yield;
+    fn extract(&self) -> Self::Yield;
 }

@@ -35,10 +35,11 @@ impl GameDataInfoStructReader {
             Some(EmpireData {
                 name: Self::extract_empire_name(country),
                 driver: player_class,
-                budget: BudgetExtractor::extract(country.get_at_path("budget").unwrap()),
-                resources: ResourcesExtractor::extract(
+                budget: BudgetExtractor::create(country.get_at_path("budget").unwrap()).extract(),
+                resources: ResourcesExtractor::create(
                     standard_economy_module.get_at_path("resources").unwrap(),
-                ),
+                )
+                .extract(),
             })
         } else {
             None

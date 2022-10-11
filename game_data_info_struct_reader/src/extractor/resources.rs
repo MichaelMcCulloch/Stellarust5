@@ -3,14 +3,16 @@ use game_data_info_struct::Resources;
 
 use crate::Extractor;
 
-pub(crate) struct ResourcesExtractor {}
+pub(crate) struct ResourcesExtractor<'a> {
+    resources: &'a Val<'a>,
+}
 
-impl Extractor for ResourcesExtractor {
+impl<'a> Extractor for ResourcesExtractor<'a> {
     type Yield = Resources;
 
-    fn extract(resources: &Val) -> Resources {
+    fn extract(&self) -> Resources {
         let extract_resource = |resource_path: &str| -> f64 {
-            if let Ok(x) = resources.get_number_at_path(resource_path) {
+            if let Ok(x) = self.resources.get_number_at_path(resource_path) {
                 x
             } else {
                 0.0f64
@@ -35,5 +37,11 @@ impl Extractor for ResourcesExtractor {
             sr_dark_matter: extract_resource("sr_dark_matter"),
             nanites: extract_resource("nanites"),
         }
+    }
+}
+
+impl<'a> ResourcesExtractor<'a> {
+    pub fn create(resources: &'a Val<'a>) -> ResourcesExtractor<'a> {
+        ResourcesExtractor { resources }
     }
 }

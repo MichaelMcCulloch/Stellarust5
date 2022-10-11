@@ -8,7 +8,7 @@ pub(crate) struct EmpiresExtractor {}
 impl Extractor for EmpiresExtractor {
     type Yield = Vec<EmpireData>;
 
-    fn extract(val: &Val) -> Vec<EmpireData> {
+    fn extract(&self) -> Vec<EmpireData> {
         todo!()
     }
 }

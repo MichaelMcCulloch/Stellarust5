@@ -3,12 +3,14 @@ use game_data_info_struct::{Budget, BudgetComponent, IndexMut, ResourceClass, AL
 
 use crate::Extractor;
 
-pub(crate) struct BudgetExtractor {}
+pub(crate) struct BudgetExtractor<'a> {
+    budget: &'a Val<'a>,
+}
 
-impl Extractor for BudgetExtractor {
+impl<'a> Extractor for BudgetExtractor<'a> {
     type Yield = Budget;
-    fn extract(budget: &Val) -> Self::Yield {
-        let current_month_budget = budget.get_at_path("current_month").unwrap();
+    fn extract(&self) -> Self::Yield {
+        let current_month_budget = self.budget.get_at_path("current_month").unwrap();
 
         let get_budget_val = |key: &str, budget_period: &Val| -> BudgetComponent {
             Self::get_budget_component_map(budget_period.get_at_path(key).unwrap())
@@ -21,7 +23,10 @@ impl Extractor for BudgetExtractor {
     }
 }
 
-impl BudgetExtractor {
+impl<'a> BudgetExtractor<'a> {
+    pub fn create(budget: &'a Val<'a>) -> BudgetExtractor<'a> {
+        BudgetExtractor { budget }
+    }
     fn get_budget_component_map(component: &Val<'_>) -> BudgetComponent {
         if let Val::Dict(sources) = component {
             sources.into_iter().fold(
