@@ -18,7 +18,11 @@ impl FileReader for GameDataInfoStructReader {
     fn read_file(&self, file: &Path) -> ModelDataPoint {
         let (meta_raw, gamestate_raw) = game_data_unzipper::get_zipped_content(file);
         let (_, meta_val) = clausewitz_parser::root(&meta_raw).unwrap();
-        let (_, gamestate_val) = clausewitz_parser::cheat_root(&gamestate_raw).unwrap();
+        let (_, gamestate_val) = clausewitz_parser::cheat_root(
+            &gamestate_raw,
+            vec!["version", "player", "country", "fleet", "ships"],
+        )
+        .unwrap();
 
         Self::extract(meta_val, gamestate_val)
     }
