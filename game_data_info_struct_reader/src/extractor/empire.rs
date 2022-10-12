@@ -1,3 +1,5 @@
+use std::process::exit;
+
 use clausewitz_parser::{ClausewitzValue, Val};
 use game_data_info_struct::{EmpireData, Fleets, PlayerClass};
 
@@ -24,6 +26,11 @@ impl<'a> Extractor for EmpireExtractor<'a> {
         } else if let Ok(standard_economy_module) =
             self.country.get_at_path("modules.standard_economy_module")
         {
+            let owned_fleets = self
+                .country
+                .get_set_at_path("fleets_manager.owned_fleets")
+                .unwrap();
+
             Some(EmpireData {
                 name: Self::extract_empire_name(self.country),
                 driver: self.player_class.clone(),
@@ -33,14 +40,13 @@ impl<'a> Extractor for EmpireExtractor<'a> {
                     standard_economy_module.get_at_path("resources").unwrap(),
                 )
                 .extract(),
-                fleets: Fleets { military: vec![] },
-                // fleets: FleetsExtractor::create(
-                //     self.country,
-                //     self.fleets,
-                //     self.ships,
-                //     self.ship_design,
-                // )
-                // .extract(),
+                fleets: FleetsExtractor::create(
+                    owned_fleets,
+                    self.fleets,
+                    self.ships,
+                    self.ship_design,
+                )
+                .extract(),
             })
         } else {
             None
