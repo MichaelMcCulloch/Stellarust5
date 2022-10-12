@@ -1,11 +1,30 @@
+use clausewitz_parser::Val;
+
 use crate::Extractor;
 
-pub(crate) struct FleetExtractor {}
+pub(crate) struct FleetExtractor<'a> {
+    fleet: &'a Val<'a>,
+    ships: &'a Vec<Val<'a>>,
+    ship_design: &'a Vec<Val<'a>>,
+}
 
-impl Extractor for FleetExtractor {
+impl<'a> Extractor for FleetExtractor<'a> {
     type Yield = ();
 
     fn extract(&self) -> () {
         todo!()
+    }
+}
+impl<'a> FleetExtractor<'a> {
+    pub fn create(
+        fleet: &'a Val<'a>,
+        ships: &'a Vec<Val<'a>>,
+        ship_design: &'a Vec<Val<'a>>,
+    ) -> FleetExtractor<'a> {
+        FleetExtractor {
+            fleet,
+            ships,
+            ship_design,
+        }
     }
 }

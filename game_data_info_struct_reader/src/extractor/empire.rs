@@ -1,13 +1,18 @@
+use std::process::exit;
+
 use clausewitz_parser::{ClausewitzValue, Val};
-use game_data_info_struct::{EmpireData, PlayerClass};
+use game_data_info_struct::{EmpireData, Fleets, PlayerClass};
 
 use crate::{util, Extractor};
 
-use super::{budget::BudgetExtractor, resources::ResourcesExtractor};
+use super::{budget::BudgetExtractor, fleets::FleetsExtractor, resources::ResourcesExtractor};
 
 pub(crate) struct EmpireExtractor<'a> {
     country: &'a Val<'a>,
     player_class: PlayerClass,
+    fleets: &'a Vec<Val<'a>>,
+    ships: &'a Vec<Val<'a>>,
+    ship_design: &'a Vec<Val<'a>>,
 }
 
 impl<'a> Extractor for EmpireExtractor<'a> {
@@ -21,6 +26,11 @@ impl<'a> Extractor for EmpireExtractor<'a> {
         } else if let Ok(standard_economy_module) =
             self.country.get_at_path("modules.standard_economy_module")
         {
+            let owned_fleets = self
+                .country
+                .get_set_at_path("fleets_manager.owned_fleets")
+                .unwrap();
+
             Some(EmpireData {
                 name: Self::extract_empire_name(self.country),
                 driver: self.player_class.clone(),
@@ -30,6 +40,13 @@ impl<'a> Extractor for EmpireExtractor<'a> {
                     standard_economy_module.get_at_path("resources").unwrap(),
                 )
                 .extract(),
+                fleets: FleetsExtractor::create(
+                    owned_fleets,
+                    self.fleets,
+                    self.ships,
+                    self.ship_design,
+                )
+                .extract(),
             })
         } else {
             None
@@ -37,10 +54,19 @@ impl<'a> Extractor for EmpireExtractor<'a> {
     }
 }
 impl<'a> EmpireExtractor<'a> {
-    pub fn create(country: &'a Val<'a>, player_class: PlayerClass) -> EmpireExtractor<'a> {
+    pub fn create(
+        country: &'a Val<'a>,
+        player_class: PlayerClass,
+        fleets: &'a Vec<Val<'a>>,
+        ships: &'a Vec<Val<'a>>,
+        ship_design: &'a Vec<Val<'a>>,
+    ) -> EmpireExtractor<'a> {
         EmpireExtractor {
             country,
             player_class,
+            fleets,
+            ships,
+            ship_design,
         }
     }
 

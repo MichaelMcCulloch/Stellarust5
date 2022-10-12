@@ -107,7 +107,9 @@ mod tests {
 
     use chrono::NaiveDate;
     use fxhash::FxBuildHasher;
-    use game_data_info_struct::{Budget, BudgetComponent, IndexMut, PlayerClass, Resources};
+    use game_data_info_struct::{
+        Budget, BudgetComponent, Fleets, IndexMut, PlayerClass, Resources,
+    };
 
     use super::*;
     #[test]
@@ -163,6 +165,7 @@ mod tests {
             sr_dark_matter: 0f64,
             nanites: 0f64,
         };
+        let fleets = Fleets { military: vec![] };
 
         let model_data_point = ModelDataPoint {
             campaign_name,
@@ -172,6 +175,7 @@ mod tests {
                 driver,
                 budget,
                 resources,
+                fleets,
             }],
         };
         let mut model = BudgetStreamGraphModel::create(spec);
@@ -225,6 +229,8 @@ mod tests {
             nanites: 0f64,
         };
 
+        let fleets = Fleets { military: vec![] };
+
         let date_1 = NaiveDate::from_ymd(2201, 01, 01);
         let date_2 = NaiveDate::from_ymd(2202, 01, 01);
         let date_3 = NaiveDate::from_ymd(2203, 01, 01);
@@ -236,6 +242,7 @@ mod tests {
                 driver: driver.clone(),
                 budget: budget.clone(),
                 resources: resources.clone(),
+                fleets: fleets.clone(),
             }],
         };
         let model_data_point_2 = ModelDataPoint {
@@ -246,6 +253,7 @@ mod tests {
                 driver: driver.clone(),
                 budget: budget.clone(),
                 resources: resources.clone(),
+                fleets: fleets.clone(),
             }],
         };
         let model_data_point_3 = ModelDataPoint {
@@ -256,6 +264,7 @@ mod tests {
                 driver: driver.clone(),
                 budget: budget.clone(),
                 resources: resources.clone(),
+                fleets: fleets.clone(),
             }],
         };
         let game_data_history = DashMap::with_hasher(FxBuildHasher::default());

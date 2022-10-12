@@ -8,6 +8,9 @@ use super::empire::EmpireExtractor;
 pub(crate) struct EmpiresExtractor<'a> {
     countries: &'a Vec<Val<'a>>,
     players: &'a Vec<Val<'a>>,
+    fleets: &'a Vec<Val<'a>>,
+    ships: &'a Vec<Val<'a>>,
+    ship_design: &'a Vec<Val<'a>>,
 }
 
 impl<'a> Extractor for EmpiresExtractor<'a> {
@@ -37,7 +40,15 @@ impl<'a> Extractor for EmpiresExtractor<'a> {
             } else {
                 PlayerClass::Computer
             };
-            if let Some(country) = EmpireExtractor::create(country, player_class).extract() {
+            if let Some(country) = EmpireExtractor::create(
+                country,
+                player_class,
+                self.fleets,
+                self.ships,
+                self.ship_design,
+            )
+            .extract()
+            {
                 empires.push(country)
             }
         }
@@ -46,7 +57,19 @@ impl<'a> Extractor for EmpiresExtractor<'a> {
 }
 
 impl<'a> EmpiresExtractor<'a> {
-    pub fn create(countries: &'a Vec<Val<'a>>, players: &'a Vec<Val<'a>>) -> EmpiresExtractor<'a> {
-        EmpiresExtractor { countries, players }
+    pub fn create(
+        countries: &'a Vec<Val<'a>>,
+        players: &'a Vec<Val<'a>>,
+        fleets: &'a Vec<Val<'a>>,
+        ships: &'a Vec<Val<'a>>,
+        ship_design: &'a Vec<Val<'a>>,
+    ) -> EmpiresExtractor<'a> {
+        EmpiresExtractor {
+            countries,
+            players,
+            fleets,
+            ships,
+            ship_design,
+        }
     }
 }

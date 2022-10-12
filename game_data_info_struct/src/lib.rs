@@ -4,7 +4,7 @@ use chrono::NaiveDate;
 use std::{collections::HashMap, fmt::Display};
 
 use serde_derive::{Deserialize, Serialize};
-#[derive(Default, Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Resources {
     pub energy: f64,
     pub minerals: f64,
@@ -28,6 +28,26 @@ pub struct Resources {
     pub sr_zro: f64,
     pub sr_dark_matter: f64,
     pub nanites: f64,
+}
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct Fleets {
+    pub military: Vec<Fleet>,
+}
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct Ship {
+    pub class: ShipClass,
+
+    pub hitpoints: u32,
+    pub shield_hitpoints: u32,
+    pub armor_hitpoints: u32,
+
+    pub max_hitpoints: u32,
+    pub max_shield_hitpoints: u32,
+    pub max_armor_hitpoints: u32,
+}
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct Fleet {
+    pub ships: Vec<Ship>,
 }
 
 /// Represent inflow/outflow streams for the 17 base resources. Maps a resource to a `M` where `M` maps a producer/consumer to an amount
@@ -159,7 +179,7 @@ impl Index<HashMap<String, f64>> for BudgetComponent {
         }
     }
 }
-#[derive(Default, Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Budget {
     pub income: BudgetComponent,
     pub expense: BudgetComponent,
@@ -204,6 +224,16 @@ pub enum ResourceClass {
     Zro,
     DarkMatter,
     Nanites,
+}
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
+pub enum ShipClass {
+    Corvette,
+    Destroyer,
+    Cruiser,
+    Battleship,
+    Titan,
+    Juggernaut,
+    Colossus,
 }
 
 pub trait ResourceCode {
@@ -268,6 +298,7 @@ pub struct EmpireData {
     pub driver: PlayerClass,
     pub budget: Budget,
     pub resources: Resources,
+    pub fleets: Fleets,
 }
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum PlayerClass {
