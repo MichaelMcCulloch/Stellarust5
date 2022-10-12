@@ -10,6 +10,7 @@ pub(crate) struct EmpireExtractor<'a> {
     player_class: PlayerClass,
     fleets: &'a Vec<Val<'a>>,
     ships: &'a Vec<Val<'a>>,
+    ship_design: &'a Vec<Val<'a>>,
 }
 
 impl<'a> Extractor for EmpireExtractor<'a> {
@@ -32,7 +33,14 @@ impl<'a> Extractor for EmpireExtractor<'a> {
                     standard_economy_module.get_at_path("resources").unwrap(),
                 )
                 .extract(),
-                fleets: FleetsExtractor::create(self.country, self.fleets, self.ships).extract(),
+                fleets: Fleets { military: vec![] },
+                // fleets: FleetsExtractor::create(
+                //     self.country,
+                //     self.fleets,
+                //     self.ships,
+                //     self.ship_design,
+                // )
+                // .extract(),
             })
         } else {
             None
@@ -52,6 +60,7 @@ impl<'a> EmpireExtractor<'a> {
             player_class,
             fleets,
             ships,
+            ship_design,
         }
     }
 

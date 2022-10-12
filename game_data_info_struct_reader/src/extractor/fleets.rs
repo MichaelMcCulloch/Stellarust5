@@ -7,6 +7,7 @@ pub(crate) struct FleetsExtractor<'a> {
     country: &'a Val<'a>,
     fleets: &'a Vec<Val<'a>>,
     ships: &'a Vec<Val<'a>>,
+    ship_design: &'a Vec<Val<'a>>,
 }
 
 impl<'a> Extractor for FleetsExtractor<'a> {
@@ -21,11 +22,13 @@ impl<'a> FleetsExtractor<'a> {
         country: &'a Val<'a>,
         fleets: &'a Vec<Val<'a>>,
         ships: &'a Vec<Val<'a>>,
+        ship_design: &'a Vec<Val<'a>>,
     ) -> FleetsExtractor<'a> {
         FleetsExtractor {
             country,
             fleets,
             ships,
+            ship_design,
         }
     }
 }
