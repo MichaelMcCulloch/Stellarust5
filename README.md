@@ -1,4 +1,6 @@
-# Stellarust5 
+# Stellarust v0.5
+
+### Heavily inspired by [Stellaru](https://github.com/benreid24/Stellaru). This is a learn-rust-the-hard-way project, and I chose this project because I play stellaris a LOT, and stellaru is quite slow. 
 
 Prereqs:
 
