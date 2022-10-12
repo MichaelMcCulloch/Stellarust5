@@ -2,7 +2,7 @@ mod extractor;
 mod util;
 use extractor::{
     budget::BudgetExtractor, empires::EmpiresExtractor, fleet::FleetExtractor,
-    resources::ResourcesExtractor, Extractor,
+    fleets::FleetsExtractor, resources::ResourcesExtractor, Extractor,
 };
 
 use clausewitz_parser::{ClausewitzValue, Val};
@@ -20,7 +20,14 @@ impl FileReader for GameDataInfoStructReader {
         let (_, meta_val) = clausewitz_parser::root(&meta_raw).unwrap();
         let (_, gamestate_val) = clausewitz_parser::cheat_root(
             &gamestate_raw,
-            vec!["version", "player", "country", "fleet", "ships"],
+            vec![
+                "version",
+                "player",
+                "country",
+                "fleet",
+                "ships",
+                "ship_design",
+            ],
         )
         .unwrap();
 
@@ -31,10 +38,13 @@ impl FileReader for GameDataInfoStructReader {
 impl GameDataInfoStructReader {
     fn extract(meta: Val, gamestate: Val) -> ModelDataPoint {
         let country = gamestate.get_array_at_path("country").expect("array `country` not found in parsed gamestate. Something has gone wrong, check your parser!");
+        let fleets = gamestate.get_array_at_path("fleet").expect("array `country` not found in parsed gamestate. Something has gone wrong, check your parser!");
+        let ships = gamestate.get_array_at_path("ships").expect("array `country` not found in parsed gamestate. Something has gone wrong, check your parser!");
+        let ship_design = gamestate.get_array_at_path("ship_design").expect("array `country` not found in parsed gamestate. Something has gone wrong, check your parser!");
         let empires = if let Ok(v) = gamestate.get_set_at_path("player") {
-            EmpiresExtractor::create(country, v).extract()
+            EmpiresExtractor::create(country, v, fleets, ships, ship_design).extract()
         } else {
-            EmpiresExtractor::create(country, &vec![]).extract()
+            EmpiresExtractor::create(country, &vec![], fleets, ships, ship_design).extract()
         };
 
         ModelDataPoint {
