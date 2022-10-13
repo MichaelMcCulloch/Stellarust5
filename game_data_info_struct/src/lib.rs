@@ -37,13 +37,13 @@ pub struct Fleets {
 pub struct Ship {
     pub class: ShipClass,
 
-    pub hitpoints: u32,
-    pub shield_hitpoints: u32,
-    pub armor_hitpoints: u32,
+    pub hitpoints: f64,
+    pub shield_hitpoints: f64,
+    pub armor_hitpoints: f64,
 
-    pub max_hitpoints: u32,
-    pub max_shield_hitpoints: u32,
-    pub max_armor_hitpoints: u32,
+    pub max_hitpoints: f64,
+    pub max_shield_hitpoints: f64,
+    pub max_armor_hitpoints: f64,
 }
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Fleet {

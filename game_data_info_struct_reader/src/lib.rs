@@ -1,7 +1,7 @@
 mod extractor;
 mod util;
 use extractor::{
-    budget::BudgetExtractor, empires::EmpiresExtractor, fleet::FleetExtractor,
+    budget::BudgetExtractor, empires::EmpiresExtractor, fleet::MilitaryFleetExtractor,
     fleets::FleetsExtractor, resources::ResourcesExtractor, Extractor,
 };
 
