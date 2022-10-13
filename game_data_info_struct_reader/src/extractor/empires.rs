@@ -1,5 +1,5 @@
 use clausewitz_parser::{ClausewitzValue, Val};
-use game_data_info_struct::{EmpireData, PlayerClass};
+use game_data_info_struct::{empire::EmpireData, player::PlayerClass};
 
 use crate::Extractor;
 

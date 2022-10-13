@@ -1,5 +1,5 @@
 use clausewitz_parser::{ClausewitzValue, Val};
-use game_data_info_struct::{Fleet, Ship, ShipClass};
+use game_data_info_struct::fleet::{Ship, ShipClass};
 
 use crate::Extractor;
 

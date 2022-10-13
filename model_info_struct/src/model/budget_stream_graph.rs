@@ -3,7 +3,9 @@ use std::hash::BuildHasherDefault;
 use crate::{Model, ModelSpec};
 use dashmap::DashMap;
 use fxhash::FxHasher;
-use game_data_info_struct::{date::Date, EmpireData, Index, ModelDataPoint, ResourceClass};
+use game_data_info_struct::{
+    date::Date, empire::EmpireData, index::Index, model::ModelDataPoint, resource::ResourceClass,
+};
 use serde_derive::Serialize;
 
 #[derive(Eq, PartialEq, Hash, Serialize, Clone, Debug)]
@@ -108,7 +110,11 @@ mod tests {
     use chrono::NaiveDate;
     use fxhash::FxBuildHasher;
     use game_data_info_struct::{
-        Budget, BudgetComponent, Fleets, IndexMut, PlayerClass, Resources,
+        budget::{Budget, BudgetComponent},
+        fleet::Fleets,
+        index_mut::IndexMut,
+        player::PlayerClass,
+        resource::{ResourceClass, Resources},
     };
 
     use super::*;

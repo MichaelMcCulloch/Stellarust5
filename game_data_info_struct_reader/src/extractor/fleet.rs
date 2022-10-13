@@ -1,12 +1,9 @@
-use std::process::exit;
-
 use clausewitz_parser::{ClausewitzValue, Val};
-use game_data_info_struct::Fleet;
-use log::warn;
+use game_data_info_struct::fleet::Fleet;
 
 use crate::Extractor;
 
-use super::ship::{self, MilitaryShipExtractor};
+use super::ship::MilitaryShipExtractor;
 
 pub(crate) struct MilitaryFleetExtractor<'a> {
     fleet: &'a Val<'a>,

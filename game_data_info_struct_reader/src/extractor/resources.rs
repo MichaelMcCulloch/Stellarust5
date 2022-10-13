@@ -1,5 +1,5 @@
 use clausewitz_parser::{ClausewitzValue, Val};
-use game_data_info_struct::Resources;
+use game_data_info_struct::resource::{self, Resources};
 
 use crate::Extractor;
 
@@ -8,9 +8,9 @@ pub(crate) struct ResourcesExtractor<'a> {
 }
 
 impl<'a> Extractor for ResourcesExtractor<'a> {
-    type Yield = Resources;
+    type Yield = resource::Resources;
 
-    fn extract(&self) -> Resources {
+    fn extract(&self) -> resource::Resources {
         let extract_resource = |resource_path: &str| -> f64 {
             if let Ok(x) = self.resources.get_number_at_path(resource_path) {
                 x

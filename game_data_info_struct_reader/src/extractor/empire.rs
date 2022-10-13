@@ -1,7 +1,5 @@
-use std::process::exit;
-
 use clausewitz_parser::{ClausewitzValue, Val};
-use game_data_info_struct::{EmpireData, Fleets, PlayerClass};
+use game_data_info_struct::{empire::EmpireData, player::PlayerClass};
 
 use crate::{util, Extractor};
 
