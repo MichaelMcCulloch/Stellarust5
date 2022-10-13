@@ -1,3 +1,4 @@
+use super::{broadcast_model_changes, reconcile, write_to_db};
 use actix_broadcaster::ActixBroadcaster;
 use crossbeam::{channel::Receiver, thread::Scope};
 use dashmap::DashMap;
@@ -5,12 +6,7 @@ use fxhash::FxHasher;
 use game_data_info_struct_reader::ModelDataPoint;
 use model_info_struct::enums::{ModelEnum, ModelSpecEnum};
 use rusqlite::Connection;
-use std::hash::BuildHasherDefault;
-use std::sync::Arc;
-
-use super::broadcast_model_changes;
-use super::reconcile;
-use super::write_to_db;
+use std::{hash::BuildHasherDefault, sync::Arc};
 
 /// Spawns the event loop:
 /// - Receive a data point

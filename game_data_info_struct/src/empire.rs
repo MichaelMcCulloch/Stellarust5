@@ -1,6 +1,5 @@
-use serde_derive::{Deserialize, Serialize};
-
 use crate::{budget::Budget, fleet::Fleets, player::PlayerClass, resource::Resources};
+use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct EmpireData {

@@ -1,7 +1,6 @@
+use crate::Extractor;
 use clausewitz_parser::{ClausewitzValue, Val};
 use game_data_info_struct::fleet::{Ship, ShipClass};
-
-use crate::Extractor;
 
 pub(crate) struct MilitaryShipExtractor<'a> {
     ship: &'a Val<'a>,

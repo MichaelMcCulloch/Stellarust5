@@ -1,7 +1,6 @@
+use crate::empire::EmpireData;
 use chrono::NaiveDate;
 use serde_derive::{Deserialize, Serialize};
-
-use crate::empire::EmpireData;
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct ModelDataPoint {
     pub campaign_name: String,

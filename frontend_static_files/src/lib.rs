@@ -1,6 +1,5 @@
-use std::collections::HashMap;
-
 use static_files::Resource;
+use std::collections::HashMap;
 
 include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 

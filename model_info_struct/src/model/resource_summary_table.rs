@@ -1,5 +1,3 @@
-use std::hash::{BuildHasherDefault, Hash};
-
 use crate::{Model, ModelSpec};
 use chrono::NaiveDate;
 use dashmap::DashMap;
@@ -9,6 +7,7 @@ use game_data_info_struct::{
 };
 use serde::{ser::SerializeSeq, Serialize};
 use serde_derive::Serialize;
+use std::hash::{BuildHasherDefault, Hash};
 use stellarust::{START_OF_GAME_DATE, START_OF_GAME_MONTH, START_OF_GAME_YEAR};
 
 #[derive(Eq, PartialEq, Hash, Serialize, Clone, Debug)]

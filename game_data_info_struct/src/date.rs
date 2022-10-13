@@ -1,5 +1,4 @@
 use chrono::{Datelike, NaiveDate};
-
 use serde_derive::{Deserialize, Serialize};
 
 ///This is a thin wrapper to enable serialization, NaiveDate can use this to ser/de

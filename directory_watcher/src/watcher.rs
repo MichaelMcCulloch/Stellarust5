@@ -1,7 +1,6 @@
-use std::path::{Path, PathBuf};
-
 use notify::{Config, Event, RecommendedWatcher, RecursiveMode, Watcher};
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
+use std::path::{Path, PathBuf};
 
 pub trait EventFilter: Send + 'static {
     fn filter_event(&self, event: &Event) -> bool;

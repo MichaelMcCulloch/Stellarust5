@@ -1,10 +1,9 @@
+use crate::Extractor;
 use clausewitz_parser::{ClausewitzValue, Val};
 use game_data_info_struct::{
     budget::Budget, budget::BudgetComponent, index_mut::IndexMut, resource::ResourceClass,
     resource::ALL_RESOURCES,
 };
-
-use crate::Extractor;
 
 pub(crate) struct BudgetExtractor<'a> {
     budget: &'a Val<'a>,

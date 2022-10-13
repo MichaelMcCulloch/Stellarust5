@@ -1,3 +1,4 @@
+use crate::functions::*;
 use actix_broadcaster::{ActixBroadcaster, Broadcaster, Client};
 use crossbeam::{
     channel::{Receiver, Sender},
@@ -12,11 +13,7 @@ use model_info_struct::{
 };
 use notify::RecommendedWatcher;
 use rusqlite::Connection;
-use std::hash::BuildHasherDefault;
-use std::path::Path;
-use std::sync::Arc;
-
-use crate::functions::*;
+use std::{hash::BuildHasherDefault, path::Path, sync::Arc};
 
 pub struct GameModelController {
     broadcasters_map:

@@ -1,12 +1,10 @@
-use std::{collections::HashSet, hash::BuildHasherDefault};
-
+use super::campaign_list::Empire;
 use crate::{Model, ModelSpec};
 use dashmap::DashMap;
 use fxhash::FxHasher;
 use game_data_info_struct::{model::ModelDataPoint, player::PlayerClass};
 use serde_derive::Serialize;
-
-use super::campaign_list::Empire;
+use std::{collections::HashSet, hash::BuildHasherDefault};
 
 #[derive(Eq, PartialEq, Hash, Serialize, Clone, Debug)]
 pub struct EmpireListModelSpec {

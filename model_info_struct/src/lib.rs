@@ -1,9 +1,8 @@
-use std::hash::{BuildHasherDefault, Hash};
-
 use dashmap::DashMap;
 use fxhash::FxHasher;
 use game_data_info_struct::model::ModelDataPoint;
 use serde::Serialize;
+use std::hash::{BuildHasherDefault, Hash};
 
 pub mod model;
 

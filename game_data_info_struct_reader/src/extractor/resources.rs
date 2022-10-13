@@ -1,7 +1,6 @@
+use crate::Extractor;
 use clausewitz_parser::{ClausewitzValue, Val};
 use game_data_info_struct::resource::{self, Resources};
-
-use crate::Extractor;
 
 pub(crate) struct ResourcesExtractor<'a> {
     resources: &'a Val<'a>,

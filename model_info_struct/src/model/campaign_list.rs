@@ -1,10 +1,9 @@
-use std::{hash::BuildHasherDefault, vec};
-
 use crate::{Model, ModelSpec};
 use dashmap::DashMap;
 use fxhash::FxHasher;
 use game_data_info_struct::{model::ModelDataPoint, player::PlayerClass};
 use serde_derive::{Deserialize, Serialize};
+use std::{hash::BuildHasherDefault, vec};
 
 #[derive(Eq, PartialEq, Hash, Serialize, Clone, Debug)]
 pub struct CampaignListModelSpec;

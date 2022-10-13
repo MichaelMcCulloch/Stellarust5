@@ -1,9 +1,6 @@
+use super::{fleet::MilitaryFleetExtractor, Extractor};
 use clausewitz_parser::{ClausewitzValue, Val};
 use game_data_info_struct::fleet::Fleets;
-
-use crate::Extractor;
-
-use super::fleet::MilitaryFleetExtractor;
 
 pub(crate) struct FleetsExtractor<'a> {
     owned_fleets: &'a Vec<Val<'a>>,

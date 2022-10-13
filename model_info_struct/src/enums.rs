@@ -1,10 +1,3 @@
-use std::hash::BuildHasherDefault;
-
-use dashmap::DashMap;
-use fxhash::FxHasher;
-use game_data_info_struct::{date::Date, model::ModelDataPoint, resource::ResourceClass};
-use serde_derive::Serialize;
-
 use crate::{
     model::{
         budget_stream_graph::{BudgetStreamGraphModel, BudgetStreamGraphModelSpec},
@@ -14,6 +7,11 @@ use crate::{
     },
     Model, ModelSpec, Representation,
 };
+use dashmap::DashMap;
+use fxhash::FxHasher;
+use game_data_info_struct::{date::Date, model::ModelDataPoint, resource::ResourceClass};
+use serde_derive::Serialize;
+use std::hash::BuildHasherDefault;
 
 #[derive(Eq, PartialEq, Hash, Serialize, Clone, Debug)]
 pub enum ModelSpecEnum {

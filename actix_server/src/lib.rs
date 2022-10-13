@@ -1,11 +1,6 @@
 mod api;
-
-use std::path::{Path, PathBuf};
-
 use actix_cors::Cors;
-
 use actix_web::{dev::Server, middleware, web::Data, App, HttpServer};
-
 use actix_web_static_files::ResourceFiles;
 use anyhow::Result;
 use api::*;
@@ -13,9 +8,9 @@ use crossbeam::{channel::unbounded, thread::Scope};
 use frontend_static_files::generate_static_files;
 use game_data_controller::controller::GameModelController;
 use listenfd::ListenFd;
-
 use rustls::{Certificate, PrivateKey, ServerConfig};
 use rustls_pemfile::{certs, pkcs8_private_keys};
+use std::path::{Path, PathBuf};
 
 /// Populate an actix server. If a TCP Listener is available through listenFd, then that address will be used, otherwise, localhost:8000
 pub async fn run_actix_server(
@@ -70,7 +65,6 @@ pub async fn run_actix_server(
     let s = server.run();
     Ok(s)
 }
-
 use std::{fs::File, io::BufReader};
 
 fn load_rustls_config(key: &Path, cert: &Path) -> rustls::ServerConfig {

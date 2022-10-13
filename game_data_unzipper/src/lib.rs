@@ -1,10 +1,9 @@
+use memmap::Mmap;
 use std::{
     fs::File,
     io::{Cursor, Read},
     path::Path,
 };
-
-use memmap::Mmap;
 use zip::ZipArchive;
 
 pub fn get_zipped_content(path: &Path) -> (String, String) {

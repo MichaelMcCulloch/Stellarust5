@@ -1,9 +1,7 @@
+use super::{budget::BudgetExtractor, fleets::FleetsExtractor, resources::ResourcesExtractor};
+use crate::{util, Extractor};
 use clausewitz_parser::{ClausewitzValue, Val};
 use game_data_info_struct::{empire::EmpireData, player::PlayerClass};
-
-use crate::{util, Extractor};
-
-use super::{budget::BudgetExtractor, fleets::FleetsExtractor, resources::ResourcesExtractor};
 
 pub(crate) struct EmpireExtractor<'a> {
     country: &'a Val<'a>,

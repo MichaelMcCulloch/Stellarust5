@@ -1,9 +1,6 @@
+use super::{empire::EmpireExtractor, Extractor};
 use clausewitz_parser::{ClausewitzValue, Val};
 use game_data_info_struct::{empire::EmpireData, player::PlayerClass};
-
-use crate::Extractor;
-
-use super::empire::EmpireExtractor;
 
 pub(crate) struct EmpiresExtractor<'a> {
     countries: &'a Vec<(u64, Val<'a>)>,

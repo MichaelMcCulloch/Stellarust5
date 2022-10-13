@@ -1,12 +1,10 @@
+use crate::filter::EndsWithSavFilter;
+use directory_watcher::{PathFilter, Startup};
 use std::{
     fs::DirEntry,
     io::Error,
     path::{Path, PathBuf},
 };
-
-use directory_watcher::{PathFilter, Startup};
-
-use crate::filter::EndsWithSavFilter;
 
 pub struct ScanAllFoldersAndFiles;
 

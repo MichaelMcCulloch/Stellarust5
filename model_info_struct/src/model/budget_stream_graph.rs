@@ -1,5 +1,3 @@
-use std::hash::BuildHasherDefault;
-
 use crate::{Model, ModelSpec};
 use dashmap::DashMap;
 use fxhash::FxHasher;
@@ -7,6 +5,7 @@ use game_data_info_struct::{
     date::Date, empire::EmpireData, index::Index, model::ModelDataPoint, resource::ResourceClass,
 };
 use serde_derive::Serialize;
+use std::hash::BuildHasherDefault;
 
 #[derive(Eq, PartialEq, Hash, Serialize, Clone, Debug)]
 pub struct BudgetStreamGraphModelSpec {

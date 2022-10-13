@@ -1,10 +1,6 @@
-use std;
-
-use std::fmt::Display;
-
-use serde_derive::{Deserialize, Serialize};
-
 use crate::{index::Index, index_mut::IndexMut};
+use serde_derive::{Deserialize, Serialize};
+use std::fmt::Display;
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Resources {
     pub energy: f64,

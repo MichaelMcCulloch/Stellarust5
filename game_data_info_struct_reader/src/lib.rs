@@ -1,13 +1,13 @@
 mod extractor;
 mod util;
-use extractor::{empires::EmpiresExtractor, Extractor};
-
 use clausewitz_parser::{ClausewitzValue, Val};
 use directory_watcher::FileReader;
+use extractor::{empires::EmpiresExtractor, Extractor};
 pub use game_data_info_struct::{
     budget::Budget, empire::EmpireData, model::ModelDataPoint, player::PlayerClass,
 };
 use std::path::Path;
+
 pub struct GameDataInfoStructReader;
 
 impl FileReader for GameDataInfoStructReader {

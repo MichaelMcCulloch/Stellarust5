@@ -1,9 +1,6 @@
+use super::{ship::MilitaryShipExtractor, Extractor};
 use clausewitz_parser::{ClausewitzValue, Val};
 use game_data_info_struct::fleet::Fleet;
-
-use crate::Extractor;
-
-use super::ship::MilitaryShipExtractor;
 
 pub(crate) struct MilitaryFleetExtractor<'a> {
     fleet: &'a Val<'a>,
