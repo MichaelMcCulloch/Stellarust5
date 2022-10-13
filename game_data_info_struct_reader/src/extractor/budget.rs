@@ -1,5 +1,8 @@
 use clausewitz_parser::{ClausewitzValue, Val};
-use game_data_info_struct::{Budget, BudgetComponent, IndexMut, ResourceClass, ALL_RESOURCES};
+use game_data_info_struct::{
+    budget::Budget, budget::BudgetComponent, index_mut::IndexMut, resource::ResourceClass,
+    resource::ALL_RESOURCES,
+};
 
 use crate::Extractor;
 

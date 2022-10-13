@@ -3,7 +3,7 @@ use std::{collections::HashSet, hash::BuildHasherDefault};
 use crate::{Model, ModelSpec};
 use dashmap::DashMap;
 use fxhash::FxHasher;
-use game_data_info_struct::{ModelDataPoint, PlayerClass};
+use game_data_info_struct::{model::ModelDataPoint, player::PlayerClass};
 use serde_derive::Serialize;
 
 use super::campaign_list::Empire;

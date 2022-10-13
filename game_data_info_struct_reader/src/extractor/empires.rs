@@ -1,16 +1,16 @@
 use clausewitz_parser::{ClausewitzValue, Val};
-use game_data_info_struct::{EmpireData, PlayerClass};
+use game_data_info_struct::{empire::EmpireData, player::PlayerClass};
 
 use crate::Extractor;
 
 use super::empire::EmpireExtractor;
 
 pub(crate) struct EmpiresExtractor<'a> {
-    countries: &'a Vec<Val<'a>>,
+    countries: &'a Vec<(u64, Val<'a>)>,
     players: &'a Vec<Val<'a>>,
-    fleets: &'a Vec<Val<'a>>,
-    ships: &'a Vec<Val<'a>>,
-    ship_design: &'a Vec<Val<'a>>,
+    fleets: &'a Vec<(u64, Val<'a>)>,
+    ships: &'a Vec<(u64, Val<'a>)>,
+    ship_design: &'a Vec<(u64, Val<'a>)>,
 }
 
 impl<'a> Extractor for EmpiresExtractor<'a> {
@@ -20,19 +20,18 @@ impl<'a> Extractor for EmpiresExtractor<'a> {
         let mut handled = vec![];
         for player in self.players.iter() {
             let player_name = player.get_string_at_path("name").unwrap();
-            let player_country_index = player.get_integer_at_path("country").unwrap();
+            let player_country_index = *player.get_integer_at_path("country").unwrap() as u64;
 
             handled.push((
                 player_country_index,
                 PlayerClass::Human(player_name.to_string()),
             ));
         }
-        handled.sort_by(|(a, _), (b, _)| a.cmp(b));
 
         let mut empires = vec![];
-        for (idx, country) in self.countries.iter().enumerate() {
+        for (idx, country) in self.countries.iter() {
             let player_class = if let Some(i) = handled.get(0).map(|(i, _)| i) {
-                if i == &&(idx as i64) {
+                if i == idx {
                     handled.remove(0).1
                 } else {
                     PlayerClass::Computer
@@ -58,11 +57,11 @@ impl<'a> Extractor for EmpiresExtractor<'a> {
 
 impl<'a> EmpiresExtractor<'a> {
     pub fn create(
-        countries: &'a Vec<Val<'a>>,
+        countries: &'a Vec<(u64, Val<'a>)>,
         players: &'a Vec<Val<'a>>,
-        fleets: &'a Vec<Val<'a>>,
-        ships: &'a Vec<Val<'a>>,
-        ship_design: &'a Vec<Val<'a>>,
+        fleets: &'a Vec<(u64, Val<'a>)>,
+        ships: &'a Vec<(u64, Val<'a>)>,
+        ship_design: &'a Vec<(u64, Val<'a>)>,
     ) -> EmpiresExtractor<'a> {
         EmpiresExtractor {
             countries,

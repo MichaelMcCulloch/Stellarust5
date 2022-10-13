@@ -2,14 +2,16 @@ use std::hash::{BuildHasherDefault, Hash};
 
 use dashmap::DashMap;
 use fxhash::FxHasher;
-use game_data_info_struct::ModelDataPoint;
+use game_data_info_struct::model::ModelDataPoint;
 use serde::Serialize;
 
 pub mod model;
 
 pub mod enums;
 
-pub use game_data_info_struct::{ResourceClass, ResourceCode, ALL_RESOURCES};
+pub use game_data_info_struct::{
+    resource::ResourceClass, resource::ResourceCode, resource::ALL_RESOURCES,
+};
 pub trait Representation: Serialize {}
 pub trait ModelSpec: Serialize + PartialEq + Eq + Hash {
     type Model: Model;

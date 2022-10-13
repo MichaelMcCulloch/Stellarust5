@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use actix_server::run_actix_server;
 use actix_web::rt;
@@ -33,7 +33,7 @@ fn main() -> Result<()> {
             server_level = "info",
             watcher_level = "info",
             controller_level = "info",
-            reader_level = "info", 
+            reader_level = "info",
         ),
     );
     env_logger::init();

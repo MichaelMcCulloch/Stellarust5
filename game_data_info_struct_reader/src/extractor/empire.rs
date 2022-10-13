@@ -1,7 +1,5 @@
-use std::process::exit;
-
 use clausewitz_parser::{ClausewitzValue, Val};
-use game_data_info_struct::{EmpireData, Fleets, PlayerClass};
+use game_data_info_struct::{empire::EmpireData, player::PlayerClass};
 
 use crate::{util, Extractor};
 
@@ -10,9 +8,9 @@ use super::{budget::BudgetExtractor, fleets::FleetsExtractor, resources::Resourc
 pub(crate) struct EmpireExtractor<'a> {
     country: &'a Val<'a>,
     player_class: PlayerClass,
-    fleets: &'a Vec<Val<'a>>,
-    ships: &'a Vec<Val<'a>>,
-    ship_design: &'a Vec<Val<'a>>,
+    fleets: &'a Vec<(u64, Val<'a>)>,
+    ships: &'a Vec<(u64, Val<'a>)>,
+    ship_design: &'a Vec<(u64, Val<'a>)>,
 }
 
 impl<'a> Extractor for EmpireExtractor<'a> {
@@ -57,9 +55,10 @@ impl<'a> EmpireExtractor<'a> {
     pub fn create(
         country: &'a Val<'a>,
         player_class: PlayerClass,
-        fleets: &'a Vec<Val<'a>>,
-        ships: &'a Vec<Val<'a>>,
-        ship_design: &'a Vec<Val<'a>>,
+
+        fleets: &'a Vec<(u64, Val<'a>)>,
+        ships: &'a Vec<(u64, Val<'a>)>,
+        ship_design: &'a Vec<(u64, Val<'a>)>,
     ) -> EmpireExtractor<'a> {
         EmpireExtractor {
             country,

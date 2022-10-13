@@ -1,13 +1,12 @@
-use std::{collections::HashMap, hash::BuildHasherDefault};
+use std::hash::BuildHasherDefault;
 
 use dashmap::DashMap;
 use fxhash::FxHasher;
-use game_data_info_struct::{date::Date, ModelDataPoint, ResourceClass};
+use game_data_info_struct::{date::Date, model::ModelDataPoint, resource::ResourceClass};
 use serde_derive::Serialize;
 
 use crate::{
     model::{
-        self,
         budget_stream_graph::{BudgetStreamGraphModel, BudgetStreamGraphModelSpec},
         campaign_list::{CampaignInfoStruct, CampaignListModel, CampaignListModelSpec, Empire},
         empire_list::{EmpireListModel, EmpireListModelSpec},

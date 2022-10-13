@@ -4,7 +4,9 @@ use crate::{Model, ModelSpec};
 use chrono::NaiveDate;
 use dashmap::DashMap;
 use fxhash::FxHasher;
-use game_data_info_struct::{date::Date, EmpireData, Index, ModelDataPoint, ResourceClass};
+use game_data_info_struct::{
+    empire::EmpireData, index::Index, model::ModelDataPoint, resource::ResourceClass,
+};
 use serde::{ser::SerializeSeq, Serialize};
 use serde_derive::Serialize;
 use stellarust::{START_OF_GAME_DATE, START_OF_GAME_MONTH, START_OF_GAME_YEAR};
