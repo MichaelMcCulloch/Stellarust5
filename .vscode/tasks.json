@@ -8,7 +8,7 @@
                 "command": "./.vscode/watch_backend.sh"
             },
             "windows": {
-                "command": "cargo watch -c --quiet -d 0 --no-gitignore -x 'check --all' -s 'type '' > .trigger'"
+                "command": "./.vscode/watch_backend.ps1"
             },
             "options": {
                 "cwd": "${workspaceFolder}/"
@@ -27,7 +27,7 @@
                 "command": "./.vscode/watch_frontend.sh",
             },
             "windows": {
-                "command": "cargo watch --use-shell=powershell -c --quiet -d 0 --no-gitignore --no-ignore  -w .\\frontend\\src\\ -s 'cd frontend; npm run lint; if ($?) {cd .. ; Remove-Item -Path .\\target\\release\\build\\frontend_static_files-* -Recurse -Force -Confirm:$false ; Remove-Item -Path .\\target\\debug\\build\\frontend_static_files-* -Recurse -Force -Confirm:$false ; echo $null >>  .trigger } else { cd .. } ;'  ",
+                "command": "./.vscode/watch_frontend.ps1",
             },
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -47,7 +47,7 @@
                 "command": "./.vscode/watch_trigger.sh"
             },
             "windows": {
-                "command": "systemfd --no-pid -s https::0.0.0.0:8000 -- cargo watch -c --quiet --no-gitignore --no-ignore -d 0 -w '.trigger' -x 'run --package backend --bin stellarust --release';"
+                "command": "./.vscode/watch_trigger.ps1"
             },
             "options": {
                 "cwd": "${workspaceFolder}/"
