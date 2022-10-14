@@ -69,23 +69,6 @@
             "dependsOrder": "parallel",
             "group": {
                 "kind": "build",
-            }
-        },
-        {
-            "label": "Deploy Stellarust In Production Mode With Automagic Redeployement With Script",
-            "linux": {
-                "type": "process",
-                "command": "${workspaceFolder}/.vscode/monitor.sh",
-            },
-            "windows": {
-                "type": "shell",
-                "command": "${workspaceFolder}/.vscode/monitor.ps1"
-            },
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "group": {
-                "kind": "build",
                 "isDefault": true
             }
         },
