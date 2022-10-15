@@ -5,7 +5,7 @@ use crossbeam::thread;
 use std::path::PathBuf;
 
 #[cfg(target_os = "windows")]
-const PATHS: [&str; 1] = [&"Documents\\Paradox Interactive\\Stellaris\\save games"];
+const PATHS: [&str; 2] = [&"Documents\\Paradox Interactive\\Stellaris\\save games", &"OneDrive\\Documents\\Paradox Interactive\\Stellaris\\save games"];
 
 #[cfg(target_os = "linux")]
 const PATHS: [&str; 1] = [&".local/share/Paradox Interactive/Stellaris/save games"];
@@ -78,3 +78,4 @@ fn main() -> Result<()> {
         )))
     }
 }
+ 
